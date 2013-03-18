@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content=-"text/html;charset=utf-8">
+
+        <title>JData Performance Tests</title>
+
+        <script src="JSLitmus.js"></script>
+        <script src="jdata.js"></script>
+        <script src="AoA_Dataset.js"></script>
+
+        <script>
+            var d = new JData(AoA_Dataset);
+
+            JSLitmus.test('construct', function () {
+                d = new JData(AoA_Dataset);
+            });
+
+            JSLitmus.test('alpha sort', function () {
+                d = new JData(AoA_Dataset);
+                d.sort([ { column: 'column_a', sort_type: 'alpha' } ]);
+            });
+
+            JSLitmus.test('num sort', function () {
+                d = new JData(AoA_Dataset);
+                d.sort([ { column: 'column_b', sort_type: 'num' } ]);
+            });
+
+            JSLitmus.test('alpha sort 2', function () {
+                d = new JData(AoA_Dataset);
+                d.sort([
+                    { column: 'column_a', sort_type: 'alpha' },
+                    { column: 'column_c', sort_type: 'alpha' },
+                ]);
+            });
+
+            JSLitmus.test('num sort 2', function () {
+                d = new JData(AoA_Dataset);
+                d.sort([
+                    { column: 'column_b', sort_type: 'num' },
+                    { column: 'column_d', sort_type: 'num' },
+                ]);
+            });
+
+            JSLitmus.test('filter dataset columns', function () {
+                d = new JData(AoA_Dataset);
+                d.get_dataset([ 'column_a', 'column_c' ]);
+            });
+        </script>
+    </head>
+
+    <body>
+        <p>Testings...</p>
+        <div id="test_element" style="overflow:hidden; width: 1px; height: 1px;"></div>
+    </body>
+</html>
