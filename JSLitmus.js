@@ -268,6 +268,21 @@
       return Math.round(1/p);
     },
 
+    getMs: function(/**Boolean*/ normalize) {
+      var p = this.period;
+
+      // Adjust period based on the calibration test time
+      if (normalize && !this.isCalibration) {
+        var cal = Test.CALIBRATIONS[this.loopArg ? 0 : 1];
+
+        // If the period is within 20% of the calibration time, then zero the
+        // it out
+        p = p < cal.period*1.2 ? 0 : p - cal.period;
+      }
+
+      return Math.round(p*1000*1000)/1000;
+    },
+
     /**
     * Get a friendly string describing the test
     */
@@ -370,10 +385,11 @@
           <col /> \
           <col width="100" /> \
         </colgroup> \
-        <tr><th id="test_platform" colspan="2">' + platform + '</th></tr> \
-        <tr><th>Test</th><th>Ops/sec</th></tr> \
+        <tr><th id="test_platform" colspan="3">' + platform + '</th></tr> \
+        <tr><th>Test</th><th>Ops/sec</th><th>ms/op</th></tr> \
         <tr id="test_row_template" class="test_row" style="display:none"> \
           <td class="test_name"></td> \
+          <td class="test_result">Ready</td> \
           <td class="test_result">Ready</td> \
         </tr> \
       </table> \
@@ -489,12 +505,13 @@
         test._row.cells[0].innerHTML = test.name;
       }
 
-      var cell = test._row.cells[1];
+      var cellA = test._row.cells[1];
+      var cellB = test._row.cells[2];
       var cns = [test.loopArg ? 'test_looping' : 'test_nonlooping'];
 
       if (test.error) {
         cns.push('test_error');
-        cell.innerHTML =
+        cellA.innerHTML = cellB.innerHTML =
         '<div class="error_head">' + test.error + '</div>' +
         '<ul class="error_body"><li>' +
           jsl.join(test.error, ': ', '</li><li>') +
@@ -502,20 +519,22 @@
       } else {
         if (test.running) {
           cns.push('test_running');
-          cell.innerHTML = 'running';
+          cellA.innerHTML = cellB.innerHTML = 'running';
         } else if (jsl.indexOf(JSLitmus._queue, test) >= 0) {
           cns.push('test_pending');
-          cell.innerHTML = 'pending';
+          cellA.innerHTML = cellB.innerHTML = 'pending';
         } else if (test.count) {
           cns.push('test_done');
-          var hz = test.getHz(jsl.$('test_normalize').checked);
-          cell.innerHTML = hz != Infinity ? hz : '&infin;';
-          cell.title = 'Looped ' + test.count + ' times in ' + test.time + ' seconds';
+          var hz = test.getHz(jsl.$('test_normalize').checked),
+              ms = test.getMs(jsl.$('test_normalize').checked);
+          cellA.innerHTML = hz != Infinity ? hz : '&infin;';
+          cellB.innerHTML = ms;
+          cellA.title = cellB.title = 'Looped ' + test.count + ' times in ' + test.time + ' seconds';
         } else {
-          cell.innerHTML = 'ready';
+          cellA.innerHTML = cellB.innerHTML = 'ready';
         }
       }
-      cell.className = cns.join(' ');
+      cellA.className = cellB.className = cns.join(' ');
     },
 
     /**
