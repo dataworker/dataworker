@@ -52,20 +52,26 @@ var JData;
         return filtered_dataset;
     };
 
-    JData.prototype.filter = function (regex) {
-        var self = this;
-        var i = 0, filtered_dataset = [];
+    JData.prototype.filter = function () {
+        var self = this, regex = arguments[0],
+                         relevant_columns = Array.prototype.slice.call(arguments, 1);
+        var i = 0, j, column, filtered_dataset = [],
+            relevant_indexes = relevant_columns.map(function (column) {
+                return self._columns_idx_xref[column];
+            });
 
         self._dataset.forEach(function (row) {
-            for (var j = 0; j < row.length; j++) {
-                (function () {
-                    var column = row[j];
+            for (j = 0; j < row.length; j++) {
+                column = row[j];
 
-                    if (column !== null && column.match(regex)) {
-                        filtered_dataset[i++] = row;
-                        return;
-                    }
-                })();
+                if (
+                    (relevant_indexes.length == 0 || relevant_indexes.indexOf(j) != -1)
+                    && column !== null
+                    && column.match(regex)
+                ) {
+                    filtered_dataset[i++] = row;
+                    break;
+                }
             }
         });
 
@@ -78,33 +84,6 @@ var JData;
         var self = this;
 
         self._dataset = self._dataset.slice(0, num_rows);
-
-        return self;
-    };
-
-    JData.prototype.remove_columns = function () {
-        var self = this, columns_to_remove = Array.prototype.slice.call(arguments);
-        var i = 0, filtered_columns_idx_xref = {}, filtered_dataset = [];
-
-        self._columns.forEach(function (column) {
-            if (columns_to_remove.indexOf(column) === -1) {
-                filtered_columns_idx_xref[column] = self._columns_idx_xref[column];
-            }
-        });
-        self._columns = Object.keys(filtered_columns_idx_xref);
-        filtered_columns_idx_xref = self._build_columns_idx_xref();
-
-        self._dataset.forEach(function (row) {
-            var filtered_row = [];
-
-            self._columns.forEach(function (column) {
-                filtered_row[filtered_columns_idx_xref[column]] = row[self._columns_idx_xref[column]];
-            });
-
-            filtered_dataset[i++] = filtered_row;
-        });
-
-        self._dataset = filtered_dataset;
 
         return self;
     };
@@ -164,5 +143,32 @@ var JData;
         } else {
             return 0;
         }
+    };
+
+    JData.prototype.remove_columns = function () {
+        var self = this, columns_to_remove = Array.prototype.slice.call(arguments);
+        var i = 0, filtered_columns_idx_xref = {}, filtered_dataset = [];
+
+        self._columns.forEach(function (column) {
+            if (columns_to_remove.indexOf(column) === -1) {
+                filtered_columns_idx_xref[column] = self._columns_idx_xref[column];
+            }
+        });
+        self._columns = Object.keys(filtered_columns_idx_xref);
+        filtered_columns_idx_xref = self._build_columns_idx_xref();
+
+        self._dataset.forEach(function (row) {
+            var filtered_row = [];
+
+            self._columns.forEach(function (column) {
+                filtered_row[filtered_columns_idx_xref[column]] = row[self._columns_idx_xref[column]];
+            });
+
+            filtered_dataset[i++] = filtered_row;
+        });
+
+        self._dataset = filtered_dataset;
+
+        return self;
     };
 })();
