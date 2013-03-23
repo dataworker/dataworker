@@ -12,6 +12,16 @@ test('construct (simple columns)', function () {
 
     ok(d instanceof JData);
     deepEqual(d.get_columns(), [ 'column_a', 'column_b', 'column_c' ]);
+    deepEqual(d._columns_idx_xref, {
+        column_a: 0,
+        column_b: 1,
+        column_c: 2
+    });
+    deepEqual(d._columns_metadata, {
+        column_a: {},
+        column_b: {},
+        column_c: {}
+    });
 });
 
 test('construct (complex columns)', function () {
@@ -19,15 +29,18 @@ test('construct (complex columns)', function () {
         [
             {
                 name: 'column_a',
-                agg: 'max'
+                agg: 'max',
+                sort_type: 'alpha'
             },
             {
                 name: 'column_b',
-                agg: 'max'
+                agg: 'max',
+                sort_type: 'alpha'
             },
             {
                 name: 'column_c',
-                agg: 'max'
+                agg: 'max',
+                sort_type: 'alpha'
             }
         ],
 
@@ -41,6 +54,25 @@ test('construct (complex columns)', function () {
 
     ok(d instanceof JData);
     deepEqual(d.get_columns(), [ 'column_a', 'column_b', 'column_c' ]);
+    deepEqual(d._columns_idx_xref, {
+        column_a: 0,
+        column_b: 1,
+        column_c: 2
+    });
+    deepEqual(d._columns_metadata, {
+        column_a: {
+            agg: 'max',
+            sort_type: 'alpha'
+        },
+        column_b: {
+            agg: 'max',
+            sort_type: 'alpha'
+        },
+        column_c: {
+            agg: 'max',
+            sort_type: 'alpha'
+        }
+    });
 });
 
 test('filter', function () {
