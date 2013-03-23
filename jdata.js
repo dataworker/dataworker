@@ -11,6 +11,9 @@ var JData;
 
         self._columns_idx_xref = self._build_columns_idx_xref();
 
+        self._rows_per_page = 10;
+        self._current_page  = 0;
+
         return self;
     };
 
@@ -168,6 +171,94 @@ var JData;
         });
 
         self._dataset = filtered_dataset;
+
+        return self;
+    };
+
+    JData.prototype.paginate = function (rows_per_page) {
+        var self = this;
+
+        self._rows_per_page = rows_per_page;
+        self._current_page = 0;
+
+        return self;
+    };
+
+    JData.prototype.get_next_page = function () {
+        var self = this, page;
+
+        page = self.get_page();
+        self._current_page++;
+
+        return page;
+    };
+
+    JData.prototype.get_previous_page = function () {
+        var self = this;
+
+        self._current_page--;
+
+        return self.get_page();
+    };
+
+    JData.prototype.get_page = function (page_num) {
+        var self = this;
+        var start, end;
+
+        self._current_page = typeof(page_num) != "undefined" ? (page_num - 1)
+                                                             : self._current_page;
+        if (self._current_page < 0) self._current_page = 0;
+
+        start = self._rows_per_page * self._current_page;
+        end   = start + self._rows_per_page;
+
+        return self._dataset.slice(start, end);
+    };
+
+    JData.prototype.set_page = function (page_num) {
+        var self = this;
+
+        self._current_page = page_num > 0 ? (page_num - 1) : 0;
+
+        return self;
+    };
+
+    JData.prototype.append = function (data) {
+        var self = this;
+        var columns, rows;
+
+        if (data instanceof JData) {
+            columns = data._columns;
+            rows = data._dataset;
+        } else {
+            columns = data.slice(0, 1)[0];
+            rows = data.slice(1);
+        }
+
+        self._check_columns(columns);
+        self._dataset = self._dataset.concat(rows);
+
+        return self;
+    };
+
+    JData.prototype._check_columns = function (columns) {
+        var self = this;
+        var i, error = "Cannot append dataset (columns do not match):\n\t"
+                     + self._columns + "\n\t\tVS\n\t" + columns;
+
+        if (columns.length == self._columns.length) {
+            for (i = 0; i < columns.length; i++) {
+                if (columns[i] !== self._columns[i]) {
+                    throw new Error(error);
+                }
+            }
+        } else {
+            throw new Error(error);
+        }
+    };
+
+    JData.prototype.join = function (data, pk, fk, join_type) {
+        var self = this;
 
         return self;
     };

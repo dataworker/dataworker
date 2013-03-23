@@ -1,17 +1,46 @@
-function assert_arrays_eq(array1, array2) {
-    ok(array1, 'array1 does not exist');
-    ok(array2, 'array2 does not exist');
+test('construct (simple columns)', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
 
-    equal(array1.length, array2.length, 'arrays are different lengths');
-    
-    for (var i = 0; i < array1.length; i++) {
-        deepEqual(array1[i], array2[i], 'arrays not equal at index ' + i);
-    }
-}
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
 
-test('construct', function () {
-    var d = new JData(AoA_Dataset);
+    var d = new JData(dataset);
+
     ok(d instanceof JData);
+    deepEqual(d.get_columns(), [ 'column_a', 'column_b', 'column_c' ]);
+});
+
+test('construct (complex columns)', function () {
+    var dataset = [
+        [
+            {
+                name: 'column_a',
+                agg: 'max'
+            },
+            {
+                name: 'column_b',
+                agg: 'max'
+            },
+            {
+                name: 'column_c',
+                agg: 'max'
+            }
+        ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    ok(d instanceof JData);
+    deepEqual(d.get_columns(), [ 'column_a', 'column_b', 'column_c' ]);
 });
 
 test('filter', function () {
@@ -30,8 +59,9 @@ test('filter', function () {
 
     var result = d.get_dataset();
 
-    equal(result.length, 1, 'expected: 1 row');
-    assert_arrays_eq(result[0], [ 'apple', 'violin', 'music' ]);
+    deepEqual(result, [
+        [ 'apple', 'violin', 'music' ],
+    ]);
 });
 
 test('column-restricted filter (single column)', function () {
@@ -47,13 +77,14 @@ test('column-restricted filter (single column)', function () {
     var d = new JData(dataset);
     var result = d.filter(/apple/, 'column_a').get_dataset();
 
-    equal(result.length, 1, 'expected: 1 row');
-    assert_arrays_eq(result[0], [ 'apple', 'violin', 'music' ]);
+    deepEqual(result, [
+        [ 'apple', 'violin', 'music' ],
+    ]);
 
     d = new JData(dataset);
     result = d.filter(/apple/, 'column_b').get_dataset();
 
-    equal(result.length, 0, 'expected: 0 rows');
+    deepEqual(result, []);
 });
 
 test('column-restricted filter (multi-column)', function () {
@@ -71,14 +102,15 @@ test('column-restricted filter (multi-column)', function () {
                   .sort([ { column: 'column_a', sort_type: 'alpha' } ])
                   .get_dataset();
 
-    equal(result.length, 2, 'expected: 2 rows');
-    assert_arrays_eq(result[0], [ 'apple', 'violin', 'music' ]);
-    assert_arrays_eq(result[1], [ 'gummy', 'power', 'apple' ]);
+    deepEqual(result, [
+        [ 'apple', 'violin', 'music' ],
+        [ 'gummy', 'power', 'apple'  ]
+    ]);
 
     d = new JData(dataset);
     result = d.filter(/piano/, 'column_a', 'column_c').get_dataset();
 
-    equal(result.length, 0, 'expected: 0 rows');
+    deepEqual(result, []);
 });
 
 test('limit', function () {
@@ -94,15 +126,17 @@ test('limit', function () {
     var d = new JData(dataset);
     var result = d.limit(1).get_dataset();
 
-    equal(result.length, 1, 'expected: 1 row');
-    assert_arrays_eq(result[0], [ 'apple', 'violin', 'music' ]);
+    deepEqual(result, [
+        [ 'apple', 'violin', 'music' ]
+    ]);
 
     d = new JData(dataset);
     result = d.limit(2).get_dataset();
 
-    equal(result.length, 2, 'expected: 2 rows');
-    assert_arrays_eq(result[0], [ 'apple', 'violin', 'music' ]);
-    assert_arrays_eq(result[1], [ 'cat', 'tissue', 'dog' ]);
+    deepEqual(result, [
+        [ 'apple', 'violin', 'music' ],
+        [ 'cat', 'tissue', 'dog'     ]
+    ]);
 });
 
 test('remove columns', function () {
@@ -118,11 +152,12 @@ test('remove columns', function () {
     var d = new JData(dataset);
     var result = d.remove_columns('column_b', 'column_c').get_dataset();
 
-    equal(result.length, 4, 'expected: 4 rows');
-    assert_arrays_eq(result[0], [ 'apple' ]);
-    assert_arrays_eq(result[1], [ 'cat' ]);
-    assert_arrays_eq(result[2], [ 'banana' ]);
-    assert_arrays_eq(result[3], [ 'gummy' ]);
+    deepEqual(result, [
+        [ 'apple'  ],
+        [ 'cat'    ],
+        [ 'banana' ],
+        [ 'gummy'  ]
+    ]);
 });
 
 test('alpha sort', function () {
@@ -138,41 +173,43 @@ test('alpha sort', function () {
     var d = new JData(dataset);
     var result = d.sort([ { column: 'column_b', sort_type: 'alpha' } ]).get_dataset();
 
-    equal(result.length, 4, 'expected: 4 rows');
-    assert_arrays_eq(result[0], [ 'banana',      'piano',      'gum' ]);
-    assert_arrays_eq(result[1], [ 'gummy',       'power',    'apple' ]);
-    assert_arrays_eq(result[2], [ 'cat',        'tissue',      'dog' ]);
-    assert_arrays_eq(result[3], [ 'apple',      'violin',    'music' ]);
+    deepEqual(result, [
+        [ 'banana', 'piano',  'gum'   ],
+        [ 'gummy',  'power',  'apple' ],
+        [ 'cat',    'tissue', 'dog'   ],
+        [ 'apple',  'violin', 'music' ]
+    ]);
 });
 
 test('num sort', function () {
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
 
-        [ 'apple',      'violin',        5 ],
-        [ 'cat',        'tissue',       85 ],
-        [ 'banana',      'piano',       45 ],
-        [ 'gummy',       'power',       82 ]
+        [ 'apple',      'violin',          5 ],
+        [ 'cat',        'tissue',         85 ],
+        [ 'banana',      'piano',         45 ],
+        [ 'gummy',       'power',         82 ]
     ];
 
     var d = new JData(dataset);
     var result = d.sort([ { column: 'column_c', sort_type: 'num' } ]).get_dataset();
 
-    equal(result.length, 4, 'expected: 4 rows');
-    assert_arrays_eq(result[0], [ 'apple',      'violin',        5 ]);
-    assert_arrays_eq(result[1], [ 'banana',      'piano',       45 ]);
-    assert_arrays_eq(result[2], [ 'gummy',       'power',       82 ]);
-    assert_arrays_eq(result[3], [ 'cat',        'tissue',       85 ]);
+    deepEqual(result, [
+        [ 'apple', 'violin',  5 ],
+        [ 'banana', 'piano', 45 ],
+        [ 'gummy',  'power', 82 ],
+        [ 'cat',   'tissue', 85 ]
+    ]);
 });
 
 test('multi-column sort', function () {
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
 
-        [ 'apple',      'violin',        5 ],
-        [ 'cat',        'tissue',       85 ],
-        [ 'banana',      'piano',       45 ],
-        [ 'cat',         'power',       98 ]
+        [ 'apple',      'violin',          5 ],
+        [ 'cat',        'tissue',         85 ],
+        [ 'banana',      'piano',         45 ],
+        [ 'cat',         'power',         98 ]
     ];
 
     var d = new JData(dataset);
@@ -181,9 +218,286 @@ test('multi-column sort', function () {
         { column: 'column_c', sort_type: 'num' }
     ]).get_dataset();
 
-    equal(result.length, 4, 'expected: 4 rows');
-    assert_arrays_eq(result[0], [ 'apple',      'violin',        5 ]);
-    assert_arrays_eq(result[1], [ 'banana',      'piano',       45 ]);
-    assert_arrays_eq(result[2], [ 'cat',        'tissue',       85 ]);
-    assert_arrays_eq(result[3], [ 'cat',         'power',       98 ]);
+    deepEqual(result, [
+        [ 'apple', 'violin',  5 ],
+        [ 'banana', 'piano', 45 ],
+        [ 'cat',   'tissue', 85 ],
+        [ 'cat',    'power', 98 ]
+    ]);
+});
+
+test('paginate (set page)', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2);
+
+    d.set_page(3);
+    equal(d._current_page, 2);
+
+    d.set_page(1);
+    equal(d._current_page, 0);
+
+    d.set_page(0);
+    equal(d._current_page, 0);
+
+    d.set_page(-1);
+    equal(d._current_page, 0);
+});
+
+test('paginate (next page)', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2);
+
+    var page1 = d.get_next_page();
+    var page2 = d.get_next_page();
+    var page3 = d.get_next_page();
+    var page4 = d.get_next_page();
+
+    deepEqual(page1, [
+        [ 'apple', 'violin', 'music' ],
+        [ 'cat',   'tissue',   'dog' ]
+    ]);
+    deepEqual(page2, [
+        [ 'banana', 'piano',   'gum' ],
+        [ 'gummy',  'power', 'apple' ]
+    ]);
+    deepEqual(page3, [
+        [ 'car', 'screen', 'phone' ],
+        [ 'sign', 'bagel', 'chips' ]
+    ]);
+    deepEqual(page4, []);
+});
+
+test('paginate (previous page)', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2).set_page(4);
+
+    var page3 = d.get_previous_page();
+    var page2 = d.get_previous_page();
+    var page1 = d.get_previous_page();
+    var page0 = d.get_previous_page();
+
+    deepEqual(page3, [
+        [ 'car', 'screen', 'phone' ],
+        [ 'sign', 'bagel', 'chips' ]
+    ]);
+    deepEqual(page2, [
+        [ 'banana', 'piano',   'gum' ],
+        [ 'gummy',  'power', 'apple' ]
+    ]);
+    deepEqual(page1, [
+        [ 'apple', 'violin', 'music' ],
+        [ 'cat',   'tissue',   'dog' ]
+    ]);
+    deepEqual(page0, [
+        [ 'apple', 'violin', 'music' ],
+        [ 'cat',   'tissue',   'dog' ]
+    ]);
+});
+
+test('paginate (get current page)', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2).set_page(2);
+    var page = d.get_page();
+
+    deepEqual(page, [
+        [ 'banana', 'piano',   'gum' ],
+        [ 'gummy',  'power', 'apple' ],
+    ]);
+});
+
+test('paginate (get specific page)', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2);
+    var page = d.get_page(2);
+
+    deepEqual(page, [
+        [ 'banana', 'piano',   'gum' ],
+        [ 'gummy',  'power', 'apple' ],
+    ]);
+});
+
+test('append', function () {
+    var dataset1 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+    ];
+    var dataset2 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset1);
+    var result = d.append(dataset2).get_dataset();
+
+    deepEqual(result, [
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ]);
+});
+
+test('append JData', function () {
+    var dataset1 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+    ];
+    var dataset2 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d1 = new JData(dataset1);
+    var d2 = new JData(dataset2);
+    var result = d1.append(d2).get_dataset();
+
+    deepEqual(result, [
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ]);
+});
+
+test('failed append (columns not the same)', function () {
+    var dataset1 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+    ];
+    var dataset2 = [
+        [ 'column_a', 'column_b', 'column_d' ],
+
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset1);
+
+    throws(function () {
+            d.append(dataset2);
+    });
+});
+
+test('failed append (different number of columns)', function () {
+    var dataset1 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+    ];
+    var dataset2 = [
+        [ 'column_a', 'column_b' ],
+
+        [ 'gummy',       'power' ],
+        [ 'car',        'screen' ],
+        [ 'sign',        'bagel' ]
+    ];
+
+    var d = new JData(dataset1);
+
+    throws(function () {
+        d.append(dataset2);
+    });
+});
+
+test('join', function () {
+    var dataset1 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+    ];
+    var dataset2 = [
+        [ 'column_d', 'column_e', 'column_f' ],
+
+        [ 'banana',      'power',    'apple' ],
+        [ 'apple',      'screen',    'phone' ],
+        [ 'cat',         'bagel',    'chips' ],
+        [ 'cat',     'amsterdam',    'drops' ]
+    ];
+
+    var d = new JData(dataset1).join(dataset2, 'column_a', 'column_d');
+    var result = d.sort([
+        { column: "column_a", sort_type: "alpha" },
+        { column: "column_f", sort_type: "alpha" },
+    ]).get_dataset();
+
+    deepEqual(result, [
+        [ 'apple', 'violin', 'music', 'apple',    'screen', 'phone' ],
+        [ 'banana', 'piano', 'gum',  'banana',     'power', 'apple' ],
+        [ 'cat',   'tissue', 'dog',     'cat',     'bagel', 'chips' ],
+        [ 'cat',   'tissue', 'dog',     'cat', 'amsterdam', 'drops' ]
+    ]);
 });
