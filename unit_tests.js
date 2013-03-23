@@ -471,33 +471,39 @@ test('failed append (different number of columns)', function () {
     });
 });
 
-test('join', function () {
-    var dataset1 = [
-        [ 'column_a', 'column_b', 'column_c' ],
-
-        [ 'apple',      'violin',    'music' ],
-        [ 'cat',        'tissue',      'dog' ],
-        [ 'banana',      'piano',      'gum' ],
-    ];
-    var dataset2 = [
-        [ 'column_d', 'column_e', 'column_f' ],
-
-        [ 'banana',      'power',    'apple' ],
-        [ 'apple',      'screen',    'phone' ],
-        [ 'cat',         'bagel',    'chips' ],
-        [ 'cat',     'amsterdam',    'drops' ]
-    ];
-
-    var d = new JData(dataset1).join(dataset2, 'column_a', 'column_d');
-    var result = d.sort([
-        { column: "column_a", sort_type: "alpha" },
-        { column: "column_f", sort_type: "alpha" },
-    ]).get_dataset();
-
-    deepEqual(result, [
-        [ 'apple', 'violin', 'music', 'apple',    'screen', 'phone' ],
-        [ 'banana', 'piano', 'gum',  'banana',     'power', 'apple' ],
-        [ 'cat',   'tissue', 'dog',     'cat',     'bagel', 'chips' ],
-        [ 'cat',   'tissue', 'dog',     'cat', 'amsterdam', 'drops' ]
-    ]);
-});
+//test('join (single field)', function () {
+//    var dataset1 = [
+//        [ 'column_a', 'column_b', 'column_c' ],
+//
+//        [ 'apple',      'violin',    'music' ],
+//        [ 'cat',        'tissue',      'dog' ],
+//        [ 'banana',      'piano',      'gum' ],
+//    ];
+//    var dataset2 = [
+//        [ 'column_d', 'column_e', 'column_f' ],
+//
+//        [ 'banana',      'power',    'apple' ],
+//        [ 'apple',      'screen',    'phone' ],
+//        [ 'cat',         'bagel',    'chips' ],
+//        [ 'cat',     'amsterdam',    'drops' ]
+//    ];
+//
+//    var d = new JData(dataset1).join(dataset2, 'column_a', 'column_d');
+//    var result = d.sort([
+//        { column: "column_a", sort_type: "alpha" },
+//        { column: "column_f", sort_type: "alpha" },
+//    ]).get_dataset();
+//
+//    deepEqual(result, [
+//        [ 'apple', 'violin', 'music', 'apple',    'screen', 'phone' ],
+//        [ 'banana', 'piano', 'gum',  'banana',     'power', 'apple' ],
+//        [ 'cat',   'tissue', 'dog',     'cat',     'bagel', 'chips' ],
+//        [ 'cat',   'tissue', 'dog',     'cat', 'amsterdam', 'drops' ]
+//    ]);
+//});
+//
+//test('group (single field)', function () {
+//});
+//
+//test('group (multi-field)', function () {
+//});

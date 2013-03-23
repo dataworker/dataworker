@@ -5,11 +5,18 @@ var JData;
 
     JData = function (dataset) {
         var self = this instanceof JData ? this : Object.create(JData.prototype);
+        var columns = dataset.slice(0, 1)[0].map(function (column) {
+            return typeof(column) === "string" ? { name: column } : column;
+        });
 
-        self._columns = dataset.slice(0, 1)[0];
-        self._dataset = dataset.slice(1);
-
+        self._columns = columns.map(function (column) {
+            var name = typeof(column) === "string" ? column : column['name'];
+            return name;
+        });
         self._columns_idx_xref = self._build_columns_idx_xref();
+        self._columns_metadata = self._build_columns_metadata(columns);
+
+        self._dataset = dataset.slice(1);
 
         self._rows_per_page = 10;
         self._current_page  = 0;
@@ -26,6 +33,22 @@ var JData;
         });
 
         return columns_idx_xref;
+    };
+
+    JData.prototype._build_columns_metadata = function (columns) {
+        var self = this;
+        var columns_metadata = {};
+
+        columns.forEach(function (column) {
+            if (typeof(column) === "string") {
+                columns_metadata[column] = {};
+            } else {
+                columns_metadata[column['name']] = column;
+                delete columns_metadata[column['name']]['name'];
+            }
+        });
+
+        return columns_metadata;
     };
 
     JData.prototype.get_columns = function () {
@@ -259,6 +282,12 @@ var JData;
 
     JData.prototype.join = function (data, pk, fk, join_type) {
         var self = this;
+
+        return self;
+    };
+
+    JData.prototype.group = function () {
+        var self = this, columns_to_group_by = Array.prototype.slice.call(arguments);
 
         return self;
     };
