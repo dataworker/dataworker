@@ -258,13 +258,13 @@ var JData;
             rows = data.slice(1);
         }
 
-        self._check_columns(columns);
+        self._check_columns_for_append(columns);
         self._dataset = self._dataset.concat(rows);
 
         return self;
     };
 
-    JData.prototype._check_columns = function (columns) {
+    JData.prototype._check_columns_for_append = function (columns) {
         var self = this;
         var i, error = "Cannot append dataset (columns do not match):\n\t"
                      + self._columns + "\n\t\tVS\n\t" + columns;
@@ -282,11 +282,19 @@ var JData;
 
     JData.prototype.join = function (fdata, pk, fk, join_type) {
         var self = this;
-        var p_hash, p_idx = self._columns_idx_xref[pk],
-            f_hash, f_idx = fdata._columns_idx_xref[fk];
+        var joined_dataset = [],
+            p_hash = {}, p_idx = self._columns_idx_xref[pk],
+            f_hash = {}, f_idx = fdata._columns_idx_xref[fk];
 
-        //TODO: Don't need p_hash - just iterate rows of self._dataset
-        //      and append relevant rows from f_hash.
+        fdata._columns.forEach(function (column) {
+            if (self._columns.indexOf(column) != -1) {
+                throw new Error(
+                    "Joining dataset has a column with the same name as an existing column: "
+                    + column
+                );
+            }
+        });
+
         self._dataset.forEach(function (row) {
             var field = row[p_idx];
 
@@ -306,9 +314,74 @@ var JData;
             }
         });
 
+        if (typeof(join_type) === "undefined") {
+            Object.keys(p_hash).forEach(function (key_field) {
+                if (key_field in f_hash) {
+                    p_hash[key_field].forEach(function (p_row) {
+                        f_hash[key_field].forEach(function (f_row) {
+                            joined_dataset.push(p_row.concat(f_row));
+                        });
+                    });
+                }
+            });
+        } else if (join_type === "left") {
+            Object.keys(p_hash).forEach(function (key_field) {
+                if (key_field in f_hash) {
+                    p_hash[key_field].forEach(function (p_row) {
+                        f_hash[key_field].forEach(function (f_row) {
+                            joined_dataset.push(p_row.concat(f_row));
+                        });
+                    });
+                } else {
+                    p_hash[key_field].forEach(function (p_row) {
+                        joined_dataset.push(
+                            p_row.concat(fdata._columns.map(function () { return '' }))
+                        );
+                    });
+                }
+            });
+        } else if (join_type === "right") {
+            Object.keys(f_hash).forEach(function (key_field) {
+                if (key_field in p_hash) {
+                    p_hash[key_field].forEach(function (p_row) {
+                        f_hash[key_field].forEach(function (f_row) {
+                            joined_dataset.push(p_row.concat(f_row));
+                        });
+                    });
+                } else {
+                    f_hash[key_field].forEach(function (f_row) {
+                        joined_dataset.push(
+                            self._columns.map(function() { return '' }).concat(f_row)
+                        );
+                    });
+                }
+            });
+        } else {
+            throw new Error("Unknown join type.");
+        }
+
         self._columns = self._columns.concat(fdata._columns);
         self._columns_idx_xref = self._build_columns_idx_xref();
-        self._columns_metadata = self._columns_metadata.concat(fdata._columns_metadata);
+        Object.keys(fdata._columns_metadata).forEach(function (column) {
+            self._columns_metadata[column] = fdata._columns_metadata[column];
+        });
+
+        self._dataset = joined_dataset;
+
+        return self;
+    };
+
+    JData.prototype.prepend_column_names = function (prepend) {
+        var self = this;
+        var columns_metadata = {};
+
+        self._columns = self._columns.map(function (column) { return prepend + column; });
+        self._columns_idx_xref = self._build_columns_idx_xref();
+        Object.keys(self._columns_metadata).forEach(function (column) {
+            columns_metadata[prepend + column] = self._columns_metadata[column];
+        });
+
+        self._columns_metadata = columns_metadata;
 
         return self;
     };
