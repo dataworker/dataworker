@@ -280,8 +280,35 @@ var JData;
         }
     };
 
-    JData.prototype.join = function (data, pk, fk, join_type) {
+    JData.prototype.join = function (fdata, pk, fk, join_type) {
         var self = this;
+        var p_hash, p_idx = self._columns_idx_xref[pk],
+            f_hash, f_idx = fdata._columns_idx_xref[fk];
+
+        //TODO: Don't need p_hash - just iterate rows of self._dataset
+        //      and append relevant rows from f_hash.
+        self._dataset.forEach(function (row) {
+            var field = row[p_idx];
+
+            if (field in p_hash) {
+                p_hash[field].push(row);
+            } else {
+                p_hash[field] = [ row ];
+            }
+        });
+        fdata._dataset.forEach(function (row) {
+            var field = row[f_idx];
+
+            if (field in f_hash) {
+                f_hash[field].push(row);
+            } else {
+                f_hash[field] = [ row ];
+            }
+        });
+
+        self._columns = self._columns.concat(fdata._columns);
+        self._columns_idx_xref = self._build_columns_idx_xref();
+        self._columns_metadata = self._columns_metadata.concat(fdata._columns_metadata);
 
         return self;
     };
