@@ -18,9 +18,18 @@ test('construct (simple columns)', function () {
         column_c: 2
     });
     deepEqual(d._columns_metadata, {
-        column_a: {},
-        column_b: {},
-        column_c: {}
+        column_a: {
+            agg_type: 'max',
+            sort_type: 'alpha'
+        },
+        column_b: {
+            agg_type: 'max',
+            sort_type: 'alpha'
+        },
+        column_c: {
+            agg_type: 'max',
+            sort_type: 'alpha'
+        }
     });
 });
 
@@ -29,17 +38,17 @@ test('construct (complex columns)', function () {
         [
             {
                 name: 'column_a',
-                agg: 'max',
+                agg_type: 'max',
                 sort_type: 'alpha'
             },
             {
                 name: 'column_b',
-                agg: 'max',
+                agg_type: 'max',
                 sort_type: 'alpha'
             },
             {
                 name: 'column_c',
-                agg: 'max',
+                agg_type: 'min',
                 sort_type: 'alpha'
             }
         ],
@@ -61,15 +70,15 @@ test('construct (complex columns)', function () {
     });
     deepEqual(d._columns_metadata, {
         column_a: {
-            agg: 'max',
+            agg_type: 'max',
             sort_type: 'alpha'
         },
         column_b: {
-            agg: 'max',
+            agg_type: 'max',
             sort_type: 'alpha'
         },
         column_c: {
-            agg: 'max',
+            agg_type: 'min',
             sort_type: 'alpha'
         }
     });
@@ -131,7 +140,7 @@ test('column-restricted filter (multi-column)', function () {
 
     var d = new JData(dataset);
     var result = d.filter(/apple/, 'column_a', 'column_c')
-                  .sort([ { column: 'column_a', sort_type: 'alpha' } ])
+                  .sort('column_a')
                   .get_dataset();
 
     deepEqual(result, [
@@ -192,7 +201,7 @@ test('remove columns', function () {
     ]);
 });
 
-test('alpha sort', function () {
+test('sort (alpha)', function () {
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
 
@@ -203,7 +212,7 @@ test('alpha sort', function () {
     ];
 
     var d = new JData(dataset);
-    var result = d.sort([ { column: 'column_b', sort_type: 'alpha' } ]).get_dataset();
+    var result = d.sort('column_b').get_dataset();
 
     deepEqual(result, [
         [ 'banana', 'piano',  'gum'   ],
@@ -213,9 +222,46 @@ test('alpha sort', function () {
     ]);
 });
 
-test('num sort', function () {
+test('sort (reverse alpha)', function () {
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ]
+    ];
+
+    var d = new JData(dataset);
+    var result = d.sort('-column_b').get_dataset();
+
+    deepEqual(result, [
+        [ 'apple',  'violin', 'music' ],
+        [ 'cat',    'tissue', 'dog'   ],
+        [ 'gummy',  'power',  'apple' ],
+        [ 'banana', 'piano',  'gum'   ]
+    ]);
+});
+
+test('sort (num)', function () {
+    var dataset = [
+        [
+            {
+                name: 'column_a',
+                sort_type: 'alpha',
+                agg_type: 'max'
+            },
+            {
+                name: 'column_b',
+                sort_type: 'alpha',
+                agg_type: 'max'
+            },
+            {
+                name: 'column_c',
+                sort_type: 'num',
+                agg_type: 'max'
+            },
+        ],
 
         [ 'apple',      'violin',          5 ],
         [ 'cat',        'tissue',         85 ],
@@ -224,7 +270,7 @@ test('num sort', function () {
     ];
 
     var d = new JData(dataset);
-    var result = d.sort([ { column: 'column_c', sort_type: 'num' } ]).get_dataset();
+    var result = d.sort('column_c').get_dataset();
 
     deepEqual(result, [
         [ 'apple', 'violin',  5 ],
@@ -234,9 +280,25 @@ test('num sort', function () {
     ]);
 });
 
-test('multi-column sort', function () {
+test('sort (multi-column)', function () {
     var dataset = [
-        [ 'column_a', 'column_b', 'column_c' ],
+        [
+            {
+                name: 'column_a',
+                sort_type: 'alpha',
+                agg_type: 'max'
+            },
+            {
+                name: 'column_b',
+                sort_type: 'alpha',
+                agg_type: 'max'
+            },
+            {
+                name: 'column_c',
+                sort_type: 'num',
+                agg_type: 'max'
+            },
+        ],
 
         [ 'apple',      'violin',          5 ],
         [ 'cat',        'tissue',         85 ],
@@ -245,10 +307,7 @@ test('multi-column sort', function () {
     ];
 
     var d = new JData(dataset);
-    var result = d.sort([
-        { column: 'column_a', sort_type: 'alpha' },
-        { column: 'column_c', sort_type: 'num' }
-    ]).get_dataset();
+    var result = d.sort('column_a', 'column_c').get_dataset();
 
     deepEqual(result, [
         [ 'apple', 'violin',  5 ],
@@ -525,10 +584,7 @@ test('join (inner join on single field)', function () {
 
     d1.join(d2, 'column_a', 'column_d');
 
-    var result = d1.sort([
-        { column: "column_a", sort_type: "alpha" },
-        { column: "column_f", sort_type: "alpha" },
-    ]).get_dataset();
+    var result = d1.sort('column_a', 'column_f').get_dataset();
 
     deepEqual(result, [
         [ 'apple', 'violin', 'music', 'apple',    'screen', 'phone' ],
@@ -543,12 +599,30 @@ test('join (inner join on single field)', function () {
     );
 
     deepEqual(d1._columns_metadata, {
-        column_a: {},
-        column_b: {},
-        column_c: {},
-        column_d: {},
-        column_e: {},
-        column_f: {}
+        column_a: {
+            agg_type: 'max',
+            sort_type: 'alpha',
+        },
+        column_b: {
+            agg_type: 'max',
+            sort_type: 'alpha',
+        },
+        column_c: {
+            agg_type: 'max',
+            sort_type: 'alpha',
+        },
+        column_d: {
+            agg_type: 'max',
+            sort_type: 'alpha',
+        },
+        column_e: {
+            agg_type: 'max',
+            sort_type: 'alpha',
+        },
+        column_f: {
+            agg_type: 'max',
+            sort_type: 'alpha',
+        }
     });
 });
 
@@ -575,10 +649,7 @@ test('join (left outer join on single field)', function () {
 
     d1.join(d2, 'column_a', 'column_d', 'left');
 
-    var result = d1.sort([
-        { column: "column_a", sort_type: "alpha" },
-        { column: "column_f", sort_type: "alpha" },
-    ]).get_dataset();
+    var result = d1.sort('column_a', 'column_f').get_dataset();
 
     deepEqual(result, [
         [ 'apple',   'violin', 'music',  'apple',    'screen', 'phone' ],
@@ -611,10 +682,7 @@ test('join (right outer join on single field', function () {
 
     d1.join(d2, 'column_a', 'column_d', 'right');
 
-    var result = d1.sort([
-        { column: "column_a", sort_type: "alpha" },
-        { column: "column_f", sort_type: "alpha" },
-    ]).get_dataset();
+    var result = d1.sort('column_a', 'column_f').get_dataset();
 
     deepEqual(result, [
         [ '',              '',      '',    'car',      'nuts',  'axes' ],
@@ -712,8 +780,8 @@ test('prepend column names', function () {
     });
 });
 
-//test('group (single field)', function () {
-//});
-//
-//test('group (multi-field)', function () {
-//});
+test('group (single field)', function () {
+});
+
+test('group (multi-field)', function () {
+});

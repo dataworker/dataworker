@@ -5,9 +5,7 @@ var JData;
 
     JData = function (dataset) {
         var self = this instanceof JData ? this : Object.create(JData.prototype);
-        var columns = dataset.slice(0, 1)[0].map(function (column) {
-            return typeof(column) === "string" ? { name: column } : column;
-        });
+        var columns = dataset.slice(0, 1)[0];
 
         self._columns = columns.map(function (column) {
             var name = typeof(column) === "string" ? column : column['name'];
@@ -40,12 +38,12 @@ var JData;
         var columns_metadata = {};
 
         columns.forEach(function (column) {
-            if (typeof(column) === "string") {
-                columns_metadata[column] = {};
-            } else {
-                columns_metadata[column['name']] = column;
-                delete columns_metadata[column['name']]['name'];
-            }
+            var column_name = typeof(column) === "string" ? column : column['name'];
+
+            columns_metadata[column_name] = {
+                sort_type: column['sort_type'] || 'alpha',
+                agg_type: column['agg_type'] || 'max'
+            };
         });
 
         return columns_metadata;
@@ -114,31 +112,40 @@ var JData;
         return self;
     };
 
-    JData.prototype.sort = function (columns) {
-        var self = this;
+    JData.prototype.sort = function () {
+        var self = this, columns = Array.prototype.slice.call(arguments);
 
         self._dataset.sort(function (a, b) {
-            var i, column_name, sort_type, sort_result, val_a, val_b;
+            var i, sort_column, column_name, reverse, sort_type, sort_result, val_a, val_b;
 
             for (i = 0; i < columns.length; i++) {
-                column_name = columns[i]["column"];
-                sort_type   = columns[i]["sort_type"];
+                sort_column = columns[i].match(/(-?)(\w+)/);
+                column_name = sort_column[2];
+                reverse     = !!sort_column[1];
+                sort_type   = self._columns_metadata[column_name]['sort_type'];
 
-                val_a = a[self._columns_idx_xref[column_name]];
-                val_b = b[self._columns_idx_xref[column_name]];
+                if (reverse) {
+                    val_b = a[self._columns_idx_xref[column_name]];
+                    val_a = b[self._columns_idx_xref[column_name]];
+                } else {
+                    val_a = a[self._columns_idx_xref[column_name]];
+                    val_b = b[self._columns_idx_xref[column_name]];
+                }
 
                 if (typeof(sort_type) === "function") {
                     sort_result = sort_type(val_a, val_b);
                 } else if (sort_type === "alpha") {
                     sort_result = self._alpha_sort(val_a, val_b);
-                } else {
+                } else if (sort_type === "num") {
                     sort_result = self._num_sort(val_a, val_b);
+                } else {
+                    throw new Error("Unknown sort type.");
                 }
 
                 if (sort_result !== 0) {
                     return sort_result;
                 }
-            };
+            }
 
             return 0;
         });
