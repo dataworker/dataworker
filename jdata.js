@@ -384,17 +384,101 @@ var JData;
 
         self._columns = self._columns.map(function (column) { return prepend + column; });
         self._columns_idx_xref = self._build_columns_idx_xref();
+
         Object.keys(self._columns_metadata).forEach(function (column) {
             columns_metadata[prepend + column] = self._columns_metadata[column];
         });
-
         self._columns_metadata = columns_metadata;
+
+        return self;
+    };
+
+    JData.prototype.alter_column_name = function (old_name, new_name) {
+        var self = this;
+
+        self._columns.forEach(function (column) {
+            if (column !== old_name && column === new_name) {
+                throw new Error("Column " + new_name + " already exists in dataset.");
+            }
+        });
+
+        self._columns = self._columns.map(function (column) {
+            return column === old_name ? new_name : column;
+        });
+        self._columns_idx_xref = self._build_columns_idx_xref();
+
+        self._columns_metadata[new_name] = self._columns_metadata[old_name];
+        delete self._columns_metadata[old_name];
+
+        return self;
+    };
+
+    JData.prototype.alter_column_sort_type = function (column, sort_type) {
+        var self = this;
+
+        self._columns_metadata[column]['sort_type'] = sort_type;
+
+        return self;
+    };
+
+    JData.prototype.alter_column_aggregate_type = function (column, agg_type) {
+        var self = this;
+
+        self._columns_metadata[column]['agg_type'] = agg_type;
 
         return self;
     };
 
     JData.prototype.group = function () {
         var self = this, columns_to_group_by = Array.prototype.slice.call(arguments);
+        var dataset_by_key_columns = {}, grouped_dataset = [],
+            key_idxs = columns_to_group_by.map(function (column) {
+                return self._columns_idx_xref[column];
+            });
+
+        self._dataset.forEach(function (row) {
+            var key_columns = key_idxs.map(function (i) { return row[i]; }).join('|');
+
+            if (key_columns in dataset_by_key_columns) {
+                dataset_by_key_columns[key_columns].push(row);
+            } else {
+                dataset_by_key_columns[key_columns] = [ row ];
+            }
+        });
+
+        Object.keys(dataset_by_key_columns).forEach(function (key_columns) {
+            var i, agg_type, grouped_row = [];
+
+            dataset_by_key_columns[key_columns].forEach(function (row) {
+                for (i = 0; i < row.length; i++) {
+                    agg_type = self._columns_metadata[self._columns[i]]['agg_type'];
+
+                    if (i in grouped_row && (key_idxs.indexOf(i) == -1)) {
+                        if (agg_type === "sum") {
+                            grouped_row[i] += row[i];
+                        } else if (agg_type === "max") {
+                            grouped_row[i] = grouped_row[i] < row[i] ? row[i]
+                                                                     : grouped_row[i];
+                        } else if (agg_type === "min") {
+                            grouped_row[i] = grouped_row[i] > row[i] ? row[i]
+                                                                     : grouped_row[i];
+                        } else {
+                            throw new Error(
+                                "Unrecognized agg_type for column "
+                                + self._columns[i] + "."
+                            );
+                        }
+                    } else {
+                        grouped_row[i] = row[i];
+                    }
+                }
+            });
+
+            grouped_dataset.push(grouped_row);
+            grouped_row = [];
+        });
+
+        self._dataset = grouped_dataset;
 
         return self;
     };

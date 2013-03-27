@@ -780,8 +780,175 @@ test('prepend column names', function () {
     });
 });
 
-test('group (single field)', function () {
+test('alter column name', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).alter_column_name('column_a', 'a_column');
+
+    deepEqual(d._columns, [ 'a_column', 'column_b', 'column_c' ]);
+    deepEqual(d._columns_idx_xref, {
+            'a_column': 0,
+            'column_b': 1,
+            'column_c': 2
+    });
+    deepEqual(d._columns_metadata, {
+        'a_column': {
+            sort_type: 'alpha',
+            agg_type: 'max'
+        },
+        'column_b': {
+            sort_type: 'alpha',
+            agg_type: 'max'
+        },
+        'column_c': {
+            sort_type: 'alpha',
+            agg_type: 'max'
+        }
+    });
+});
+
+test('alter column name (fails if changing to already existing column name)', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    throws(function () {
+        d.alter_column_name('column_a', 'column_b');
+    });
+});
+
+test('alter column sort type', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).alter_column_sort_type('column_a', 'random');
+
+    equal(d._columns_metadata['column_a']['sort_type'], 'random'); 
+});
+
+test('alter column aggregate type', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).alter_column_aggregate_type('column_a', 'random');
+
+    equal(d._columns_metadata['column_a']['agg_type'], 'random'); 
+});
+
+test('group (single field sum)', function () {
+    var dataset = [
+        [
+            { name : 'column_a', sort_type : 'alpha', agg_type : 'max' },
+            { name : 'column_b', sort_type : 'num',   agg_type : 'sum' },
+        ],
+
+        [ 'apple',  453 ],
+        [ 'cat',    663 ],
+        [ 'apple',  123 ],
+        [ 'gummy',  34  ]
+    ];
+
+    var d = new JData(dataset).group('column_a');
+
+    deepEqual(d.sort('column_a').get_dataset(), [
+        [ 'apple', 576 ],
+        [ 'cat',   663 ],
+        [ 'gummy',  34 ]
+    ]);
+});
+
+test('group (single field max)', function () {
+    var dataset = [
+        [
+            { name : 'column_a', sort_type : 'alpha', agg_type : 'max' },
+            { name : 'column_b', sort_type : 'num',   agg_type : 'max' },
+        ],
+
+        [ 'apple',  453 ],
+        [ 'cat',    663 ],
+        [ 'apple',  123 ],
+        [ 'gummy',  34  ]
+    ];
+
+    var d = new JData(dataset).group('column_a');
+
+    deepEqual(d.sort('column_a').get_dataset(), [
+        [ 'apple', 453 ],
+        [ 'cat',   663 ],
+        [ 'gummy',  34 ]
+    ]);
+});
+
+test('group (single field min)', function () {
+    var dataset = [
+        [
+            { name : 'column_a', sort_type : 'alpha', agg_type : 'max' },
+            { name : 'column_b', sort_type : 'num',   agg_type : 'min' },
+        ],
+
+        [ 'apple',  453 ],
+        [ 'cat',    663 ],
+        [ 'apple',  123 ],
+        [ 'gummy',  34  ]
+    ];
+
+    var d = new JData(dataset).group('column_a');
+
+    deepEqual(d.sort('column_a').get_dataset(), [
+        [ 'apple', 123 ],
+        [ 'cat',   663 ],
+        [ 'gummy',  34 ]
+    ]);
 });
 
 test('group (multi-field)', function () {
+    var dataset = [
+        [
+            { name : 'column_a', sort_type : 'alpha', agg_type : 'max' },
+            { name : 'column_b', sort_type : 'alpha', agg_type : 'max' },
+            { name : 'column_c', sort_type : 'num',   agg_type : 'sum' },
+        ],
+
+        [ 'apple',  'violin', 453 ],
+        [ 'cat',    'tissue', 663 ],
+        [ 'apple',  'piano',  123 ],
+        [ 'gummy',  'power',  34  ],
+        [ 'apple',  'piano',  95  ],
+        [ 'gummy',  'power',  768 ]
+    ];
+
+    var d = new JData(dataset).group('column_a', 'column_b');
+
+    deepEqual(d.sort('column_a', 'column_b').get_dataset(), [
+        [ 'apple',  'piano',  218 ],
+        [ 'apple',  'violin', 453 ],
+        [ 'cat',    'tissue', 663 ],
+        [ 'gummy',   'power', 802 ]
+    ]);
 });
