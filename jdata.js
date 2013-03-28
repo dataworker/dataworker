@@ -289,9 +289,7 @@ var JData;
 
     JData.prototype.join = function (fdata, pk, fk, join_type) {
         var self = this;
-        var joined_dataset = [],
-            p_hash = {}, p_idx = self._columns_idx_xref[pk],
-            f_hash = {}, f_idx = fdata._columns_idx_xref[fk];
+        var joined_dataset = [], p_hash, f_hash;
 
         fdata._columns.forEach(function (column) {
             if (self._columns.indexOf(column) != -1) {
@@ -302,24 +300,8 @@ var JData;
             }
         });
 
-        self._dataset.forEach(function (row) {
-            var field = row[p_idx];
-
-            if (field in p_hash) {
-                p_hash[field].push(row);
-            } else {
-                p_hash[field] = [ row ];
-            }
-        });
-        fdata._dataset.forEach(function (row) {
-            var field = row[f_idx];
-
-            if (field in f_hash) {
-                f_hash[field].push(row);
-            } else {
-                f_hash[field] = [ row ];
-            }
-        });
+        p_hash = self._hash_dataset_by_key_columns(pk);
+        f_hash = fdata._hash_dataset_by_key_columns(fk);
 
         if (typeof(join_type) === "undefined") {
             Object.keys(p_hash).forEach(function (key_field) {
@@ -378,6 +360,27 @@ var JData;
         return self;
     };
 
+    JData.prototype._hash_dataset_by_key_columns = function (key_columns) {
+        var self = this, key_indexes, hash = {};
+
+        key_columns = key_columns instanceof Array ? key_columns : [ key_columns ];
+        key_indexes = key_columns.map(function (column) {
+            return self._columns_idx_xref[column];
+        });
+
+        self._dataset.forEach(function (row) {
+            var key = key_indexes.map(function (i) { return row[i] }).join('|');
+
+            if (key in hash) {
+                hash[key].push(row);
+            } else {
+                hash[key] = [ row ];
+            }
+        });
+
+        return hash;
+    };
+
     JData.prototype.prepend_column_names = function (prepend) {
         var self = this;
         var columns_metadata = {};
@@ -431,25 +434,17 @@ var JData;
 
     JData.prototype.group = function () {
         var self = this, columns_to_group_by = Array.prototype.slice.call(arguments);
-        var dataset_by_key_columns = {}, grouped_dataset = [],
+        var hashed_dataset, grouped_dataset = [],
             key_idxs = columns_to_group_by.map(function (column) {
                 return self._columns_idx_xref[column];
             });
 
-        self._dataset.forEach(function (row) {
-            var key_columns = key_idxs.map(function (i) { return row[i]; }).join('|');
+        hashed_dataset = self._hash_dataset_by_key_columns(columns_to_group_by);
 
-            if (key_columns in dataset_by_key_columns) {
-                dataset_by_key_columns[key_columns].push(row);
-            } else {
-                dataset_by_key_columns[key_columns] = [ row ];
-            }
-        });
-
-        Object.keys(dataset_by_key_columns).forEach(function (key_columns) {
+        Object.keys(hashed_dataset).forEach(function (key_columns) {
             var i, agg_type, grouped_row = [];
 
-            dataset_by_key_columns[key_columns].forEach(function (row) {
+            hashed_dataset[key_columns].forEach(function (row) {
                 for (i = 0; i < row.length; i++) {
                     agg_type = self._columns_metadata[self._columns[i]]['agg_type'];
 

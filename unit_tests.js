@@ -105,7 +105,7 @@ test('filter', function () {
     ]);
 });
 
-test('column-restricted filter (single column)', function () {
+test('filter (column-restricted, single column)', function () {
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
 
@@ -128,7 +128,7 @@ test('column-restricted filter (single column)', function () {
     deepEqual(result, []);
 });
 
-test('column-restricted filter (multi-column)', function () {
+test('filter (column-restricted, multi-column)', function () {
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
 
@@ -176,7 +176,7 @@ test('limit', function () {
 
     deepEqual(result, [
         [ 'apple', 'violin', 'music' ],
-        [ 'cat', 'tissue', 'dog'     ]
+        [ 'cat',   'tissue', 'dog'   ]
     ]);
 });
 
@@ -263,7 +263,7 @@ test('sort (num)', function () {
             },
         ],
 
-        [ 'apple',      'violin',          5 ],
+        [ 'apple',      'violin',          8 ],
         [ 'cat',        'tissue',         85 ],
         [ 'banana',      'piano',         45 ],
         [ 'gummy',       'power',         82 ]
@@ -273,10 +273,47 @@ test('sort (num)', function () {
     var result = d.sort('column_c').get_dataset();
 
     deepEqual(result, [
-        [ 'apple', 'violin',  5 ],
+        [ 'apple', 'violin',  8 ],
         [ 'banana', 'piano', 45 ],
         [ 'gummy',  'power', 82 ],
         [ 'cat',   'tissue', 85 ]
+    ]);
+});
+
+test('sort (reverse num)', function () {
+    var dataset = [
+        [
+            {
+                name: 'column_a',
+                sort_type: 'alpha',
+                agg_type: 'max'
+            },
+            {
+                name: 'column_b',
+                sort_type: 'alpha',
+                agg_type: 'max'
+            },
+            {
+                name: 'column_c',
+                sort_type: 'num',
+                agg_type: 'max'
+            },
+        ],
+
+        [ 'apple',      'violin',          8 ],
+        [ 'cat',        'tissue',         85 ],
+        [ 'banana',      'piano',         45 ],
+        [ 'gummy',       'power',         82 ]
+    ];
+
+    var d = new JData(dataset);
+    var result = d.sort('-column_c').get_dataset();
+
+    deepEqual(result, [
+        [ 'cat',   'tissue', 85 ],
+        [ 'gummy',  'power', 82 ],
+        [ 'banana', 'piano', 45 ],
+        [ 'apple', 'violin',  8 ]
     ]);
 });
 
@@ -689,6 +726,40 @@ test('join (right outer join on single field', function () {
         [ 'apple',   'violin', 'music',  'apple',    'screen', 'phone' ],
         [ 'banana',   'piano',   'gum', 'banana',     'power', 'apple' ],
         [ 'cat',     'tissue',   'dog',    'cat',     'bagel', 'chips' ]
+    ]);
+});
+
+test('join (inner join on multiple fields)', function () {
+    var dataset1 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+    ];
+    var dataset2 = [
+        [ 'column_d', 'column_e', 'column_f' ],
+
+        [ 'banana',      'power',    'apple' ],
+        [ 'apple',      'screen',    'phone' ],
+        [ 'cat',         'bagel',    'chips' ],
+        [ 'cat',     'amsterdam',    'drops' ],
+        [ 'cat',        'tissue',    'drops' ]
+    ];
+
+    var d1 = new JData(dataset1);
+    var d2 = new JData(dataset2);
+
+    d1.join(
+        d2,
+        [ 'column_a', 'column_b' ],
+        [ 'column_d', 'column_e' ]
+    );
+
+    var result = d1.get_dataset();
+
+    deepEqual(result, [
+        [ 'cat', 'tissue', 'dog', 'cat', 'tissue', 'drops' ]
     ]);
 });
 
