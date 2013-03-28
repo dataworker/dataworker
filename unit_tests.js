@@ -1023,3 +1023,159 @@ test('group (multi-field)', function () {
         [ 'gummy',   'power', 802 ]
     ]);
 });
+
+test('get partitioned (single field)', function () {
+    var dataset = [
+        [
+            { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
+            { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
+            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' },
+        ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ],
+        [ 'apple',      'trance',   'camaro' ],
+        [ 'cat',           'soy',  'blender' ],
+        [ 'banana',   'eyedrops',      'tie' ],
+        [ 'apple',        'body',      'key' ]
+    ];
+
+    var d = new JData(dataset).partition('column_a');
+
+    deepEqual(d.get_partition_keys().sort(), [
+        [ 'apple'  ],
+        [ 'banana' ],
+        [ 'cat'    ],
+        [ 'gummy'  ]
+    ]);
+
+    deepEqual(d.get_partitioned('apple').sort('column_b').get_dataset(), [
+        [ 'apple',   'body',    'key' ],
+        [ 'apple', 'trance', 'camaro' ],
+        [ 'apple', 'violin',  'music' ]
+    ]);
+    deepEqual(d.get_partitioned('apple')._columns_metadata, {
+        column_a: {
+            sort_type: 'alpha',
+            agg_type: 'max',
+        },
+        column_b: {
+            sort_type: 'alpha',
+            agg_type: 'min',
+        },
+        column_c: {
+            sort_type: 'alpha',
+            agg_type: 'min',
+        }
+    });
+
+    deepEqual(d.get_partitioned('banana').sort('column_b').get_dataset(), [
+        [ 'banana', 'eyedrops', 'tie' ],
+        [ 'banana',    'piano', 'gum' ]
+    ]);
+    deepEqual(d.get_partitioned('banana')._columns_metadata, {
+        column_a: {
+            sort_type: 'alpha',
+            agg_type: 'max',
+        },
+        column_b: {
+            sort_type: 'alpha',
+            agg_type: 'min',
+        },
+        column_c: {
+            sort_type: 'alpha',
+            agg_type: 'min',
+        }
+    });
+
+    deepEqual(d.get_partitioned('cat').sort('column_b').get_dataset(), [
+        [ 'cat',    'soy', 'blender' ],
+        [ 'cat', 'tissue',     'dog' ]
+    ]);
+    deepEqual(d.get_partitioned('cat')._columns_metadata, {
+        column_a: {
+            sort_type: 'alpha',
+            agg_type: 'max',
+        },
+        column_b: {
+            sort_type: 'alpha',
+            agg_type: 'min',
+        },
+        column_c: {
+            sort_type: 'alpha',
+            agg_type: 'min',
+        }
+    });
+
+    deepEqual(d.get_partitioned('gummy').get_dataset(), [
+        [ 'gummy', 'power', 'star' ]
+    ]);
+    deepEqual(d.get_partitioned('gummy')._columns_metadata, {
+        column_a: {
+            sort_type: 'alpha',
+            agg_type: 'max',
+        },
+        column_b: {
+            sort_type: 'alpha',
+            agg_type: 'min',
+        },
+        column_c: {
+            sort_type: 'alpha',
+            agg_type: 'min',
+        }
+    });
+
+});
+
+test('get partitioned (multi-field)', function () {
+    var dataset = [
+        [
+            { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
+            { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
+            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' },
+        ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ],
+        [ 'apple',      'trance',   'camaro' ],
+        [ 'cat',           'soy',  'blender' ],
+        [ 'banana',      'piano',      'tie' ],
+        [ 'apple',      'violin',      'key' ]
+    ];
+
+    var d = new JData(dataset).partition('column_a', 'column_b');
+
+    deepEqual(d.get_partition_keys().sort(), [
+        [ 'apple', 'trance' ],
+        [ 'apple', 'violin' ],
+        [ 'banana', 'piano' ],
+        [ 'cat',      'soy' ],
+        [ 'cat',   'tissue' ],
+        [ 'gummy', 'power'  ]
+    ]);
+
+    deepEqual(d.get_partitioned('apple', 'trance').sort('column_c').get_dataset(), [
+        [ 'apple', 'trance', 'camaro' ]
+    ]);
+    deepEqual(d.get_partitioned('apple', 'violin').sort('column_c').get_dataset(), [
+        [ 'apple', 'violin',   'key' ],
+        [ 'apple', 'violin', 'music' ]
+    ]);
+    deepEqual(d.get_partitioned('banana', 'piano').sort('column_c').get_dataset(), [
+        [ 'banana', 'piano', 'gum' ],
+        [ 'banana', 'piano', 'tie' ]
+    ]);
+    deepEqual(d.get_partitioned('cat', 'soy').sort('column_c').get_dataset(), [
+        [ 'cat', 'soy',  'blender' ]
+    ]);
+    deepEqual(d.get_partitioned('cat', 'tissue').sort('column_c').get_dataset(), [
+        [ 'cat', 'tissue', 'dog' ]
+    ]);
+    deepEqual(d.get_partitioned('gummy', 'power').sort('column_c').get_dataset(), [
+        [ 'gummy', 'power', 'star' ]
+    ]);
+});

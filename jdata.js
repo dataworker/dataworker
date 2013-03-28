@@ -19,6 +19,8 @@ var JData;
         self._rows_per_page = 10;
         self._current_page  = 0;
 
+        self._partitioned_datasets = {};
+
         return self;
     };
 
@@ -369,7 +371,7 @@ var JData;
         });
 
         self._dataset.forEach(function (row) {
-            var key = key_indexes.map(function (i) { return row[i] }).join('|');
+            var key = key_indexes.map(function (i) { return row[i] }).join("|");
 
             if (key in hash) {
                 hash[key].push(row);
@@ -476,5 +478,36 @@ var JData;
         self._dataset = grouped_dataset;
 
         return self;
+    };
+
+    JData.prototype.partition = function () {
+        var self = this, partition_by = Array.prototype.slice.call(arguments);
+        var hashed_dataset = self._hash_dataset_by_key_columns(partition_by)
+
+        Object.keys(hashed_dataset).forEach(function (key_columns) {
+            var dataset = hashed_dataset[key_columns], d;
+            dataset.unshift(self._columns);
+
+            d = new JData(dataset);
+            d._columns_metadata = self._columns_metadata;
+
+            self._partitioned_datasets[key_columns] = d;
+        });
+
+        return self;
+    };
+
+    JData.prototype.get_partition_keys = function () {
+        var self = this;
+
+        return Object.keys(self._partitioned_datasets).map(function (key) {
+            return key.split("|");
+        });
+    };
+
+    JData.prototype.get_partitioned = function () {
+        var self = this, keys = Array.prototype.slice.call(arguments);
+
+        return self._partitioned_datasets[keys.join("|")];
     };
 })();
