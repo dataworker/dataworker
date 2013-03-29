@@ -20,15 +20,18 @@ test('construct (simple columns)', function () {
     deepEqual(d._columns_metadata, {
         column_a: {
             agg_type: 'max',
-            sort_type: 'alpha'
+            sort_type: 'alpha',
+            title: 'column_a'
         },
         column_b: {
             agg_type: 'max',
-            sort_type: 'alpha'
+            sort_type: 'alpha',
+            title: 'column_b'
         },
         column_c: {
             agg_type: 'max',
-            sort_type: 'alpha'
+            sort_type: 'alpha',
+            title: 'column_c'
         }
     });
 });
@@ -39,17 +42,20 @@ test('construct (complex columns)', function () {
             {
                 name: 'column_a',
                 agg_type: 'max',
-                sort_type: 'alpha'
+                sort_type: 'alpha',
+                title: 'Column A'
             },
             {
                 name: 'column_b',
                 agg_type: 'max',
-                sort_type: 'alpha'
+                sort_type: 'alpha',
+                title: 'Column B'
             },
             {
                 name: 'column_c',
                 agg_type: 'min',
-                sort_type: 'alpha'
+                sort_type: 'alpha',
+                title: 'Column C'
             }
         ],
 
@@ -71,15 +77,18 @@ test('construct (complex columns)', function () {
     deepEqual(d._columns_metadata, {
         column_a: {
             agg_type: 'max',
-            sort_type: 'alpha'
+            sort_type: 'alpha',
+            title: 'Column A'
         },
         column_b: {
             agg_type: 'max',
-            sort_type: 'alpha'
+            sort_type: 'alpha',
+            title: 'Column B'
         },
         column_c: {
             agg_type: 'min',
-            sort_type: 'alpha'
+            sort_type: 'alpha',
+            title: 'Column C'
         }
     });
 });
@@ -639,26 +648,32 @@ test('join (inner join on single field)', function () {
         column_a: {
             agg_type: 'max',
             sort_type: 'alpha',
+            title: 'column_a'
         },
         column_b: {
             agg_type: 'max',
             sort_type: 'alpha',
+            title: 'column_b'
         },
         column_c: {
             agg_type: 'max',
             sort_type: 'alpha',
+            title: 'column_c'
         },
         column_d: {
             agg_type: 'max',
             sort_type: 'alpha',
+            title: 'column_d'
         },
         column_e: {
             agg_type: 'max',
             sort_type: 'alpha',
+            title: 'column_e'
         },
         column_f: {
             agg_type: 'max',
             sort_type: 'alpha',
+            title: 'column_f'
         }
     });
 });
@@ -838,15 +853,18 @@ test('prepend column names', function () {
     deepEqual(d._columns_metadata, {
         p_column_a: {
             sort_type: 'alpha',
-            agg_type: 'max'
+            agg_type: 'max',
+            title: 'column_a'
         },
         p_column_b: {
             sort_type: 'alpha',
-            agg_type: 'max'
+            agg_type: 'max',
+            title: 'column_b'
         },
         p_column_c: {
             sort_type: 'alpha',
-            agg_type: 'min'
+            agg_type: 'min',
+            title: 'column_c'
         },
     });
 });
@@ -872,15 +890,18 @@ test('alter column name', function () {
     deepEqual(d._columns_metadata, {
         'a_column': {
             sort_type: 'alpha',
-            agg_type: 'max'
+            agg_type: 'max',
+            title: 'column_a'
         },
         'column_b': {
             sort_type: 'alpha',
-            agg_type: 'max'
+            agg_type: 'max',
+            title: 'column_b'
         },
         'column_c': {
             sort_type: 'alpha',
-            agg_type: 'max'
+            agg_type: 'max',
+            title: 'column_c'
         }
     });
 });
@@ -930,6 +951,21 @@ test('alter column aggregate type', function () {
     var d = new JData(dataset).alter_column_aggregate_type('column_a', 'random');
 
     equal(d._columns_metadata['column_a']['agg_type'], 'random'); 
+});
+
+test('alter column title', function () {
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).alter_column_title('column_a', 'random');
+
+    equal(d._columns_metadata['column_a']['title'], 'random'); 
 });
 
 test('group (single field sum)', function () {
@@ -1060,14 +1096,17 @@ test('get partitioned (single field)', function () {
         column_a: {
             sort_type: 'alpha',
             agg_type: 'max',
+            title: 'column_a'
         },
         column_b: {
             sort_type: 'alpha',
             agg_type: 'min',
+            title: 'column_b'
         },
         column_c: {
             sort_type: 'alpha',
             agg_type: 'min',
+            title: 'column_c'
         }
     });
 
@@ -1079,14 +1118,17 @@ test('get partitioned (single field)', function () {
         column_a: {
             sort_type: 'alpha',
             agg_type: 'max',
+            title: 'column_a'
         },
         column_b: {
             sort_type: 'alpha',
             agg_type: 'min',
+            title: 'column_b'
         },
         column_c: {
             sort_type: 'alpha',
             agg_type: 'min',
+            title: 'column_c'
         }
     });
 
@@ -1098,14 +1140,17 @@ test('get partitioned (single field)', function () {
         column_a: {
             sort_type: 'alpha',
             agg_type: 'max',
+            title: 'column_a'
         },
         column_b: {
             sort_type: 'alpha',
             agg_type: 'min',
+            title: 'column_b'
         },
         column_c: {
             sort_type: 'alpha',
             agg_type: 'min',
+            title: 'column_c'
         }
     });
 
@@ -1116,14 +1161,17 @@ test('get partitioned (single field)', function () {
         column_a: {
             sort_type: 'alpha',
             agg_type: 'max',
+            title: 'column_a'
         },
         column_b: {
             sort_type: 'alpha',
             agg_type: 'min',
+            title: 'column_b'
         },
         column_c: {
             sort_type: 'alpha',
             agg_type: 'min',
+            title: 'column_c'
         }
     });
 

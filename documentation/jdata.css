@@ -1,0 +1,10 @@
+h1 {
+    text-align: center;
+}
+
+.header_row {
+    border-style: solid;
+    border-width: 1px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}

@@ -21,6 +21,8 @@ var JData;
 
         self._partitioned_datasets = {};
 
+        self._render_function = function () {};
+
         return self;
     };
 
@@ -44,7 +46,8 @@ var JData;
 
             columns_metadata[column_name] = {
                 sort_type: column['sort_type'] || 'alpha',
-                agg_type: column['agg_type'] || 'max'
+                agg_type: column['agg_type'] || 'max',
+                title: column['title'] || column_name
             };
         });
 
@@ -56,7 +59,10 @@ var JData;
     };
 
     JData.prototype.get_dataset = function () {
-        var self = this, columns = Array.prototype.slice.call(arguments);
+        var self = this,
+            columns = arguments[0] instanceof Array
+                    ? arguments[0]
+                    : Array.prototype.slice.call(arguments);
         var filtered_dataset = [];
 
         if (columns.length === 0) return self._dataset;
@@ -79,8 +85,11 @@ var JData;
     };
 
     JData.prototype.filter = function () {
-        var self = this, regex = arguments[0],
-                         relevant_columns = Array.prototype.slice.call(arguments, 1);
+        var self = this,
+            regex = arguments[0],
+            relevant_columns = arguments[1] instanceof Array
+                             ? arguments[1]
+                             : Array.prototype.slice.call(arguments, 1);
         var i = 0, j, column, filtered_dataset = [],
             relevant_indexes = relevant_columns.map(function (column) {
                 return self._columns_idx_xref[column];
@@ -115,7 +124,10 @@ var JData;
     };
 
     JData.prototype.sort = function () {
-        var self = this, columns = Array.prototype.slice.call(arguments);
+        var self = this,
+            columns = arguments[0] instanceof Array
+                    ? arguments[0]
+                    : Array.prototype.slice.call(arguments);
 
         self._dataset.sort(function (a, b) {
             var i, sort_column, column_name, reverse, sort_type, sort_result, val_a, val_b;
@@ -181,7 +193,10 @@ var JData;
     };
 
     JData.prototype.remove_columns = function () {
-        var self = this, columns_to_remove = Array.prototype.slice.call(arguments);
+        var self = this,
+            columns_to_remove = arguments[0] instanceof Array
+                              ? arguments[0]
+                              : Array.prototype.slice.call(arguments);
         var i = 0, filtered_columns_idx_xref = {}, filtered_dataset = [];
 
         self._columns.forEach(function (column) {
@@ -434,8 +449,19 @@ var JData;
         return self;
     };
 
+    JData.prototype.alter_column_title = function (column, title) {
+        var self = this;
+
+        self._columns_metadata[column]['title'] = title;
+
+        return self;
+    };
+
     JData.prototype.group = function () {
-        var self = this, columns_to_group_by = Array.prototype.slice.call(arguments);
+        var self = this,
+            columns_to_group_by = arguments[0] instanceof Array
+                                ?  arguments[0]
+                                : Array.prototype.slice.call(arguments);
         var hashed_dataset, grouped_dataset = [],
             key_idxs = columns_to_group_by.map(function (column) {
                 return self._columns_idx_xref[column];
@@ -481,7 +507,10 @@ var JData;
     };
 
     JData.prototype.partition = function () {
-        var self = this, partition_by = Array.prototype.slice.call(arguments);
+        var self = this,
+            partition_by = arguments[0] instanceof Array
+                         ? arguments[0]
+                         : Array.prototype.slice.call(arguments);
         var hashed_dataset = self._hash_dataset_by_key_columns(partition_by)
 
         Object.keys(hashed_dataset).forEach(function (key_columns) {
@@ -506,8 +535,23 @@ var JData;
     };
 
     JData.prototype.get_partitioned = function () {
-        var self = this, keys = Array.prototype.slice.call(arguments);
+        var self = this,
+            keys = arguments[0] instanceof Array
+                 ? arguments[0]
+                 : Array.prototype.slice.call(arguments);
 
         return self._partitioned_datasets[keys.join("|")];
+    };
+
+    JData.prototype.render = function (render_function) {
+        var self;
+
+        if (typeof(render_function) === "function") {
+            self._render_function = render_function;
+        } else {
+            self._render_function();
+        }
+
+        return self;
     };
 })();

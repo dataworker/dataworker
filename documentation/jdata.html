@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link href="bootstrap/css/bootstrap.css" rel="stylesheet" media="screen">
+        <link href="jdata.css" rel="stylesheet">
+
+        <script src="http://code.jquery.com/jquery.js"></script>
+        <script src="bootstrap/js/bootstrap.js"></script>
+
+        <title>JData</title>
+    </head>
+    <body>
+        <div class="container" id="top">
+            <div class="header_row row">
+                <div class="span12">
+                    <h1>JData</h1>
+                </div>
+            </div>
+            <div class="row">
+                <div class="span3">
+                    <ul class="nav nav-tabs nav-stacked affix">
+                        <li><a href="#top">JData</a></li>
+                        <li class="nav-header">Get started!</li>
+                        <li><a href="#construct">Construct</a></li>
+                        <li class="nav-header">Manipulate the dataset!</li>
+                        <li><a href="#alter_columns">Alter columns</a></li>
+                        <li><a href="#append">Append</a></li>
+                        <li><a href="#filter">Filter</a></li>
+                        <li><a href="#group">Group</a></li>
+                        <li><a href="#join">Join</a></li>
+                        <li><a href="#limit">Limit</a></li>
+                        <li><a href="#remove_columns">Remove columns</a></li>
+                        <li><a href="#sort">Sort</a></li>
+                        <li class="nav-header">Access the dataset!</li>
+                        <li><a href="#get_dataset">Get dataset</a></li>
+                        <li><a href="#paginate">Paginate</a></li>
+                        <li><a href="#partition">Partition</a></li>
+                        <li><a href="#render">Render</a></li>
+                    </ul>
+                </div>
+                <div class="span9">
+                    <section id="construct">
+                        <h3>Construct</h3>
+                        <p>JData takes an array of records to construct the initial dataset. The first record defines column properties.</p>
+                        <pre>
+    var dataset = [
+        [
+            {
+                name: 'column_a',
+                title: 'Column A',
+                agg_type: 'max',
+                sort_type: 'alpha'
+            },
+            {
+                name: 'column_b',
+                title: 'Column B',
+                agg_type: 'max',
+                sort_type: 'alpha'
+            },
+            {
+                name: 'column_c',
+                title: 'Column C',
+                agg_type: 'min',
+                sort_type: 'alpha'
+            }
+        ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);</pre>
+                        <p>It is also possible to just supply column names:</P>
+                        <pre>
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);</pre>
+                        <p>If only column names are supplied, the following default column properties are used:</p>
+                        <ul>
+                            <li><code>title</code>: <code>column_name</code></li>
+                            <li><code>agg_type</code>: 'max'</li>
+                            <li><code>sort_type</code>: 'alpha'</li>
+                        </ul>
+                    </section>
+                    <section id="alter_columns">
+                        <h3>Alter columns</h3>
+                        <p>Column properties can be altered after JData is instantiated.</p>
+                        <h5>Alter column name</h5>
+                        <p>To change the name of <code>column_a</code> to <code>column_a1</code>:</p>
+                        <pre>
+    d.alter_column_name('column_a', 'column_a1');</pre>
+                        <h5>Alter column title</h5>
+                        <p>To change the title of <code>column_a</code> to <code>Things I Love</code>:</p>
+                        <pre>
+    d.alter_column_title('column_a', 'Things I Love');</pre>
+                        <h5>Alter column aggregate type</h5>
+                        <p>To change the aggregate type of <code>column_a</code> to <code>min</code>:</p>
+                        <pre>
+    d.alter_column_aggregate_type('column_a', 'min');</pre>
+                        <p>Valid aggregate types are:</p>
+                        <ul>
+                            <li><code>max</code></li>
+                            <li><code>min</code></li>
+                            <li><code>sum</code></li>
+                        </ul>
+                        <h5>Alter column sort type</h5>
+                        <p>To change the sort type of <code>column_a</code> to <code>num</code>:</p>
+                        <pre>
+    d.alter_column_sort_type('column_a', 'num');</pre>
+                        <p>Valid sort types are:</p>
+                        <ul>
+                            <li><code>alpha</code></li>
+                            <li><code>num</code></li>
+                        </ul>
+                        <p>Alternatively, you may pass in a sort function that takes two arguments <code>(a, b)</code> and returns <code>-1</code> for <code>a &lt b</code>, <code>1</code> for <code> a &gt b</code> or <code>0</code> for <code>a == b</code>.</p>
+                        <h5>Prepend column names</h5>
+                        <p>To prepend <code>a_</code> to all column names:</p>
+                        <pre>
+    d.prepend_column_names('a_');</pre>
+                    </section>
+                    <section id="append">
+                        <h3>Append</h3>
+                        <p>The <code>append</code> method is used to concatenate two datasets together. The following appends <code>dataset2</code> to <code>dataset1</code>:</p>
+                        <pre>
+    var dataset1 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+    ];
+    var dataset2 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset1);
+    d.append(dataset2);</pre>
+                        <p>Alternatively, you may also append a JData dataset:</p>
+                        <pre>
+    var dataset1 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+    ];
+    var dataset2 = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d1 = new JData(dataset1);
+    var d2 = new JData(dataset2);
+    d1.append(d2);</pre>
+                        <p>Note that column names must match up; an error will be thrown otherwise.</p>
+                    </section>
+                    <section id="filter">
+                        <h3>Filter</h3>
+                        <p>The <code>filter</code> method is used to filter out rows that do not contain the specified regex. This happens in-place. The following filters out any row that does not contain the word 'apple':</p>
+                        <pre>
+    d.filter(/\bapple\b/)</pre>
+                        <p>You may also filter only on certain columns:</p>
+                        <pre>
+    d.filter(/\bapple\b/, 'column_a', 'column_b');</pre>
+                        <p>Note that the following also works (and results in the exact same dataset):</p>
+                        <pre>
+    d.filter(/\bapple\b/, [ 'column_a', 'column_b' ]);</pre>
+                    </section>
+                    <section id="group">
+                        <h3>Group</h3>
+                        <p>Similar to grouping in SQL, the <code>group</code> method allows you to group rows together.</p>
+                        <pre>
+    d.group('column_a');</pre>
+                        <p>You may also group by multiple rows:</p>
+                        <pre>
+    d.group('column_a', 'column_b');</pre>
+                        <p>Note that the following is also valid:</p>
+                        <pre>
+    d.group([ 'column_a', 'column_b' ]);</pre>
+                        <p>Rows with the same value for the specified column(s) will be combined; the column property <code>agg_type</code> determines how values for non-specified columns are combined.</p>
+                    </section>
+                    <section id="join">
+                        <h3>Join</h3>
+                        <p>JData also supports joining via the <code>join</code> method. It can inner join, left outer join, or right outer join.</p>
+                        <p>The following inner joins <code>d1</code> with <code>d2</code> on <code>column_a</code> from <code>d1</code> and <code>column_d</code> from <code>d2</code>:</p>
+                        <pre>
+    d1.join(d2, 'column_a', 'column_d');</pre>
+                        <p>The following left outer joins <code>d1</code> with <code>d2</code> on <code>column_a</code> from <code>d1</code> and <code>column_d</code> from <code>d2</code>:</p>
+                        <pre>
+    d1.join(d2, 'column_a', 'column_d', 'left');</pre>
+                        <p>The following right outer joins <code>d1</code> with <code>d2</code> on <code>column_a</code> from <code>d1</code> and <code>column_d</code> from <code>d2</code>:</p>
+                        <pre>
+    d1.join(d2, 'column_a', 'column_d', 'right');</pre>
+                        <p>Joins can also be performed on multiple columns:</p>
+                        <pre>
+    d1.join(d2, [ 'column_a', 'column_b' ], [ 'column_d', 'column_e' ]);</pre>
+                    </section>
+                    <section id="limit">
+                        <h3>Limit</h3>
+                        <p>The <code>limit</code> method limits the amount of rows in the dataset. The following keeps only the first 10 rows in the dataset:</p>
+                        <pre>   d.limit(10);</pre>
+                    </section>
+                    <section id="remove_columns">
+                        <h3>Remove columns</h3>
+                        <p>You may completely delete columns from a dataset with the <code>remove_columns</code> method.
+                        <pre>   d.remove_columns('column_a', 'column_b');</pre>
+                        <p>Note that the following is also valid:</p>
+                        <pre>   d.remove_columns([ 'column_a', 'column_b' ]);</pre>
+                    </section>
+                    <section id="sort">
+                        <h3>Sort</h3>
+                        <p>The following sorts the dataset on <code>column_a</code>:</p>
+                        <pre>
+    d.sort('column_a')</pre>
+                        <p>To reverse sort, prepend the column name with a <code>-</code>:</p>
+                        <pre>
+    d.sort('-column_a')</pre>
+                        <p>You may also sort on multiple columns:</p>
+                        <pre>
+    d.sort('column_a', '-column_b');</pre>
+                        <p>In this case, the sort will fallback to <code>column_b</code> if the contents of <code>column_a</code> are equal.</p>
+                        <p>Note that the following does the same thing:</p>
+                        <pre>
+    d.sort([ 'column_a', '-column_b' ]);</pre>
+                    </section>
+                    <section id="get_dataset">
+                        <h3>Get dataset</h3>
+                        <p>Dataset rows can be retrieved for use via the <code>get_dataset</code> method.</p>
+                        <pre>
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+    var records = d.get_dataset();</pre>
+                        <p>The following is the contents of <code>records</code>:</p>
+                        <pre>
+    [
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ]</pre>
+                    </section>
+                    <section id="paginate">
+                        <h3>Pagination</h3>
+                        <p>Pagination eases incremental of the records. The following sets JData to display 10 rows per page</p>
+                        <pre>
+    d.paginate(10);</pre>
+                        <h5>Get next page</h5>
+                        <p>Now you may grab the next 10 rows using the <code>get_next_page</code> method:</p>
+                        <pre>
+    var next_10_rows = d.get_next_page();</pre>
+                        <p>Grabbing the next page when you're on the last page will return an empty page.</p>
+                        <h5>Get previous page</h5>
+                        <p>The previous 10 rows can be grabbed using the <code>get_previous_page</code> method:</p>
+                        <pre>
+    var previous_10_rows = d.get_previous_page();</pre>
+                        <p>Grabbing a previous page from the 1st page will simply return the 1st page again.</p>
+                        <h5>Get page</h5>
+                        <p>You may jump to a specific page using the <code>get_page</code> method. The following grabs page 4:</p>
+                        <pre>
+    var page = d.get_page(4);</pre>
+                        <p>Note that this also sets your current page to the page you grab.</p>
+                        <h5>Set page</h5>
+                        <p>Use the <code>set_page</code> method to set a new current page. Attempting to set the page to 0 or a negative number will set the page to page 1. Setting to a page past the max number of current pages is allowed. The following sets your current page to page 4:</p>
+                        <pre>
+    d.set_page(4);</pre>
+                    </section>
+                    <section id="partition">
+                        <h3>Partition</h3>
+                        <p>JData can partition its dataset into multiple smaller datasets. The smaller datasets can be retrieved afterwards using their parition key(s). The following partitions the dataset by the contents of <code>column_a</code> and pushes each partition onto the <code>partitioned</code> array:</p>
+                        <pre>
+    var partitioned = [];
+
+    d.partition('column_a');
+
+    d.get_partition_keys().forEach(function (key) {
+        partitioned.push(d.get_partitioned(key));
+    });</pre>
+                        <p>You may also partition by multiple keys:</p>
+                        <pre>
+    d.partition('column_a', 'column_b');</pre>
+                        <p>The following does the same thing:</p>
+                        <pre>
+    d.partition([ 'column_a', 'column_b' ]);</pre>
+                    </section>
+                    <section id="render">
+                        <h3>Render</h3>
+                        <p>The <code>render</code> method allows you to pass JData a function to render the dataset. When <code>render</code> is called without arguments, JData will call the rendering function that the user passed in, or do nothing if the user has not set a rendering function.</p>
+                        <pre>
+    d.render(function () { /* code for rendering the dataset */ });
+
+    /* Make some changes to the dataset. */
+
+    d.render(); // Renders the new dataset.</pre>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
