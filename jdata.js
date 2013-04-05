@@ -5,15 +5,8 @@ var JData;
 
     JData = function (dataset) {
         var self = this instanceof JData ? this : Object.create(JData.prototype);
-        var columns = dataset.slice(0, 1)[0];
 
-        self._columns = columns.map(function (column) {
-            var name = typeof(column) === "string" ? column : column['name'];
-            return name;
-        });
-        self._columns_idx_xref = self._build_columns_idx_xref();
-        self._columns_metadata = self._build_columns_metadata(columns);
-
+        self._columns = self._prepare_columns(dataset.slice(0, 1)[0]);
         self._dataset = dataset.slice(1);
 
         self._rows_per_page = 10;
@@ -23,79 +16,119 @@ var JData;
 
         self._render_function = function () {};
 
+        self._action_queue = [];
+        self._is_in_action = false;
+
         return self;
     };
 
-    JData.prototype._build_columns_idx_xref = function () {
+    JData.prototype._queue_next = function (action) {
         var self = this;
-        var columns_idx_xref = {};
 
-        self._columns.forEach(function (column, i) {
-            columns_idx_xref[column] = i;
-        });
+        self._action_queue.push(action);
+        self._next_action();
 
-        return columns_idx_xref;
+        return self;
     };
 
-    JData.prototype._build_columns_metadata = function (columns) {
+    JData.prototype._next_action = function (finish_previous) {
         var self = this;
-        var columns_metadata = {};
 
-        columns.forEach(function (column) {
-            var column_name = typeof(column) === "string" ? column : column['name'];
+        if (finish_previous) self._is_in_action = false;
 
-            columns_metadata[column_name] = {
-                sort_type: column['sort_type'] || 'alpha',
-                agg_type: column['agg_type'] || 'max',
-                title: column['title'] || column_name
+        if (!self._is_in_action && self._action_queue.length > 0) {
+            var action = self._action_queue.shift();
+            self._is_in_action = true;
+            action();
+        }
+
+        return self;
+    };
+
+    JData.prototype._prepare_columns = function (columns) {
+        var self = this, prepared_columns = {};
+
+        columns.forEach(function (column, i) {
+            var name = typeof(column) === "string" ? column : column["name"];
+
+            prepared_columns[name] = {
+                sort_type : column["sort_type"] || "alpha",
+                agg_type  : column["agg_type"]  || "max",
+                title     : column["title"]     || name,
+                index     : i
             };
         });
 
-        return columns_metadata;
+        return prepared_columns;
     };
 
-    JData.prototype.get_columns = function () {
-        return this._columns;
+    JData.prototype.get_columns = function (callback) {
+        var self = this;
+
+        self._queue_next(function () {
+            callback(self._columns);
+
+            return self._next_action(true);
+        });
+
+        return self;
+    };
+
+    JData.prototype._get_dataset = function () {
+        var self = this,
+            callback = arguments[0],
+            column_names = arguments[1] instanceof Array
+                         ? arguments[1]
+                         : Array.prototype.slice.call(arguments, 1);
+        var filtered_dataset = [], column_indexes;
+
+        if (column_names.length === 0) {
+            callback(self._dataset);
+        } else {
+            column_indexes = column_names.map(function (name) {
+                return self._columns[name]["index"];
+            });
+
+            self._dataset.forEach(function (row, i) {
+                var filtered_row = [];
+
+                column_indexes.forEach(function (column_index) {
+                    filtered_row.push(row[column_index]);
+                });
+
+                filtered_dataset.push(filtered_row);
+            });
+
+            callback(filtered_dataset);
+        }
+
+        return self._next_action(true);
     };
 
     JData.prototype.get_dataset = function () {
-        var self = this,
-            columns = arguments[0] instanceof Array
-                    ? arguments[0]
-                    : Array.prototype.slice.call(arguments);
-        var filtered_dataset = [];
+        var self = this, args = Array.prototype.slice.call(arguments);
 
-        if (columns.length === 0) return self._dataset;
-
-        columns = columns.map(function (column) {
-            return self._columns_idx_xref[column];
+        self._queue_next(function () {
+            self._get_dataset.apply(self, args);
         });
 
-        self._dataset.forEach(function (row, i) {
-            var filtered_row = [];
-
-            columns.forEach(function (column_idx, i) {
-                filtered_row[i] = row[column_idx];
-            });
-
-            filtered_dataset[i] = filtered_row;
-        });
-
-        return filtered_dataset;
+        return self;
     };
 
-    JData.prototype.filter = function () {
+    JData.prototype._filter = function () {
         var self = this,
             regex = arguments[0],
             relevant_columns = arguments[1] instanceof Array
                              ? arguments[1]
                              : Array.prototype.slice.call(arguments, 1);
-        var i = 0, j, column, filtered_dataset = [],
+        var i = 0, j = 0, k = 0, filtered_dataset = [],
             relevant_indexes = relevant_columns.map(function (column) {
-                return self._columns_idx_xref[column];
+                return self._columns[column]["index"];
             });
 
-        self._dataset.forEach(function (row) {
+        var next = function () {
+            var row = self._dataset[i++], column;
+
             for (j = 0; j < row.length; j++) {
                 column = row[j];
 
@@ -104,26 +137,54 @@ var JData;
                     && column !== null
                     && column.match(regex)
                 ) {
-                    filtered_dataset[i++] = row;
+                    filtered_dataset[k++] = row;
                     break;
                 }
-            }
-        });
+            };
 
-        self._dataset = filtered_dataset;
+            if (i < self._dataset.length) {
+                setTimeout(next, 0);
+            } else {
+                self._dataset = filtered_dataset;
+
+                return self._next_action(true);
+            }
+        };
+
+        setTimeout(next, 0);
 
         return self;
     };
 
-    JData.prototype.limit = function (num_rows) {
+    JData.prototype.filter = function () {
+        var self = this, args = Array.prototype.slice.call(arguments);
+        
+        self._queue_next(function () {
+            self._filter.apply(self, args);
+        });
+
+        return self;
+    };
+
+    JData.prototype._limit = function (num_rows) {
         var self = this;
 
         self._dataset = self._dataset.slice(0, num_rows);
 
+        return self._next_action(true);
+    };
+
+    JData.prototype.limit = function (num_rows) {
+        var self = this, args = Array.prototype.slice.call(arguments);
+
+        self._queue_next(function () {
+            self._limit.apply(self, args);
+        });
+
         return self;
     };
 
-    JData.prototype.sort = function () {
+    JData.prototype._sort = function () {
         var self = this,
             columns = arguments[0] instanceof Array
                     ? arguments[0]
@@ -136,14 +197,14 @@ var JData;
                 sort_column = columns[i].match(/(-?)(\w+)/);
                 column_name = sort_column[2];
                 reverse     = !!sort_column[1];
-                sort_type   = self._columns_metadata[column_name]['sort_type'];
+                sort_type   = self._columns[column_name]["sort_type"];
 
                 if (reverse) {
-                    val_b = a[self._columns_idx_xref[column_name]];
-                    val_a = b[self._columns_idx_xref[column_name]];
+                    val_b = a[self._columns[column_name]["index"]];
+                    val_a = b[self._columns[column_name]["index"]];
                 } else {
-                    val_a = a[self._columns_idx_xref[column_name]];
-                    val_b = b[self._columns_idx_xref[column_name]];
+                    val_a = a[self._columns[column_name]["index"]];
+                    val_b = b[self._columns[column_name]["index"]];
                 }
 
                 if (typeof(sort_type) === "function") {
@@ -162,6 +223,16 @@ var JData;
             }
 
             return 0;
+        });
+
+        return self._next_action(true);
+    };
+
+    JData.prototype.sort = function () {
+        var self = this, args = Array.prototype.slice.call(arguments);
+
+        self._queue_next(function () {
+            self._sort.apply(self, args);
         });
 
         return self;
@@ -192,63 +263,94 @@ var JData;
         }
     };
 
-    JData.prototype.remove_columns = function () {
+    JData.prototype._remove_columns = function () {
         var self = this,
             columns_to_remove = arguments[0] instanceof Array
                               ? arguments[0]
                               : Array.prototype.slice.call(arguments);
-        var i = 0, filtered_columns_idx_xref = {}, filtered_dataset = [];
+        var i = 0, columns_to_keep = {}, filtered_dataset = [];
 
-        self._columns.forEach(function (column) {
-            if (columns_to_remove.indexOf(column) === -1) {
-                filtered_columns_idx_xref[column] = self._columns_idx_xref[column];
+        Object.keys(self._columns).forEach(function (column_name, i) {
+            if (columns_to_remove.indexOf(column_name) === -1) {
+                var column = self._columns[column_name];
+                column["index"] = i;
+
+                columns_to_keep[column_name] = column;
             }
         });
-        self._columns = Object.keys(filtered_columns_idx_xref);
-        filtered_columns_idx_xref = self._build_columns_idx_xref();
 
-        self._dataset.forEach(function (row) {
-            var filtered_row = [];
+        var next = function () {
+            var row = self._dataset[i++], filtered_row = [];
 
-            self._columns.forEach(function (column) {
-                filtered_row[filtered_columns_idx_xref[column]] = row[self._columns_idx_xref[column]];
+            Object.keys(columns_to_keep).forEach(function (column_name) {
+                filtered_row[columns_to_keep[column_name]["index"]] = row[self._columns[column_name]["index"]];
             });
 
-            filtered_dataset[i++] = filtered_row;
-        });
+            filtered_dataset.push(filtered_row);
 
-        self._dataset = filtered_dataset;
+            if (i < self._dataset.length) {
+                setTimeout(next, 0);
+            } else {
+                self._dataset = filtered_dataset;
+                self._columns = columns_to_keep;
+
+                return self._next_action(true);
+            }
+        };
+
+        setTimeout(next, 0);
+
+        return self;
+    };
+
+    JData.prototype.remove_columns = function () {
+        var self = this, args = Array.prototype.slice.call(arguments);
+
+        self._queue_next(function () {
+            self._remove_columns.apply(self, args);
+        });
 
         return self;
     };
 
     JData.prototype.paginate = function (rows_per_page) {
-        var self = this;
+        var self = this, args = Array.prototype.slice.call(arguments);
 
-        self._rows_per_page = rows_per_page;
-        self._current_page = 0;
+        self._queue_next(function () {
+            self._rows_per_page = rows_per_page;
+            self._current_page = 0;
+
+            return self._next_action(true);
+        });
 
         return self;
     };
 
-    JData.prototype.get_next_page = function () {
-        var self = this, page;
+    JData.prototype.get_next_page = function (callback) {
+        var self = this, args = Array.prototype.slice.call(arguments);
 
-        page = self.get_page();
-        self._current_page++;
+        self._queue_next(function () {
+            self.get_page(callback, undefined, true);
 
-        return page;
+            return self._next_action(true);
+        });
+
+        return self;
     };
 
-    JData.prototype.get_previous_page = function () {
-        var self = this;
+    JData.prototype.get_previous_page = function (callback) {
+        var self = this, args = Array.prototype.slice.call(arguments);
 
-        self._current_page--;
+        self._queue_next(function () {
+            self.get_page(callback, self._current_page);
 
-        return self.get_page();
+            return self._next_action(true);
+        });
+
+        return self;
     };
 
-    JData.prototype.get_page = function (page_num) {
+    JData.prototype._get_page = function (callback, page_num, post_increment_page) {
         var self = this;
         var start, end;
 
@@ -259,156 +361,286 @@ var JData;
         start = self._rows_per_page * self._current_page;
         end   = start + self._rows_per_page;
 
-        return self._dataset.slice(start, end);
+        callback(self._dataset.slice(start, end));
+        if (post_increment_page) self._current_page++;
+
+        return self._next_action(true);
     };
 
-    JData.prototype.set_page = function (page_num) {
-        var self = this;
+    JData.prototype.get_page = function () {
+        var self = this, args = Array.prototype.slice.call(arguments);
 
-        self._current_page = page_num > 0 ? (page_num - 1) : 0;
+        self._queue_next(function () {
+            self._get_page.apply(self, args);
+        });
 
         return self;
     };
 
-    JData.prototype.append = function (data) {
+    JData.prototype.set_page = function (page_num) {
+        var self = this, args = Array.prototype.slice.call(arguments);
+
+        self._queue_next(function () {
+            self._current_page = page_num > 0 ? (page_num - 1) : 0;
+
+            return self._next_action(true);
+        });
+
+        return self;
+    };
+
+    JData.prototype.get_columns_and_records = function (callback) {
+        var self = this;
+
+        self._queue_next(function () {
+            callback(self._columns, self._dataset);
+        });
+
+        return self;
+    };
+
+    JData.prototype._append = function (data) {
         var self = this;
         var columns, rows;
 
         if (data instanceof JData) {
-            columns = data._columns;
-            rows = data._dataset;
+            data.get_columns_and_records(function (columns, rows) {
+                self._check_columns_for_append(columns);
+                self._dataset = self._dataset.concat(rows);
+
+                self._next_action(true);
+            })
         } else {
             columns = data.slice(0, 1)[0];
             rows = data.slice(1);
+
+            self._check_columns_for_append(columns);
+            self._dataset = self._dataset.concat(rows);
+
+            return self._next_action(true);
         }
+    };
 
-        self._check_columns_for_append(columns);
-        self._dataset = self._dataset.concat(rows);
-
-        return self;
+    JData.prototype._extract_column_names_in_order = function (columns) {
+        return Object.keys(columns).sort(function (a, b) {
+            return self._num_sort(
+                columns[a]["index"],
+                columns[b]["index"]
+            );
+        }).map(function (column) {
+            return columns[column]["name"];
+        });
     };
 
     JData.prototype._check_columns_for_append = function (columns) {
         var self = this;
-        var i, error = "Cannot append dataset (columns do not match):\n\t"
-                     + self._columns + "\n\t\tVS\n\t" + columns;
+        var i, throw_error;
 
-        if (columns.length == self._columns.length) {
-            for (i = 0; i < columns.length; i++) {
-                if (columns[i] !== self._columns[i]) {
-                    throw new Error(error);
+        if (columns instanceof Array) {
+            columns = self._prepare_columns(columns);
+        }
+
+        throw_error = function () {
+            var original_columns = self._extract_column_names_in_order(self._columns)
+                                       .join(", ");
+            var append_columns = self._extract_column_names_in_order(columns)
+                                     .join(", ");
+
+            throw new Error(
+                "Cannot append dataset (columns do not match):\n\t"
+                + original_columns + "\n\t\tVS\n\t" + append_columns
+            );
+        };
+
+        if (Object.keys(columns).length === Object.keys(self._columns).length) {
+            Object.keys(columns).forEach(function (name) {
+                if (columns[name]["index"] !== self._columns[name]["index"]) {
+                    throw_error();
                 }
-            }
+            });
         } else {
-            throw new Error(error);
+            throw_error();
         }
     };
 
-    JData.prototype.join = function (fdata, pk, fk, join_type) {
-        var self = this;
-        var joined_dataset = [], p_hash, f_hash;
+    JData.prototype.append = function () {
+        var self = this, args = Array.prototype.slice.call(arguments);
 
-        fdata._columns.forEach(function (column) {
-            if (self._columns.indexOf(column) != -1) {
-                throw new Error(
-                    "Joining dataset has a column with the same name as an existing column: "
-                    + column
-                );
-            }
+        self._queue_next(function () {
+            self._append.apply(self, args);
         });
-
-        p_hash = self._hash_dataset_by_key_columns(pk);
-        f_hash = fdata._hash_dataset_by_key_columns(fk);
-
-        if (typeof(join_type) === "undefined") {
-            Object.keys(p_hash).forEach(function (key_field) {
-                if (key_field in f_hash) {
-                    p_hash[key_field].forEach(function (p_row) {
-                        f_hash[key_field].forEach(function (f_row) {
-                            joined_dataset.push(p_row.concat(f_row));
-                        });
-                    });
-                }
-            });
-        } else if (join_type === "left") {
-            Object.keys(p_hash).forEach(function (key_field) {
-                if (key_field in f_hash) {
-                    p_hash[key_field].forEach(function (p_row) {
-                        f_hash[key_field].forEach(function (f_row) {
-                            joined_dataset.push(p_row.concat(f_row));
-                        });
-                    });
-                } else {
-                    p_hash[key_field].forEach(function (p_row) {
-                        joined_dataset.push(
-                            p_row.concat(fdata._columns.map(function () { return '' }))
-                        );
-                    });
-                }
-            });
-        } else if (join_type === "right") {
-            Object.keys(f_hash).forEach(function (key_field) {
-                if (key_field in p_hash) {
-                    p_hash[key_field].forEach(function (p_row) {
-                        f_hash[key_field].forEach(function (f_row) {
-                            joined_dataset.push(p_row.concat(f_row));
-                        });
-                    });
-                } else {
-                    f_hash[key_field].forEach(function (f_row) {
-                        joined_dataset.push(
-                            self._columns.map(function() { return '' }).concat(f_row)
-                        );
-                    });
-                }
-            });
-        } else {
-            throw new Error("Unknown join type.");
-        }
-
-        self._columns = self._columns.concat(fdata._columns);
-        self._columns_idx_xref = self._build_columns_idx_xref();
-        Object.keys(fdata._columns_metadata).forEach(function (column) {
-            self._columns_metadata[column] = fdata._columns_metadata[column];
-        });
-
-        self._dataset = joined_dataset;
 
         return self;
     };
 
-    JData.prototype._hash_dataset_by_key_columns = function (key_columns) {
-        var self = this, key_indexes, hash = {};
+    JData.prototype.join = function (fdata, pk, fk, join_type) {
+        var self = this, args = Array.prototype.slice.call(arguments);
+        var p_hash, f_hash, finish;
 
-        key_columns = key_columns instanceof Array ? key_columns : [ key_columns ];
-        key_indexes = key_columns.map(function (column) {
-            return self._columns_idx_xref[column];
+        if (!pk.length || !fk.length) {
+            throw new Error("No join key(s) provided.");
+        }
+        if (pk.length != fk.length) {
+            throw new Error("Odd number of join keys.");
+        }
+        if (
+            typeof(join_type) !== "undefined"
+            && !(join_type === "left" || join_type === "right")
+        ) {
+            throw new Error("Unknown join type.");
+        }
+
+        self._queue_next(function () {
+            fdata.get_columns(function (f_columns) {
+                Object.keys(f_columns).forEach(function (column_name) {
+                    if (column_name in self._columns) {
+                        throw new Error("Column names overlap.");
+                    }
+                });
+
+                finish = function (joined_dataset) {
+                    var original_num_columns = Object.keys(self._columns).length;
+
+                    Object.keys(f_columns).forEach(function (column_name) {
+                        var column = f_columns[column_name];
+                        column["index"] += original_num_columns;
+
+                        self._columns[column_name] = column;
+                    });
+
+                    self._dataset = joined_dataset;
+                };
+
+                self._next_action(true);
+            });
         });
 
-        self._dataset.forEach(function (row) {
-            var key = key_indexes.map(function (i) { return row[i] }).join("|");
+        self._queue_next(function () {
+            self._hash_dataset_by_key_columns.call(self, function (hash) {
+                p_hash = hash;
+            }, pk);
+        });
+        self._queue_next(function () {
+            fdata.get_hash_of_dataset_by_key_columns.call(fdata, function (hash) {
+                f_hash = hash;
+                self._next_action(true);
+            }, fk);
+        });
+
+        self._queue_next(function () {
+            self._join_hashes.call(self, p_hash, f_hash, join_type, finish);
+        });
+
+        return self;
+    };
+
+    JData.prototype._hash_dataset_by_key_columns = function (callback, key_columns) {
+        var self = this;
+        var i = 0, key_indexes, hash = {};
+
+        key_columns = key_columns instanceof Array ? key_columns : [ key_columns ];
+        key_columns.forEach(function (column) {
+            if (!column in self._columns) {
+                throw new Error("Column '" + column + "' not in dataset.");
+            }
+        });
+
+        key_indexes = key_columns.map(function (column_name) {
+            return self._columns[column_name]["index"];
+        });
+
+        var next = function () {
+            var row = self._dataset[i++],
+                key = key_indexes.map(function (i) { return row[i]; }).join("|");
 
             if (key in hash) {
                 hash[key].push(row);
             } else {
                 hash[key] = [ row ];
             }
+
+            if (i < self._dataset.length) {
+                setTimeout(next, 0);
+            } else {
+                callback(hash);
+                self._next_action(true);
+            }
+        };
+
+        setTimeout(next, 0);
+
+        return self;
+    };
+
+    JData.prototype.get_hash_of_dataset_by_key_columns = function () {
+        var self = this, args = Array.prototype.slice.call(arguments);
+
+        self._queue_next(function () {
+            self._hash_dataset_by_key_columns.apply(self, args);
         });
 
-        return hash;
+        return self;
+    };
+
+    JData.prototype._join_hashes = function (l_hash, r_hash, join_type, finish) {
+        var self = this;
+        var i = 0, joined_dataset = [],
+            p_hash = join_type === "right" ? r_hash : l_hash,
+            f_hash = join_type === "right" ? l_hash : r_hash,
+            key_fields = Object.keys(p_hash),
+            empty_outer_row =  f_hash[Object.keys(f_hash)[0]][0].map( function () {
+                return '';
+            });
+
+        join_type = typeof(join_type) === "undefined" ? "inner" : join_type;
+
+        var next = function () {
+            var key_field = key_fields[i++];
+
+            if (key_field in f_hash) {
+                p_hash[key_field].forEach(function (p_row) {
+                    f_hash[key_field].forEach(function (f_row) {
+                        joined_dataset.push(
+                            join_type === "right" ? f_row.concat(p_row)
+                                                  : p_row.concat(f_row)
+                        );
+                    });
+                });
+            } else if (join_type !== "inner") {
+                p_hash[key_field].forEach(function (p_row) {
+                    joined_dataset.push(
+                        join_type === "right" ? empty_outer_row.concat(p_row)
+                                              : p_row.concat(empty_outer_row)
+                    );
+                });
+            }
+
+            if (i < key_fields.length) {
+                setTimeout(next, 0);
+            } else {
+                finish(joined_dataset);
+                return self._next_action(true);
+            }
+        };
+
+        setTimeout(next, 0);
+
+        return self;
     };
 
     JData.prototype.prepend_column_names = function (prepend) {
         var self = this;
-        var columns_metadata = {};
 
-        self._columns = self._columns.map(function (column) { return prepend + column; });
-        self._columns_idx_xref = self._build_columns_idx_xref();
+        self._queue_next(function () {
+            var new_columns = {};
 
-        Object.keys(self._columns_metadata).forEach(function (column) {
-            columns_metadata[prepend + column] = self._columns_metadata[column];
+            Object.keys(self._columns).forEach(function (column_name) {
+                new_columns[prepend + column_name] = self._columns[column_name];
+            });
+            self._columns = new_columns;
+
+            return self._next_action(true);
         });
-        self._columns_metadata = columns_metadata;
 
         return self;
     };
@@ -416,19 +648,18 @@ var JData;
     JData.prototype.alter_column_name = function (old_name, new_name) {
         var self = this;
 
-        self._columns.forEach(function (column) {
-            if (column !== old_name && column === new_name) {
-                throw new Error("Column " + new_name + " already exists in dataset.");
-            }
-        });
+        self._queue_next(function () {
+            Object.keys(self._columns).forEach(function (column_name) {
+                if (column_name !== old_name && column_name === new_name) {
+                    throw new Error("Column " + new_name + " already exists in dataset.");
+                }
+            });
 
-        self._columns = self._columns.map(function (column) {
-            return column === old_name ? new_name : column;
-        });
-        self._columns_idx_xref = self._build_columns_idx_xref();
+            self._columns[new_name] = self._columns[old_name];
+            delete self._columns[old_name];
 
-        self._columns_metadata[new_name] = self._columns_metadata[old_name];
-        delete self._columns_metadata[old_name];
+            return self._next_action(true);
+        });
 
         return self;
     };
@@ -436,7 +667,11 @@ var JData;
     JData.prototype.alter_column_sort_type = function (column, sort_type) {
         var self = this;
 
-        self._columns_metadata[column]['sort_type'] = sort_type;
+        self._queue_next(function () {
+            self._columns[column]["sort_type"] = sort_type;
+
+            return self._next_action(true);
+        });
 
         return self;
     };
@@ -444,7 +679,11 @@ var JData;
     JData.prototype.alter_column_aggregate_type = function (column, agg_type) {
         var self = this;
 
-        self._columns_metadata[column]['agg_type'] = agg_type;
+        self._queue_next(function () {
+            self._columns[column]["agg_type"] = agg_type;
+
+            return self._next_action(true);
+        });
 
         return self;
     };
@@ -452,56 +691,111 @@ var JData;
     JData.prototype.alter_column_title = function (column, title) {
         var self = this;
 
-        self._columns_metadata[column]['title'] = title;
+        self._queue_next(function () {
+            self._columns[column]["title"] = title;
+
+            return self._next_action(true);
+        });
+
+        return self;
+    };
+
+    JData.prototype._group_hashed_dataset = function (hashed_dataset, group_by) {
+        var self = this;
+        var i = 0, key_columns = Object.keys(hashed_dataset), grouped_dataset = [];
+
+        var next = function () {
+            var key = key_columns[i++], grouped_row = [];
+
+            hashed_dataset[key].forEach(function (row) {
+                Object.keys(self._columns).forEach(function (column_name) {
+                    var agg_type = self._columns[column_name]["agg_type"],
+                        index = self._columns[column_name]["index"],
+                        is_key_column = group_by.indexOf(column_name) !== -1;
+
+                    if (index in grouped_row && !is_key_column) {
+                        if (agg_type === "sum") {
+                            grouped_row[index] += row[index];
+                        } else if (agg_type === "max") {
+                            grouped_row[index] = (grouped_row[index] < row[index])
+                                               ? row[index]
+                                               : grouped_row[index];
+                        } else if (agg_type === "min") {
+                            grouped_row[index] = (grouped_row[index] > row[index])
+                                               ? row[index]
+                                               : grouped_row[index];
+                        } else {
+                            throw new Error(
+                                "Unrecognized agg_type for column '" + column_name + "'."
+                            );
+                        }
+                    } else {
+                        grouped_row[index] = row[index];
+                    }
+                });
+            });
+
+            grouped_dataset.push(grouped_row);
+
+            if (i < key_columns.length) {
+                setTimeout(next, 0);
+            } else {
+                self._dataset = grouped_dataset;
+                return self._next_action(true);
+            }
+        };
+
+        setTimeout(next, 0);
 
         return self;
     };
 
     JData.prototype.group = function () {
         var self = this,
-            columns_to_group_by = arguments[0] instanceof Array
-                                ?  arguments[0]
-                                : Array.prototype.slice.call(arguments);
-        var hashed_dataset, grouped_dataset = [],
-            key_idxs = columns_to_group_by.map(function (column) {
-                return self._columns_idx_xref[column];
-            });
-
-        hashed_dataset = self._hash_dataset_by_key_columns(columns_to_group_by);
-
-        Object.keys(hashed_dataset).forEach(function (key_columns) {
-            var i, agg_type, grouped_row = [];
-
-            hashed_dataset[key_columns].forEach(function (row) {
-                for (i = 0; i < row.length; i++) {
-                    agg_type = self._columns_metadata[self._columns[i]]['agg_type'];
-
-                    if (i in grouped_row && (key_idxs.indexOf(i) == -1)) {
-                        if (agg_type === "sum") {
-                            grouped_row[i] += row[i];
-                        } else if (agg_type === "max") {
-                            grouped_row[i] = grouped_row[i] < row[i] ? row[i]
-                                                                     : grouped_row[i];
-                        } else if (agg_type === "min") {
-                            grouped_row[i] = grouped_row[i] > row[i] ? row[i]
-                                                                     : grouped_row[i];
-                        } else {
-                            throw new Error(
-                                "Unrecognized agg_type for column "
-                                + self._columns[i] + "."
-                            );
-                        }
-                    } else {
-                        grouped_row[i] = row[i];
-                    }
-                }
-            });
-
-            grouped_dataset.push(grouped_row);
-            grouped_row = [];
+            group_by = arguments[0] instanceof Array
+                     ? arguments[0]
+                     : Array.prototype.slice.call(arguments);
+        var hashed_dataset;
+        
+        self._queue_next(function () {
+            self._hash_dataset_by_key_columns.call(self, function (hash) {
+                hashed_dataset = hash;
+            }, group_by);
         });
 
-        self._dataset = grouped_dataset;
+        self._queue_next(function () {
+            self._group_hashed_dataset.call(self, hashed_dataset, group_by);
+        });
+
+        return self;
+    };
+
+    JData.prototype._partition_hashed_dataset = function (hashed_dataset) {
+        var self = this;
+        var i = 0, key_columns = Object.keys(hashed_dataset), 
+            columns_row = Object.keys(self._columns).map(function (column_name) {
+                var column = self._columns[column_name];
+                column["name"] = column_name;
+
+                return column;
+            }).sort(function (a, b) {
+                return self._num_sort(a["index"], b["index"]);
+            });
+
+        var next = function () {
+            var key = key_columns[i++], dataset = hashed_dataset[key];
+
+            dataset.unshift(columns_row);
+            self._partitioned_datasets[key] = new JData(dataset);
+
+            if (i < key_columns.length) {
+                setTimeout(next, 0);
+            } else {
+                self._next_action(true);
+            }
+        };
+
+        setTimeout(next, 0);
 
         return self;
     };
@@ -511,46 +805,80 @@ var JData;
             partition_by = arguments[0] instanceof Array
                          ? arguments[0]
                          : Array.prototype.slice.call(arguments);
-        var hashed_dataset = self._hash_dataset_by_key_columns(partition_by)
+        var hashed_dataset;
 
-        Object.keys(hashed_dataset).forEach(function (key_columns) {
-            var dataset = hashed_dataset[key_columns], d;
-            dataset.unshift(self._columns);
+        self._queue_next(function () {
+            self._hash_dataset_by_key_columns(function (hash) {
+                hashed_dataset = hash;
+            }, partition_by);
+        });
 
-            d = new JData(dataset);
-            d._columns_metadata = self._columns_metadata;
-
-            self._partitioned_datasets[key_columns] = d;
+        self._queue_next(function () {
+            self._partition_hashed_dataset.call(self, hashed_dataset);
         });
 
         return self;
     };
 
-    JData.prototype.get_partition_keys = function () {
+    JData.prototype.get_partition_keys = function (callback) {
         var self = this;
 
-        return Object.keys(self._partitioned_datasets).map(function (key) {
-            return key.split("|");
+        self._queue_next(function () {
+            callback(Object.keys(self._partitioned_datasets).map(function (key) {
+                return key.split("|");
+            }));
+
+            self._next_action(true);
         });
+
+        return self;
     };
 
     JData.prototype.get_partitioned = function () {
         var self = this,
-            keys = arguments[0] instanceof Array
-                 ? arguments[0]
-                 : Array.prototype.slice.call(arguments);
+            callback = arguments[0],
+            keys = arguments[1] instanceof Array
+                 ? arguments[1]
+                 : Array.prototype.slice.call(arguments, 1);
 
-        return self._partitioned_datasets[keys.join("|")];
+        self._queue_next(function () {
+            callback(self._partitioned_datasets[keys.join("|")]);
+
+            self._next_action(true);
+        });
+
+        return self;
     };
 
-    JData.prototype.render = function (render_function) {
-        var self;
+    JData.prototype._render = function (render_function) {
+        var self = this;
 
         if (typeof(render_function) === "function") {
             self._render_function = render_function;
         } else {
             self._render_function();
         }
+
+        return self._next_action(true);
+    };
+
+    JData.prototype.render = function () {
+        var self = this, args = Array.prototype.slice.call(arguments);
+
+        self._queue_next(function () {
+            self._render.apply(self, args);
+        });
+
+        return self;
+    };
+
+    JData.prototype.get_number_of_records = function (callback) {
+        var self = this;
+
+        self._queue_next(function () {
+            callback(self._dataset.length);
+            return self._next_action(true);
+        });
 
         return self;
     };
