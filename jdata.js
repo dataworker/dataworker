@@ -184,13 +184,63 @@ var JData;
         return self;
     };
 
+    JData.prototype._merge_sort = function (sort_function) {
+        var self = this;
+        var temp = [];
+
+        var m_sort = function (array, temp, left, right) {
+            var mid;
+
+            if (right > left) {
+                mid = Math.floor((right + left) / 2);
+
+                m_sort(array, temp, left, mid);
+                m_sort(array, temp, mid + 1, right);
+
+                merge(array, temp, left, mid + 1, right);
+            }
+        };
+
+        var merge = function (array, temp, left, mid, right) {
+            var i, left_end, num_elements, tmp_pos;
+
+            left_end = mid - 1;
+            tmp_pos = left;
+            num_elements = right - left + 1;
+
+            while ( (left <= left_end) && (mid <= right) ) {
+                if (sort_function(array[left], array[mid]) <= 0) {
+                    temp[tmp_pos++] = array[left++];
+                } else {
+                    temp[tmp_pos++]  = array[mid++];
+                }
+            }
+
+            while (left <= left_end) {
+                temp[tmp_pos++] = array[left++];
+            }
+            while (mid <= right) {
+                temp[tmp_pos++] = array[mid++];
+            }
+
+            for (i = 0; i < num_elements; i++) {
+                array[right] = temp[right];
+                right = right - 1;
+            }
+        };
+
+        m_sort(self._dataset, temp, 0, self._dataset.length - 1);
+
+        return self;
+    };
+
     JData.prototype._sort = function () {
         var self = this,
             columns = arguments[0] instanceof Array
                     ? arguments[0]
                     : Array.prototype.slice.call(arguments);
 
-        self._dataset.sort(function (a, b) {
+        self._merge_sort(function (a, b) {
             var i, sort_column, column_name, reverse, sort_type, sort_result, val_a, val_b;
 
             for (i = 0; i < columns.length; i++) {
