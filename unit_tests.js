@@ -1450,7 +1450,20 @@ asyncTest('get partitioned (single field)', function () {
         });
     }, 'gummy');
 
-    d.render();
+    var wait = function () {
+        if (
+            Object.keys(apple_partition).length > 0
+            && Object.keys(banana_partition).length > 0
+            && Object.keys(cat_partition).length > 0
+            && Object.keys(gummy_partition).length > 0
+        ) {
+            d.render();
+        } else {
+            setTimeout(wait, 0);
+        }
+    };
+
+    setTimeout(wait, 0);
 });
 
 asyncTest('get partitioned (multi-field)', function () {
@@ -1688,5 +1701,20 @@ asyncTest('get partitioned (multi-field)', function () {
         });
     }, 'gummy', 'power');
 
-    d.render();
+    var wait = function () {
+        if (
+            Object.keys(apple_trance_partition).length > 0
+            && Object.keys(apple_violin_partition).length > 0
+            && Object.keys(banana_piano_partition).length > 0
+            && Object.keys(cat_soy_partition).length > 0
+            && Object.keys(cat_tissue_partition).length > 0
+            && Object.keys(gummy_power_partition).length > 0
+        ) {
+            d.render();
+        } else {
+            setTimeout(wait, 0);
+        }
+    };
+
+    setTimeout(wait, 0);
 });
