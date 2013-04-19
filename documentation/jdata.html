@@ -253,7 +253,9 @@
     ];
 
     var d = new JData(dataset);
-    var records = d.get_dataset();</pre>
+    var records;
+    
+    d.get_dataset(function (result) { records = result; });</pre>
                         <p>The following is the contents of <code>records</code>:</p>
                         <pre>
     [
@@ -262,6 +264,23 @@
         [ 'banana',      'piano',      'gum' ],
         [ 'gummy',       'power',     'star' ]
     ]</pre>
+                        <p>The <code>get_dataset</code> method can also grab only specified rows:</p>
+                        <pre>
+    g.get_dataset(function (result) { records = result; }, 'column_a', 'column_b');</pre>
+                        <p>The following would be the contents of <code>records</code>:</p>
+                        <pre>
+    [
+        [ 'apple',      'violin' ],
+        [ 'cat',        'tissue' ],
+        [ 'banana',      'piano' ],
+        [ 'gummy',       'power' ]
+    ]</pre>
+                        <p>Note that the following does the same thing as the preceding sample:</p>
+                        <pre>
+    g.get_dataset(
+        function (result) { records = result; },
+        [ 'column_a', 'column_b' ]
+    );</pre>
                     </section>
                     <section id="paginate">
                         <h3>Pagination</h3>
@@ -271,17 +290,23 @@
                         <h5>Get next page</h5>
                         <p>Now you may grab the next 10 rows using the <code>get_next_page</code> method:</p>
                         <pre>
-    var next_10_rows = d.get_next_page();</pre>
+    var next_10_rows;
+    
+    d.get_next_page(function (result) { next_10_rows = result; });</pre>
                         <p>Grabbing the next page when you're on the last page will return an empty page.</p>
                         <h5>Get previous page</h5>
                         <p>The previous 10 rows can be grabbed using the <code>get_previous_page</code> method:</p>
                         <pre>
-    var previous_10_rows = d.get_previous_page();</pre>
+    var previous_10_rows;
+    
+    d.get_previous_page(function (result) { previous_10_rows = result; });</pre>
                         <p>Grabbing a previous page from the 1st page will simply return the 1st page again.</p>
                         <h5>Get page</h5>
                         <p>You may jump to a specific page using the <code>get_page</code> method. The following grabs page 4:</p>
                         <pre>
-    var page = d.get_page(4);</pre>
+    var page;
+    
+    d.get_page(function (result) { page = result; }, 4);</pre>
                         <p>Note that this also sets your current page to the page you grab.</p>
                         <h5>Set page</h5>
                         <p>Use the <code>set_page</code> method to set a new current page. Attempting to set the page to 0 or a negative number will set the page to page 1. Setting to a page past the max number of current pages is allowed. The following sets your current page to page 4:</p>
@@ -290,14 +315,14 @@
                     </section>
                     <section id="partition">
                         <h3>Partition</h3>
-                        <p>JData can partition its dataset into multiple smaller datasets. The smaller datasets can be retrieved afterwards using their parition key(s). The following partitions the dataset by the contents of <code>column_a</code> and pushes each partition onto the <code>partitioned</code> array:</p>
+                        <p>JData can partition its dataset into multiple smaller datasets. The partitioned datasets can be retrieved afterwards using their partition key(s). The following partitions the dataset by the contents of <code>column_a</code> and pushes each partition onto the <code>partitioned</code> array:</p>
                         <pre>
     var partitioned = [];
 
     d.partition('column_a');
 
     d.get_partition_keys().forEach(function (key) {
-        partitioned.push(d.get_partitioned(key));
+        d.get_partitioned(function (result) { partitioned.push(result); }, key);
     });</pre>
                         <p>You may also partition by multiple keys:</p>
                         <pre>
@@ -314,7 +339,7 @@
 
     /* Make some changes to the dataset. */
 
-    d.render(); // Renders the new dataset.</pre>
+    d.render(); // Renders the new dataset according to the user-defined function.</pre>
                     </section>
                 </div>
             </div>
