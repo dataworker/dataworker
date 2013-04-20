@@ -37,7 +37,7 @@ asyncTest('construct (simple columns)', function () {
         });
 
         start();
-    });
+    }).finish();
 });
 
 asyncTest('construct (complex columns)', function () {
@@ -98,7 +98,7 @@ asyncTest('construct (complex columns)', function () {
         });
 
         start();
-    });
+    }).finish();
 });
 
 asyncTest('filter (unrestricted)', function () {
@@ -122,7 +122,7 @@ asyncTest('filter (unrestricted)', function () {
             [ 'apple', 'violin', 'music' ],
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('filter (column-restricted, single column, found)', function () {
@@ -143,7 +143,7 @@ asyncTest('filter (column-restricted, single column, found)', function () {
             [ 'apple', 'violin', 'music' ],
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('filter (column-restricted, single column, not found)', function () {
@@ -162,7 +162,7 @@ asyncTest('filter (column-restricted, single column, not found)', function () {
     d.filter(/apple/, 'column_b').get_dataset(function (result) {
         deepEqual(result, []);
         start();
-    });
+    }).finish();
 });
 
 
@@ -187,7 +187,7 @@ asyncTest('filter (column-restricted, multi-column, found)', function () {
             [ 'gummy', 'power', 'apple'  ]
         ]);
         start();
-     });
+     }).finish();
 });
 
 asyncTest('filter (column-restricted, multi-column, not found)', function () {
@@ -207,7 +207,7 @@ asyncTest('filter (column-restricted, multi-column, not found)', function () {
     d.filter(/piano/, 'column_a', 'column_c').get_dataset(function (result) {
         deepEqual(result, []);
         start();
-    });
+    }).finish();
 });
 
 test('limit', function () {
@@ -228,7 +228,7 @@ test('limit', function () {
             [ 'apple', 'violin', 'music' ],
             [ 'cat',   'tissue', 'dog'   ]
         ]);
-    });
+    }).finish();
 });
 
 asyncTest('remove columns', function () {
@@ -262,7 +262,7 @@ asyncTest('remove columns', function () {
         ]);
 
         start();
-    });
+    }).finish();
 });
 
 asyncTest('sort (alpha)', function () {
@@ -286,7 +286,7 @@ asyncTest('sort (alpha)', function () {
             [ 'apple',  'violin', 'music' ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('sort (reverse alpha)', function () {
@@ -310,7 +310,7 @@ asyncTest('sort (reverse alpha)', function () {
             [ 'banana', 'piano',  'gum'   ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('sort (num)', function () {
@@ -350,7 +350,7 @@ asyncTest('sort (num)', function () {
             [ 'cat',   'tissue', 85 ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('sort (reverse num)', function () {
@@ -389,7 +389,7 @@ asyncTest('sort (reverse num)', function () {
             [ 'apple', 'violin',  8 ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('sort (multi-column)', function () {
@@ -429,7 +429,7 @@ asyncTest('sort (multi-column)', function () {
             [ 'cat',    'power', 98 ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('paginate (set page)', function () {
@@ -451,7 +451,7 @@ asyncTest('paginate (set page)', function () {
     d.render(function () {
         equal(d._current_page, 2);
         start();
-    }).set_page(3).render();
+    }).set_page(3).render().finish();
 });
 
 asyncTest('paginate (set 1st page)', function () {
@@ -473,7 +473,7 @@ asyncTest('paginate (set 1st page)', function () {
     d.render(function () {
         equal(d._current_page, 0);
         start();
-    }).set_page(1).render();
+    }).set_page(1).render().finish();
 });
 
 asyncTest('paginate (set 0th page)', function () {
@@ -495,7 +495,7 @@ asyncTest('paginate (set 0th page)', function () {
     d.render(function () {
         equal(d._current_page, 0);
         start();
-    }).set_page(0).render();
+    }).set_page(0).render().finish();
 });
 
 asyncTest('paginate (set negative page)', function () {
@@ -517,7 +517,7 @@ asyncTest('paginate (set negative page)', function () {
     d.render(function () {
         equal(d._current_page, 0);
         start();
-    }).set_page(-1).render();
+    }).set_page(-1).render().finish();
 });
 
 asyncTest('paginate (next page)', function () {
@@ -562,7 +562,7 @@ asyncTest('paginate (next page)', function () {
         page3 = result;
     }).get_next_page(function (result) {
         page4 = result;
-    }).render();
+    }).render().finish();
 });
 
 asyncTest('paginate (previous page)', function () {
@@ -610,7 +610,7 @@ asyncTest('paginate (previous page)', function () {
         page1 = result;
     }).get_previous_page(function (result) {
         page0 = result;
-    }).render();
+    }).render().finish();
 });
 
 asyncTest('paginate (get current page)', function () {
@@ -634,7 +634,7 @@ asyncTest('paginate (get current page)', function () {
             [ 'gummy',  'power', 'apple' ],
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('paginate (get specific page)', function () {
@@ -658,7 +658,7 @@ asyncTest('paginate (get specific page)', function () {
             [ 'gummy',  'power', 'apple' ],
         ]);
         start();
-    }, 2);
+    }, 2).finish();
 });
 
 asyncTest('append', function () {
@@ -690,7 +690,7 @@ asyncTest('append', function () {
             [ 'sign',        'bagel',    'chips' ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('append JData', function () {
@@ -723,7 +723,7 @@ asyncTest('append JData', function () {
             [ 'sign',        'bagel',    'chips' ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 test('failed append (columns not the same)', function () {
@@ -745,7 +745,7 @@ test('failed append (columns not the same)', function () {
     var d = new JData(dataset1);
 
     throws(function () {
-        d.append(dataset2);
+        d.append(dataset2).finish();
     });
 });
 
@@ -768,7 +768,7 @@ test('failed append (different number of columns)', function () {
     var d = new JData(dataset1);
 
     throws(function () {
-        d.append(dataset2);
+        d.append(dataset2).finish();
     });
 });
 
@@ -845,7 +845,7 @@ asyncTest('join (inner join on single field)', function () {
         ]);
 
         start();
-    });
+    }).finish();
 });
 
 asyncTest('join (left outer join on single field)', function () {
@@ -881,7 +881,7 @@ asyncTest('join (left outer join on single field)', function () {
             [ 'dump', 'amsterdam', 'drops',       '',          '',      '' ],
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('join (right outer join on single field', function () {
@@ -917,7 +917,7 @@ asyncTest('join (right outer join on single field', function () {
             [ 'cat',     'tissue',   'dog',    'cat',     'bagel', 'chips' ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('join (inner join on multiple fields)', function () {
@@ -949,12 +949,12 @@ asyncTest('join (inner join on multiple fields)', function () {
         [ 'column_d', 'column_e' ]
     );
 
-    var result = d1.get_dataset(function (result) {
+    d1.get_dataset(function (result) {
         deepEqual(result, [
             [ 'cat', 'tissue', 'dog', 'cat', 'tissue', 'drops' ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 test('failed join (unknown join type)', function () {
@@ -978,7 +978,7 @@ test('failed join (unknown join type)', function () {
     var d2 = new JData(dataset2);
 
     throws(function () {
-        d1.join(d2, 'column_a', 'column_d', 'crazy');
+        d1.join(d2, 'column_a', 'column_d', 'crazy').finish();
     });
 });
 
@@ -1003,7 +1003,7 @@ test('failed join (columns with same name)', function () {
     var d2 = new JData(dataset2);
 
     throws(function () {
-        d1.join(d2, 'column_a', 'column_d');
+        d1.join(d2, 'column_a', 'column_d').finish();
     });
 });
 
@@ -1046,7 +1046,7 @@ asyncTest('prepend column names', function () {
         });
 
         start();
-    });
+    }).finish();
 });
 
 asyncTest('alter column name', function () {
@@ -1085,7 +1085,7 @@ asyncTest('alter column name', function () {
             }
         });
         start();
-    });
+    }).finish();
 });
 
 test('alter column name (fails if changing to already existing column name)', function () {
@@ -1101,7 +1101,7 @@ test('alter column name (fails if changing to already existing column name)', fu
     var d = new JData(dataset);
 
     throws(function () {
-        d.alter_column_name('column_a', 'column_b');
+        d.alter_column_name('column_a', 'column_b').finish();
     });
 });
 
@@ -1122,7 +1122,7 @@ asyncTest('alter column sort type', function () {
     d.get_columns(function (columns) {
         equal(columns['column_a']['sort_type'], 'random');
         start();
-    });
+    }).finish();
 });
 
 asyncTest('alter column aggregate type', function () {
@@ -1142,7 +1142,7 @@ asyncTest('alter column aggregate type', function () {
     d.get_columns(function (columns) {
         equal(columns['column_a']['agg_type'], 'random'); 
         start();
-    });
+    }).finish();
 });
 
 asyncTest('alter column title', function () {
@@ -1162,7 +1162,7 @@ asyncTest('alter column title', function () {
     d.get_columns(function (columns) {
         equal(columns['column_a']['title'], 'random'); 
         start();
-    });
+    }).finish();
 });
 
 asyncTest('group (single field sum)', function () {
@@ -1189,8 +1189,7 @@ asyncTest('group (single field sum)', function () {
             [ 'gummy',  34 ]
         ]);
         start();
-    });
-
+    }).finish();
 });
 
 asyncTest('group (single field max)', function () {
@@ -1217,8 +1216,7 @@ asyncTest('group (single field max)', function () {
             [ 'gummy',  34 ]
         ]);
         start();
-    });
-
+    }).finish();
 });
 
 asyncTest('group (single field min)', function () {
@@ -1245,7 +1243,7 @@ asyncTest('group (single field min)', function () {
             [ 'gummy',  34 ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('group (multi-field)', function () {
@@ -1276,7 +1274,7 @@ asyncTest('group (multi-field)', function () {
             [ 'gummy',   'power', 802 ]
         ]);
         start();
-    });
+    }).finish();
 });
 
 asyncTest('get partitioned (single field)', function () {
@@ -1426,28 +1424,28 @@ asyncTest('get partitioned (single field)', function () {
         partition.sort('column_b').get_columns_and_records(function (columns, rows) {
             apple_partition['columns'] = columns;
             apple_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'apple');
 
     d.get_partitioned(function (partition) {
         partition.sort('column_b').get_columns_and_records(function (columns, rows) {
             banana_partition['columns'] = columns;
             banana_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'banana');
 
     d.get_partitioned(function (partition) {
         partition.sort('column_b').get_columns_and_records(function (columns, rows) {
             cat_partition['columns'] = columns;
             cat_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'cat');
 
     d.get_partitioned(function (partition) {
         partition.sort('column_b').get_columns_and_records(function (columns, rows) {
             gummy_partition['columns'] = columns;
             gummy_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'gummy');
 
     var wait = function () {
@@ -1457,7 +1455,7 @@ asyncTest('get partitioned (single field)', function () {
             && Object.keys(cat_partition).length > 0
             && Object.keys(gummy_partition).length > 0
         ) {
-            d.render();
+            d.render().finish();
         } else {
             setTimeout(wait, 0);
         }
@@ -1663,42 +1661,42 @@ asyncTest('get partitioned (multi-field)', function () {
         partition.sort('column_c').get_columns_and_records(function (columns, rows) {
             apple_trance_partition['columns'] = columns;
             apple_trance_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'apple', 'trance');
 
     d.get_partitioned(function (partition) {
         partition.sort('column_c').get_columns_and_records(function (columns, rows) {
             apple_violin_partition['columns'] = columns;
             apple_violin_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'apple', 'violin');
 
     d.get_partitioned(function (partition) {
         partition.sort('column_c').get_columns_and_records(function (columns, rows) {
             banana_piano_partition['columns'] = columns;
             banana_piano_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'banana', 'piano');
 
     d.get_partitioned(function (partition) {
         partition.sort('column_c').get_columns_and_records(function (columns, rows) {
             cat_soy_partition['columns'] = columns;
             cat_soy_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'cat', 'soy');
 
     d.get_partitioned(function (partition) {
         partition.sort('column_c').get_columns_and_records(function (columns, rows) {
             cat_tissue_partition['columns'] = columns;
             cat_tissue_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'cat', 'tissue');
 
     d.get_partitioned(function (partition) {
         partition.sort('column_c').get_columns_and_records(function (columns, rows) {
             gummy_power_partition['columns'] = columns;
             gummy_power_partition['rows']    = rows;
-        });
+        }).finish();
     }, 'gummy', 'power');
 
     var wait = function () {
@@ -1710,7 +1708,7 @@ asyncTest('get partitioned (multi-field)', function () {
             && Object.keys(cat_tissue_partition).length > 0
             && Object.keys(gummy_power_partition).length > 0
         ) {
-            d.render();
+            d.render().finish();
         } else {
             setTimeout(wait, 0);
         }

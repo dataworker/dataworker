@@ -19,6 +19,18 @@ var JData;
         self._action_queue = [];
         self._is_in_action = false;
 
+        self._initialize_web_worker();
+
+        return self;
+    };
+
+    JData.prototype.finish = function () {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.terminate();
+        });
+
         return self;
     };
 
@@ -184,133 +196,18 @@ var JData;
         return self;
     };
 
-    JData.prototype._merge_sort = function (sort_function) {
-        var self = this;
-        var temp = [], sort_queue = [];
-
-        var next_sort_action = function () {
-            if (sort_queue.length > 0) {
-                var action = sort_queue.shift();
-                action();
-            } else {
-                self._next_action(true);
-            }
-        };
-
-        var m_sort = function (array, temp, left, right) {
-            var mid;
-
-            if (right > left) {
-                mid = Math.floor((right + left) / 2);
-
-                m_sort(array, temp, left, mid);
-                m_sort(array, temp, mid + 1, right);
-
-                sort_queue.push(function () {
-                    merge(array, temp, left, mid + 1, right);
-                });
-            }
-        };
-
-        var merge = function (array, temp, left, mid, right) {
-            var left_end, num_elements, tmp_pos;
-
-            left_end = mid - 1;
-            tmp_pos = left;
-            num_elements = right - left + 1;
-
-            var next_merge_step = function () {
-                var i = 0;
-
-                if (sort_function(array[left], array[mid]) <= 0) {
-                    temp[tmp_pos++] = array[left++];
-                } else {
-                    temp[tmp_pos++]  = array[mid++];
-                }
-
-                if ( (left <= left_end) && (mid <= right) ) {
-                    setTimeout(next_merge_step, 0);
-                } else {
-                    while (left <= left_end) {
-                        temp[tmp_pos++] = array[left++];
-                    }
-                    while (mid <= right) {
-                        temp[tmp_pos++] = array[mid++];
-                    }
-
-                    var next_copy_back_step = function () {
-                        array[right] = temp[right];
-                        right = right - 1;
-
-                        if (i++ < num_elements) {
-                            setTimeout(next_copy_back_step, 0);
-                        } else {
-                            return next_sort_action();
-                        }
-                    };
-
-                    setTimeout(next_copy_back_step, 0);
-                }
-            };
-
-            setTimeout(next_merge_step, 0);
-        };
-
-        m_sort(self._dataset, temp, 0, self._dataset.length - 1);
-        next_sort_action();
-
-        return self;
-    };
-
-    JData.prototype._sort = function () {
-        var self = this,
-            columns = arguments[0] instanceof Array
-                    ? arguments[0]
-                    : Array.prototype.slice.call(arguments);
-
-        self._merge_sort(function (a, b) {
-            var i, sort_column, column_name, reverse, sort_type, sort_result, val_a, val_b;
-
-            for (i = 0; i < columns.length; i++) {
-                sort_column = columns[i].match(/(-?)(\w+)/);
-                column_name = sort_column[2];
-                reverse     = !!sort_column[1];
-                sort_type   = self._columns[column_name]["sort_type"];
-
-                if (reverse) {
-                    val_b = a[self._columns[column_name]["index"]];
-                    val_a = b[self._columns[column_name]["index"]];
-                } else {
-                    val_a = a[self._columns[column_name]["index"]];
-                    val_b = b[self._columns[column_name]["index"]];
-                }
-
-                if (typeof(sort_type) === "function") {
-                    sort_result = sort_type(val_a, val_b);
-                } else if (sort_type === "alpha") {
-                    sort_result = self._alpha_sort(val_a, val_b);
-                } else if (sort_type === "num") {
-                    sort_result = self._num_sort(val_a, val_b);
-                } else {
-                    throw new Error("Unknown sort type.");
-                }
-
-                if (sort_result !== 0) {
-                    return sort_result;
-                }
-            }
-
-            return 0;
-        });
-
-        return self;
-    };
-
     JData.prototype.sort = function () {
-        var self = this, args = Array.prototype.slice.call(arguments);
+        var self = this, sort_columns = arguments[0] instanceof Array
+                                      ? arguments[0]
+                                      : Array.prototype.slice.call(arguments);
 
         self._queue_next(function () {
-            self._sort.apply(self, args);
+            self._worker.postMessage({
+                cmd     : "sort",
+                sort_on : sort_columns,
+                columns : self._columns,
+                rows    : self._dataset
+            });
         });
 
         return self;
@@ -339,6 +236,20 @@ var JData;
         } else {
             return 0;
         }
+    };
+
+    JData.prototype._initialize_web_worker = function () {
+        var self = this;
+
+        self._worker = new Worker('jdata_worker.js');
+        self._worker.onmessage = function (e) {
+            self._dataset = e.data.rows;
+            self._next_action(true);
+        };
+
+        self._worker.postMessage();
+
+        return self;
     };
 
     JData.prototype._remove_columns = function () {
