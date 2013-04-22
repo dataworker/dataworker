@@ -20,18 +20,21 @@ asyncTest('construct (simple columns)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -81,18 +84,21 @@ asyncTest('construct (complex columns)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'Column A',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'Column B',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'Column C',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -251,6 +257,7 @@ asyncTest('remove columns', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             }
         });
@@ -804,36 +811,42 @@ asyncTest('join (inner join on single field)', function () {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             },
             column_d: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_d',
+                name      : 'column_d',
                 index     : 3
             },
             column_e: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_e',
+                name      : 'column_e',
                 index     : 4
             },
             column_f: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_f',
+                name      : 'column_f',
                 index     : 5
             }
         });
@@ -1029,18 +1042,21 @@ asyncTest('prepend column names', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             p_column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             p_column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1069,18 +1085,21 @@ asyncTest('alter column name', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             'column_b': {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             'column_c': {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1318,18 +1337,21 @@ asyncTest('get partitioned (single field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1344,18 +1366,21 @@ asyncTest('get partitioned (single field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1369,18 +1394,21 @@ asyncTest('get partitioned (single field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1394,18 +1422,21 @@ asyncTest('get partitioned (single field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1509,18 +1540,21 @@ asyncTest('get partitioned (multi-field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1533,18 +1567,21 @@ asyncTest('get partitioned (multi-field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1558,18 +1595,21 @@ asyncTest('get partitioned (multi-field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1583,18 +1623,21 @@ asyncTest('get partitioned (multi-field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1607,18 +1650,21 @@ asyncTest('get partitioned (multi-field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1631,18 +1677,21 @@ asyncTest('get partitioned (multi-field)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c : {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });

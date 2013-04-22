@@ -67,6 +67,7 @@ var JData;
                 sort_type : column["sort_type"] || "alpha",
                 agg_type  : column["agg_type"]  || "max",
                 title     : column["title"]     || name,
+                name      : name,
                 index     : i
             };
         });
@@ -241,7 +242,7 @@ var JData;
     JData.prototype._initialize_web_worker = function () {
         var self = this;
 
-        self._worker = new Worker('jdata_worker.js');
+        self._worker = new Worker('/gamma/jdata/jdata_worker.js');
         self._worker.onmessage = function (e) {
             self._dataset = e.data.rows;
             self._next_action(true);
