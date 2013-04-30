@@ -3,6 +3,15 @@ var JData;
 (function() {
     "use strict";
 
+    var srcPath = getSourcePath();
+
+    function getSourcePath () {
+        var scripts = document.getElementsByTagName('script'),
+            srcFile = scripts[scripts.length - 1].src;
+
+        return srcFile.replace(/(http:\/\/)?.*?(\/(.*\/)?).*/, function () { return arguments[2]; });
+    }
+
     JData = function (dataset) {
         var self = this instanceof JData ? this : Object.create(JData.prototype);
 
@@ -242,7 +251,7 @@ var JData;
     JData.prototype._initialize_web_worker = function () {
         var self = this;
 
-        self._worker = new Worker('/gamma/jdata/jdata_worker.js');
+        self._worker = new Worker(srcPath + 'jdata_worker.js');
         self._worker.onmessage = function (e) {
             self._dataset = e.data.rows;
             self._next_action(true);
