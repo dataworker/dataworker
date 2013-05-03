@@ -19,10 +19,10 @@ var JData;
         self._dataset = [];
         self._hash    = {};
 
+        self._partitioned_datasets = {};
+
         self._rows_per_page = 10;
         self._current_page  = 0;
-
-        self._partitioned_datasets = {};
 
         self._render_function = function () {};
 
@@ -41,19 +41,11 @@ var JData;
         self._queue_next(function () {
             self._worker = new Worker(srcPath + 'jdata_worker.js');
             self._worker.onmessage = function (e) {
-                if (e.data.error)   self._on_error(e.data.error);
-                if (e.data.columns) self._columns = e.data.columns;
-                if (e.data.rows)    self._dataset = e.data.rows;
-                if (e.data.hash)    self._hash = e.data.hash;
-                if (e.data.partitioned) {
-                    self._partitioned_datasets = e.data.partitioned;
-
-                    Object.keys(self._partitioned_datasets).forEach(function (key) {
-                        self._partitioned_datasets[key] = new JData(
-                            self._partitioned_datasets[key]
-                        );
-                    });
-                }
+                if (e.data.error)       self._on_error(e.data.error);
+                if (e.data.columns)     self._columns = e.data.columns;
+                if (e.data.rows)        self._dataset = e.data.rows;
+                if (e.data.hash)        self._hash = e.data.hash;
+                if (e.data.partitioned) self._partitioned_datasets = e.data.partitioned;
 
                 self._next_action(true);
             };
@@ -137,6 +129,7 @@ var JData;
             });
         })._queue_next(function () {
             callback(self._dataset);
+            return self._next_action(true);
         });
 
         return self;
@@ -188,31 +181,6 @@ var JData;
         });
 
         return self;
-    };
-
-    JData.prototype._alpha_sort = function (a, b) {
-        if (typeof(a) === "undefined" || typeof(b) === "undefined") return 0;
-
-        a = a.toLowerCase();
-        b = b.toLowerCase();
-
-        if (a < b) {
-            return -1;
-        } else if (a > b) {
-            return 1;
-        } else {
-            return 0;
-        }
-    };
-
-    JData.prototype._num_sort = function (a, b) {
-        if (a < b) {
-            return -1;
-        } else if (a > b) {
-            return 1;
-        } else {
-            return 0;
-        }
     };
 
     JData.prototype.remove_columns = function () {
@@ -414,52 +382,6 @@ var JData;
         return self;
     };
 
-    JData.prototype._join_hashes = function (l_hash, r_hash, join_type, finish) {
-        var self = this;
-        var i = 0, joined_dataset = [],
-            p_hash = join_type === "right" ? r_hash : l_hash,
-            f_hash = join_type === "right" ? l_hash : r_hash,
-            key_fields = Object.keys(p_hash),
-            empty_outer_row =  f_hash[Object.keys(f_hash)[0]][0].map( function () {
-                return '';
-            });
-
-        join_type = typeof(join_type) === "undefined" ? "inner" : join_type;
-
-        var next = function () {
-            var key_field = key_fields[i++];
-
-            if (key_field in f_hash) {
-                p_hash[key_field].forEach(function (p_row) {
-                    f_hash[key_field].forEach(function (f_row) {
-                        joined_dataset.push(
-                            join_type === "right" ? f_row.concat(p_row)
-                                                  : p_row.concat(f_row)
-                        );
-                    });
-                });
-            } else if (join_type !== "inner") {
-                p_hash[key_field].forEach(function (p_row) {
-                    joined_dataset.push(
-                        join_type === "right" ? empty_outer_row.concat(p_row)
-                                              : p_row.concat(empty_outer_row)
-                    );
-                });
-            }
-
-            if (i < key_fields.length) {
-                setTimeout(next, 0);
-            } else {
-                finish(joined_dataset);
-                return self._next_action(true);
-            }
-        };
-
-        setTimeout(next, 0);
-
-        return self;
-    };
-
     JData.prototype.prepend_column_names = function (prepend) {
         var self = this;
 
@@ -599,8 +521,7 @@ var JData;
 
         self._queue_next(function () {
             callback(self._partitioned_datasets[keys.join("|")]);
-
-            self._next_action(true);
+            return self._next_action(true);
         });
 
         return self;

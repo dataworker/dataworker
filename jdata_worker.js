@@ -399,7 +399,7 @@ var _partition = function (data) {
     Object.keys(hashed_dataset).forEach(function (key) {
         var dataset = hashed_dataset[key];
 
-        dataset.unshift(columns_row);
+//        dataset.unshift(columns_row);
         partitioned_datasets[key] = dataset;
     });
 
