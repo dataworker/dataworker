@@ -432,7 +432,7 @@ var _get_dataset = function (data) {
 };
 
 self.addEventListener("message", function (e) {
-    var data = e.data, include_primary_payload = false, reply = {};
+    var data = e.data, reply = {};
 
     if (typeof(data) === "undefined") {
         return;

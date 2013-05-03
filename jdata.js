@@ -39,7 +39,7 @@ var JData;
         var self = this;
 
         self._queue_next(function () {
-            self._worker = new Worker('jdata_worker.js');
+            self._worker = new Worker(srcPath + 'jdata_worker.js');
             self._worker.onmessage = function (e) {
                 if (e.data.error)   self._on_error(e.data.error);
                 if (e.data.columns) self._columns = e.data.columns;
@@ -640,7 +640,7 @@ var JData;
     JData.prototype.get_number_of_records = function (callback) {
         var self = this;
 
-        self._queue_next(function () {
+        self._refresh()._queue_next(function () {
             callback(self._dataset.length);
             return self._next_action(true);
         });
