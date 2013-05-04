@@ -9,7 +9,10 @@ var JData;
         var scripts = document.getElementsByTagName('script'),
             srcFile = scripts[scripts.length - 1].src;
 
-        return srcFile.replace(/(http:\/\/)?.*?(\/(.*\/)?).*/, function () { return arguments[2]; });
+        return srcFile.replace(
+            /(http:\/\/)?.*?(\/(.*\/)?).*/,
+            function () { return arguments[2]; }
+        );
     }
 
     JData = function (dataset) {
