@@ -172,15 +172,21 @@
                     </section>
                     <section id="filter">
                         <h3>Filter</h3>
-                        <p>The <code>filter</code> method is used to filter out rows that do not contain the specified regex. This happens in-place. The following filters out any row that does not contain the word 'apple':</p>
+                        <p>The <code>apply_filter</code> method is used to filter out rows that do not contain the specified regex. The following filters out any row that does not contain the word 'apple':</p>
                         <pre>
-    d.filter(/\bapple\b/)</pre>
+    d.apply_filter(/\bapple\b/)</pre>
                         <p>You may also filter only on certain columns:</p>
                         <pre>
-    d.filter(/\bapple\b/, 'column_a', 'column_b');</pre>
+    d.apply_filter(/\bapple\b/, 'column_a', 'column_b');</pre>
                         <p>Note that the following also works (and results in the exact same dataset):</p>
                         <pre>
-    d.filter(/\bapple\b/, [ 'column_a', 'column_b' ]);</pre>
+    d.apply_filter(/\bapple\b/, [ 'column_a', 'column_b' ]);</pre>
+                        <p>The filter can be cleared by calling the <code>clear_filters</code> method:</p>
+                        <pre>
+    d.clear_filters();</pre>
+                        <p>To permanently remove rows from a dataset with a filter, use the <code>filter</code> method:</p>
+                        <pre>
+    d.filter(/\bapple\b/)</pre>
                     </section>
                     <section id="group">
                         <h3>Group</h3>
@@ -222,6 +228,12 @@
                         <pre>   d.remove_columns('column_a', 'column_b');</pre>
                         <p>Note that the following is also valid:</p>
                         <pre>   d.remove_columns([ 'column_a', 'column_b' ]);</pre>
+                        <p>The limit can be cleared by calling the <code>clear_filters</code> method:</p>
+                        <pre>
+    d.clear_filters();</pre>
+                        <p>To permanently remove rows from a dataset with a limit, use the <code>limit</code> method:</p>
+                        <pre>
+    d.limit(10)</pre>
                     </section>
                     <section id="sort">
                         <h3>Sort</h3>
@@ -315,7 +327,7 @@
                     </section>
                     <section id="partition">
                         <h3>Partition</h3>
-                        <p>JData can partition its dataset into multiple smaller datasets. The partitioned datasets can be retrieved afterwards using their partition key(s). The following partitions the dataset by the contents of <code>column_a</code> and pushes each partition onto the <code>partitioned</code> array:</p>
+                        <p>JData can partition its dataset into multiple smaller datasets. The partitioned datasets can be retrieved afterwards using their partition key(s). The following partitions the dataset by the contents of <code>column_a</code> and uses the <code>get_partitioned</code> method to push each partition onto the <code>partitioned</code> array:</p>
                         <pre>
     var partitioned = [];
 
@@ -324,6 +336,7 @@
     d.get_partition_keys().forEach(function (key) {
         d.get_partitioned(function (result) { partitioned.push(result); }, key);
     });</pre>
+                        <p>They <code>get_partitioned</code> method returns an array of records.</code>
                         <p>You may also partition by multiple keys:</p>
                         <pre>
     d.partition('column_a', 'column_b');</pre>
