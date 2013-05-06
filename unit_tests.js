@@ -121,7 +121,7 @@ asyncTest('filter (unrestricted)', function () {
 
     var d = new JData(dataset);
 
-    d.filter(/apple/);
+    d.apply_filter(/apple/);
 
     d.get_dataset(function(result) {
         deepEqual(result, [
@@ -144,7 +144,7 @@ asyncTest('filter (column-restricted, single column, found)', function () {
     ];
 
     var d = new JData(dataset);
-    d.filter(/apple/, 'column_a').get_dataset(function (result) {
+    d.apply_filter(/apple/, 'column_a').get_dataset(function (result) {
         deepEqual(result, [
             [ 'apple', 'violin', 'music' ],
         ]);
@@ -165,7 +165,7 @@ asyncTest('filter (column-restricted, single column, not found)', function () {
     ];
 
     var d = new JData(dataset);
-    d.filter(/apple/, 'column_b').get_dataset(function (result) {
+    d.apply_filter(/apple/, 'column_b').get_dataset(function (result) {
         deepEqual(result, []);
         start();
     }).finish();
@@ -185,7 +185,7 @@ asyncTest('filter (column-restricted, multi-column, found)', function () {
     ];
 
     var d = new JData(dataset);
-    d.filter(/apple/, 'column_a', 'column_c')
+    d.apply_filter(/apple/, 'column_a', 'column_c')
      .sort('column_a')
      .get_dataset(function (result) {
         deepEqual(result, [
@@ -210,13 +210,86 @@ asyncTest('filter (column-restricted, multi-column, not found)', function () {
 
 
     var d = new JData(dataset);
-    d.filter(/piano/, 'column_a', 'column_c').get_dataset(function (result) {
+    d.apply_filter(/piano/, 'column_a', 'column_c').get_dataset(function (result) {
         deepEqual(result, []);
         start();
     }).finish();
 });
 
+asyncTest('clear filter', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.apply_filter(/apple/).clear_filters();
+
+    d.get_dataset(function(result) {
+        deepEqual(result, [
+            [ 'apple',      'violin',    'music' ],
+            [ 'cat',        'tissue',      'dog' ],
+            [ 'banana',      'piano',      'gum' ],
+            [ 'gummy',       'power',     'star' ]
+        ]);
+        start();
+    }).finish();
+});
+
+asyncTest('filter (hard)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.filter(/apple/);
+
+    d.get_dataset(function(result) {
+        deepEqual(result, [
+            [ 'apple', 'violin', 'music' ],
+        ]);
+        start();
+    }).finish();
+});
+
 asyncTest('limit', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ]
+    ];
+
+    var d = new JData(dataset);
+    d.apply_limit(2).get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'apple', 'violin', 'music' ],
+            [ 'cat',   'tissue', 'dog'   ]
+        ]);
+        start();
+    }).finish();
+});
+
+asyncTest('limit (hard)', function () {
     expect(1);
 
     var dataset = [

@@ -19,7 +19,7 @@ var JData;
         var self = this instanceof JData ? this : Object.create(JData.prototype);
 
         self._columns = {};
-        self._dataset = [];
+        self._rows = [];
         self._hash    = {};
 
         self._partitioned_datasets = {};
@@ -46,7 +46,7 @@ var JData;
             self._worker.onmessage = function (e) {
                 if (e.data.error)       self._on_error(e.data.error);
                 if (e.data.columns)     self._columns = e.data.columns;
-                if (e.data.rows)        self._dataset = e.data.rows;
+                if (e.data.rows)        self._rows = e.data.rows;
                 if (e.data.hash)        self._hash = e.data.hash;
                 if (e.data.partitioned) self._partitioned_datasets = e.data.partitioned;
 
@@ -131,8 +131,38 @@ var JData;
                 column_names : column_names
             });
         })._queue_next(function () {
-            callback(self._dataset);
+            callback(self._rows);
             return self._next_action(true);
+        });
+
+        return self;
+    };
+
+    JData.prototype.apply_filter = function () {
+        var self = this,
+            regex = arguments[0],
+            relevant_columns = arguments[1] instanceof Array
+                             ? arguments[1]
+                             : Array.prototype.slice.call(arguments, 1);
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd              : "apply_filter",
+                regex            : regex,
+                relevant_columns : relevant_columns
+            });
+        });
+
+        return self;
+    };
+
+    JData.prototype.clear_filters = function () {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd : "clear_filters"
+            });
         });
 
         return self;
@@ -150,6 +180,19 @@ var JData;
                 cmd              : "filter",
                 regex            : regex,
                 relevant_columns : relevant_columns
+            });
+        });
+
+        return self;
+    };
+
+    JData.prototype.apply_limit = function (num_rows) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd      : "apply_limit",
+                num_rows : num_rows
             });
         });
 
@@ -179,7 +222,7 @@ var JData;
                 cmd     : "sort",
                 sort_on : sort_columns,
                 columns : self._columns,
-                rows    : self._dataset
+                rows    : self._rows
             });
         });
 
@@ -246,7 +289,7 @@ var JData;
         start = self._rows_per_page * self._current_page;
         end   = start + self._rows_per_page;
 
-        callback(self._dataset.slice(start, end));
+        callback(self._rows.slice(start, end));
         if (post_increment_page) self._current_page++;
 
         return self._next_action(true);
@@ -278,7 +321,7 @@ var JData;
         var self = this;
 
         self._refresh()._queue_next(function () {
-            callback(self._columns, self._dataset);
+            callback(self._columns, self._rows);
         });
 
         return self;
@@ -565,7 +608,7 @@ var JData;
         var self = this;
 
         self._refresh()._queue_next(function () {
-            callback(self._dataset.length);
+            callback(self._rows.length);
             return self._next_action(true);
         });
 

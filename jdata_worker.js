@@ -17,13 +17,26 @@ var _prepare_columns = function (raw_columns) {
     return prepared_columns;
 };
 
+var _prepare_rows = function (raw_rows) {
+    return raw_rows.map(function (row) {
+        return {
+            row        : row,
+            is_visible : true
+        };
+    });
+};
+
+var _strip_row_metadata = function (processed_rows) {
+    return processed_rows.map(function (row) { return row["row"]; });
+};
+
 var _initialize = function (data) {
     columns = _prepare_columns(data.columns);
-    rows    = data.rows;
+    rows    = _prepare_rows(data.rows);
 
     return {
         columns : columns,
-        rows    : rows
+        rows    : _strip_row_metadata(rows)
     };
 };
 
@@ -65,11 +78,11 @@ var _sort = function (data) {
             sort_type   = columns[column_name]["sort_type"];
 
             if (reverse) {
-                val_b = a[columns[column_name]["index"]];
-                val_a = b[columns[column_name]["index"]];
+                val_b = a["row"][columns[column_name]["index"]];
+                val_a = b["row"][columns[column_name]["index"]];
             } else {
-                val_a = a[columns[column_name]["index"]];
-                val_b = b[columns[column_name]["index"]];
+                val_a = a["row"][columns[column_name]["index"]];
+                val_b = b["row"][columns[column_name]["index"]];
             }
 
             if (typeof(sort_type) === "function") {
@@ -93,29 +106,77 @@ var _sort = function (data) {
     return {};
 };
 
-var _filter = function (data) {
+var _apply_filter = function (data) {
     var regex = data.regex, relevant_columns = data.relevant_columns;
-    var i = 0, j, column, filtered_dataset = [],
+    var i, column
         relevant_indexes = relevant_columns.map(function (column) {
             return columns[column]["index"];
         });
 
     rows.forEach(function (row) {
-        for (j = 0; j < row.length; j++) {
-            column = row[j];
+        row["is_visible"] = false;
+
+        for (i = 0; i < row["row"].length; i++) {
+            column = row["row"][i];
 
             if (
-                (relevant_indexes.length == 0 || relevant_indexes.indexOf(j) != -1)
-                && column !== null
-                && column.match(regex)
+                (relevant_indexes.length === 0 || relevant_indexes.indexOf(i) !== -1)
+                && column !== null && column.match(regex)
             ) {
-                filtered_dataset[i++] = row;
+                row["is_visible"] = true;
+                break;
+            }
+        }
+    });
+
+    return {};
+};
+
+var _clear_filters = function () {
+    rows.forEach(function (row) {
+        row["is_visible"] = true;
+    });
+
+    return {};
+};
+
+var _filter = function (data) {
+    var regex = data.regex, relevant_columns = data.relevant_columns;
+    var i, column, filtered_dataset = [],
+        relevant_indexes = relevant_columns.map(function (column) {
+            return columns[column]["index"];
+        });
+
+    rows.forEach(function (row) {
+        for (i = 0; i < row["row"].length; i++) {
+            column = row["row"][i];
+
+            if (
+                (relevant_indexes.length === 0 || relevant_indexes.indexOf(i) !== -1)
+                && column !== null && column.match(regex)
+            ) {
+                filtered_dataset.push(row);
                 break;
             }
         }
     });
 
     rows = filtered_dataset;
+
+    return {};
+};
+
+var _apply_limit = function (data) {
+    var num_rows = data.num_rows;
+    var i = 0;
+
+    rows.forEach(function (row) {
+        if (i++ < num_rows) {
+            row["is_visible"] = true;
+        } else {
+            row["is_visible"] = false;
+        }
+    });
 
     return {};
 };
@@ -146,14 +207,14 @@ var _remove_columns = function (data) {
 
         Object.keys(columns_to_keep).forEach(function (column_name) {
             filtered_row[columns_to_keep[column_name]["index"]]
-                = row[columns[column_name]["index"]];
+                = row["row"][columns[column_name]["index"]];
         });
 
         filtered_dataset.push(filtered_row);
     });
 
     columns = columns_to_keep;
-    rows    = filtered_dataset;
+    rows    = _prepare_rows(filtered_dataset);
 
     return {};
 };
@@ -258,7 +319,7 @@ var _append = function (data) {
 
     var error = _check_columns_for_append(new_columns);
     if (!error) {
-        rows = rows.concat(new_rows);
+        rows = rows.concat(_prepare_rows(new_rows));
     } else {
         reply["error"] = error;
     }
@@ -281,7 +342,7 @@ var _hash_dataset_by_key_columns = function (data) {
         return columns[column_name]["index"];
     });
 
-    rows.forEach(function (row) {
+    rows.map(function (row) { return row["row"]; }).forEach(function (row) {
         var key = key_indexes.map(function (i) { return row[i]; }).join("|");
 
         if (key in hash) {
@@ -337,7 +398,7 @@ var _join_hashes = function (data) {
         columns[column_name] = column;
     });
 
-    rows = joined_dataset;
+    rows = _prepare_rows(joined_dataset);
 
     return {};
 };
@@ -380,7 +441,7 @@ var _group = function (data) {
         grouped_dataset.push(grouped_row);
     });
 
-    rows = grouped_dataset;
+    rows = _prepare_rows(grouped_dataset);
 
     return errors.length > 0 ? { error : errors.join("\n") } : {};
 };
@@ -398,8 +459,6 @@ var _partition = function (data) {
 
     Object.keys(hashed_dataset).forEach(function (key) {
         var dataset = hashed_dataset[key];
-
-//        dataset.unshift(columns_row);
         partitioned_datasets[key] = dataset;
     });
 
@@ -408,17 +467,19 @@ var _partition = function (data) {
 
 var _get_dataset = function (data) {
     var column_names = data.column_names;
-    var filtered_dataset = [];
+    var visible_rows = rows.filter(function (row) { return row["is_visible"]; })
+                           .map(function (row) { return row["row"]; }),
+        filtered_dataset = [];
 
     if (column_names.length === 0) {
-        return { rows : rows };
+        return { rows : visible_rows };
     }
 
     column_idxs = column_names.map(function (column) {
         return columns[column]["index"];
     });
 
-    rows.forEach(function (row, i) {
+    visible_rows.forEach(function (row, i) {
         var filtered_row = [];
 
         column_idxs.forEach(function (column_idx, i) {
@@ -445,8 +506,17 @@ self.addEventListener("message", function (e) {
         case "sort":
             reply = _sort(data);
             break;
+        case "apply_filter":
+            reply = _apply_filter(data);
+            break;
+        case "clear_filters":
+            reply = _clear_filters(data);
+            break;
         case "filter":
             reply = _filter(data);
+            break;
+        case "apply_limit":
+            reply = _apply_limit(data);
             break;
         case "limit":
             reply = _limit(data);
@@ -489,7 +559,7 @@ self.addEventListener("message", function (e) {
             break;
         case "refresh":
             reply["columns"] = columns;
-            reply["rows"]    = rows;
+            reply["rows"]    = _strip_row_metadata(rows);
             break;
     }
 
