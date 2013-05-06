@@ -90,6 +90,11 @@
                             <li><code>agg_type</code>: 'max'</li>
                             <li><code>sort_type</code>: 'alpha'</li>
                         </ul>
+                        <p>Additionally, you should give JData an error handler (otherwise JData will just fail silently) using the <code>on_error</code> method:</p>
+                        <pre>
+    var d = new JData(dataset).on_error(function (error_msg) {
+        alert(error_msg);
+    });</pre>
                     </section>
                     <section id="alter_columns">
                         <h3>Alter columns</h3>
