@@ -366,7 +366,7 @@ var JData;
             }
             if (
                 typeof(join_type) !== "undefined"
-                && !(join_type === "left" || join_type === "right")
+                && !(join_type === "left" || join_type === "right" || join_type === "inner")
             ) {
                 self._on_error("Unknown join type.");
             }
