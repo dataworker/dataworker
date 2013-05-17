@@ -614,4 +614,22 @@ var JData;
 
         return self;
     };
+
+    JData.prototype.clone = function (callback) {
+        var self = this;
+
+        self.get_columns_and_records(function (columns, records) {
+            var columns_row = Object.keys(columns).map(function (column_name) {
+                return columns[column_name];
+            }).sort(function (a, b) {
+                return a["index"] - b["index"];
+            });
+
+            var dataset = [ columns_row ].concat(records);
+
+            callback(new JData(dataset));
+        });
+
+        return self;
+    };
 })();

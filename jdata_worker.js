@@ -450,7 +450,6 @@ var _partition = function (data) {
     var hashed_dataset = data.hashed_dataset;
     var columns_row = Object.keys(columns).map(function (column_name) {
             var column = columns[column_name];
-            column["name"] = column_name;
 
             return column;
         }).sort(function (a, b) {

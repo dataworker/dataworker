@@ -1676,3 +1676,57 @@ asyncTest('get partitioned (multi-field)', function () {
 
     setTimeout(wait, 0);
 });
+
+asyncTest('clone', function () {
+    expect(3);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.clone(function (clone) {
+        ok(clone instanceof JData);
+
+        clone.get_columns_and_records(function (columns, records) {
+            deepEqual(columns, {
+                column_a: {
+                    sort_type : 'alpha',
+                    agg_type  : 'max',
+                    title     : 'column_a',
+                    name      : 'column_a',
+                    index     : 0
+                },
+                column_b: {
+                    sort_type : 'alpha',
+                    agg_type  : 'max',
+                    title     : 'column_b',
+                    name      : 'column_b',
+                    index     : 1
+                },
+                column_c: {
+                    sort_type : 'alpha',
+                    agg_type  : 'max',
+                    title     : 'column_c',
+                    name      : 'column_c',
+                    index     : 2
+                }
+            });
+
+            deepEqual(records, [
+                [ 'apple',      'violin',    'music' ],
+                [ 'cat',        'tissue',      'dog' ],
+                [ 'banana',      'piano',      'gum' ],
+                [ 'gummy',       'power',     'star' ]
+            ]);
+
+            start();
+        });
+    });
+});
