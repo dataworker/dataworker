@@ -322,6 +322,8 @@ var JData;
 
         self._refresh()._queue_next(function () {
             callback(self._columns, self._rows);
+            
+            return self._next_action(true);
         });
 
         return self;
