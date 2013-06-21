@@ -664,4 +664,14 @@ var JData;
 
         return self;
     };
+
+    JData.prototype.estimate_relative_column_widths = function () {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "estimate_relative_column_widths" });
+        });
+
+        return self;
+    };
 })();
