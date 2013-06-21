@@ -56,6 +56,15 @@ var _alpha_sort = function (a, b) {
     }
 };
 
+var _locale_alpha_sort = function (a, b) {
+    if (typeof(a) === "undefined" || typeof(b) === "undefined") return 0;
+
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+
+    return a.localeCompare(b);
+};
+
 var _num_sort = function (a, b) {
     a = parseFloat(a);
     b = parseFloat(b);
@@ -91,6 +100,8 @@ var _sort = function (data) {
 
             if (sort_type === "alpha") {
                 sort_result = _alpha_sort(val_a, val_b);
+            } else if (sort_type === "locale_alpha") {
+                sort_result = _locale_alpha_sort(val_a, val_b);
             } else if (sort_type === "num") {
                 sort_result = _num_sort(val_a, val_b);
             } else {

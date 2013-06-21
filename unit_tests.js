@@ -370,6 +370,51 @@ asyncTest('sort (alpha)', function () {
     }).finish();
 });
 
+asyncTest('sort (locale-considering alpha)', function () {
+    expect(1);
+
+    var dataset = [
+        [
+            {
+                name: 'column_a',
+                agg_type: 'max',
+                sort_type: 'locale_alpha',
+                title: 'Column A'
+            },
+            {
+                name: 'column_b',
+                agg_type: 'max',
+                sort_type: 'alpha',
+                title: 'Column B'
+            },
+            {
+                name: 'column_c',
+                agg_type: 'min',
+                sort_type: 'alpha',
+                title: 'Column C'
+            }
+        ],
+
+        [ 'rip',        'violin',    'music' ],
+        [ 'résumé',     'tissue',      'dog' ],
+        [ 'gummy',       'power',     'star' ],
+        [ 'banana',      'piano',      'gum' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.sort('column_a').get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'banana',      'piano',      'gum' ],
+            [ 'gummy',       'power',     'star' ],
+            [ 'rip',        'violin',    'music' ],
+            [ 'résumé',     'tissue',      'dog' ]
+        ]);
+
+        start();
+    }).finish();
+});
+
 asyncTest('sort (reverse alpha)', function () {
     expect(1);
 
