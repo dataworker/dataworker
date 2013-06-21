@@ -612,7 +612,7 @@ var JData;
                 return self._next_action(true);
             });
         } else {
-            self._refresh()._queue_next(function () {
+            self._queue_next(function () {
                 self._render_function();
                 return self._next_action(true);
             });
