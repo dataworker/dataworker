@@ -529,10 +529,13 @@ asyncTest('paginate (set page)', function () {
 
     var d = new JData(dataset).paginate(2);
 
-    d.render(function () {
-        equal(d._current_page, 2);
+    d.set_page(3).get_page(function (result) {
+        deepEqual(result, [
+            [ 'car',        'screen',    'phone' ],
+            [ 'sign',        'bagel',    'chips' ]
+        ]);
         start();
-    }).set_page(3).render().finish();
+    }).finish();
 });
 
 asyncTest('paginate (set 1st page)', function () {
@@ -551,10 +554,13 @@ asyncTest('paginate (set 1st page)', function () {
 
     var d = new JData(dataset).paginate(2);
 
-    d.render(function () {
-        equal(d._current_page, 0);
+    d.set_page(1).get_page(function (result) {
+        deepEqual(result, [
+            [ 'apple',      'violin',    'music' ],
+            [ 'cat',        'tissue',      'dog' ]
+        ]);
         start();
-    }).set_page(1).render().finish();
+    }).finish();
 });
 
 asyncTest('paginate (set 0th page)', function () {
@@ -573,10 +579,13 @@ asyncTest('paginate (set 0th page)', function () {
 
     var d = new JData(dataset).paginate(2);
 
-    d.render(function () {
-        equal(d._current_page, 0);
+    d.set_page(0).get_page(function (result) {
+        deepEqual(result, [
+            [ 'apple',      'violin',    'music' ],
+            [ 'cat',        'tissue',      'dog' ]
+        ]);
         start();
-    }).set_page(0).render().finish();
+    }).finish();
 });
 
 asyncTest('paginate (set negative page)', function () {
@@ -595,10 +604,13 @@ asyncTest('paginate (set negative page)', function () {
 
     var d = new JData(dataset).paginate(2);
 
-    d.render(function () {
-        equal(d._current_page, 0);
+    d.set_page(-1).get_page(function (result) {
+        deepEqual(result, [
+            [ 'apple',      'violin',    'music' ],
+            [ 'cat',        'tissue',      'dog' ]
+        ]);
         start();
-    }).set_page(-1).render().finish();
+    }).finish();
 });
 
 asyncTest('paginate (next page)', function () {
@@ -1728,5 +1740,123 @@ asyncTest('clone', function () {
 
             start();
         });
+    });
+});
+
+asyncTest('get rows (all)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.get_rows(function (result) {
+        deepEqual(result, [
+            [ 'apple',      'violin',    'music' ],
+            [ 'cat',        'tissue',      'dog' ],
+            [ 'banana',      'piano',      'gum' ],
+            [ 'gummy',       'power',     'star' ]
+        ]);
+
+        start();
+    });
+});
+
+asyncTest('get rows (specify start)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.get_rows(function (result) {
+        deepEqual(result, [
+            [ 'banana',      'piano',      'gum' ],
+            [ 'gummy',       'power',     'star' ]
+        ]);
+
+        start();
+    }, 2);
+});
+
+asyncTest('get rows (specify end)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.get_rows(function (result) {
+        deepEqual(result, [
+            [ 'apple',      'violin',    'music' ],
+            [ 'cat',        'tissue',      'dog' ]
+        ]);
+
+        start();
+    }, undefined, 1);
+});
+
+asyncTest('get rows (specify start and end)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.get_rows(function (result) {
+        deepEqual(result, [
+            [ 'cat',        'tissue',      'dog' ],
+            [ 'banana',      'piano',      'gum' ]
+        ]);
+
+        start();
+    }, 1, 2);
+});
+
+asyncTest('get number of records', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.get_number_of_records(function (result) {
+        equal(result, 4);
+        start();
     });
 });

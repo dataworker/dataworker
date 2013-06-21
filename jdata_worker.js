@@ -1,4 +1,5 @@
-var columns, rows;
+var columns, rows,
+    rows_per_page = 10, current_page = 0;
 
 var _prepare_columns = function (raw_columns) {
     var prepared_columns = {};
@@ -491,6 +492,60 @@ var _get_dataset = function (data) {
     return { rows : filtered_dataset };
 };
 
+var _get_number_of_records = function (data) {
+    return { num_rows : rows.length };
+};
+
+var _paginate = function (data) {
+    rows_per_page = data.rows_per_page;
+    current_page = 0;
+
+    return {};
+};
+
+var _get_page = function (data) {
+    var page_num = data.page_num,
+        post_increment_page = data.post_increment_page,
+        pre_decrement_page = data.pre_decrement_page;
+    var start, end;
+
+    if (pre_decrement_page) page_num = current_page;
+
+    current_page = typeof(page_num) !== "undefined" ? (page_num - 1)
+                                                    : current_page;
+    if (current_page < 0) current_page = 0;
+
+    start = rows_per_page * current_page;
+    end = start + rows_per_page;
+
+    if (post_increment_page) current_page++;
+
+    return { rows : _strip_row_metadata(rows.slice(start, end)) };
+};
+
+var _set_page = function (data) {
+    var page_num = data.page_num;
+
+    current_page = page_num > 0 ? (page_num - 1) : 0;
+
+    return {};
+};
+
+var _get_columns = function (data) {
+    return { columns : columns };
+};
+
+var _get_rows = function (data) {
+    var start = data.start,
+        end = data.end;
+
+    if (typeof(end) !== "undefined") {
+        end += 1;
+    }
+
+    return { rows : _strip_row_metadata(rows.slice(start, end)) };
+};
+
 self.addEventListener("message", function (e) {
     var data = e.data, reply = {};
 
@@ -553,8 +608,26 @@ self.addEventListener("message", function (e) {
         case "partition":
             reply = _partition(data);
             break;
+        case "paginate":
+            reply = _paginate(data);
+            break;
+        case "get_page":
+            reply = _get_page(data);
+            break;
+        case "set_page":
+            reply = _set_page(data);
+            break;
+        case "get_columns":
+            reply = _get_columns(data);
+            break;
+        case "get_rows":
+            reply = _get_rows(data);
+            break;
         case "get_dataset":
             reply = _get_dataset(data);
+            break;
+        case "get_num_rows":
+            reply = _get_number_of_records(data);
             break;
         case "refresh":
             reply["columns"] = columns;

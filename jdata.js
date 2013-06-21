@@ -22,10 +22,9 @@ var JData;
         self._rows = [];
         self._hash    = {};
 
-        self._partitioned_datasets = {};
+        self._num_rows = 0;
 
-        self._rows_per_page = 10;
-        self._current_page  = 0;
+        self._partitioned_datasets = {};
 
         self._render_function = function () {};
 
@@ -49,6 +48,7 @@ var JData;
                 if (e.data.rows)        self._rows = e.data.rows;
                 if (e.data.hash)        self._hash = e.data.hash;
                 if (e.data.partitioned) self._partitioned_datasets = e.data.partitioned;
+                if (e.data.num_rows)    self._num_rows = e.data.num_rows;
 
                 self._next_action(true);
             };
@@ -96,12 +96,21 @@ var JData;
         return self;
     };
 
+    JData.prototype._get_columns = function () {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "get_columns" });
+        });
+
+        return self;
+    };
+
     JData.prototype.get_columns = function (callback) {
         var self = this;
 
-        self._refresh()._queue_next(function () {
+        self._get_columns()._queue_next(function () {
             callback(self._columns);
-
             return self._next_action(true);
         });
 
@@ -246,72 +255,91 @@ var JData;
     };
 
     JData.prototype.paginate = function (rows_per_page) {
-        var self = this, args = Array.prototype.slice.call(arguments);
+        var self = this;
 
         self._queue_next(function () {
-            self._rows_per_page = rows_per_page;
-            self._current_page = 0;
-
-            return self._next_action(true);
+            self._worker.postMessage({
+                cmd           : "paginate",
+                rows_per_page : rows_per_page
+            });
         });
 
         return self;
     };
 
     JData.prototype.get_next_page = function (callback) {
-        var self = this, args = Array.prototype.slice.call(arguments);
+        var self = this;
 
-        self._queue_next(function () {
-            self._get_page(callback, undefined, true);
+        self._get_page(undefined, true, false)._queue_next(function() {
+            callback(self._rows);
+            return self._next_action(true);
         });
 
         return self;
     };
 
     JData.prototype.get_previous_page = function (callback) {
-        var self = this, args = Array.prototype.slice.call(arguments);
+        var self = this;
 
-        self._queue_next(function () {
-            self._get_page(callback, self._current_page);
+        self._get_page(undefined, false, true)._queue_next(function () {
+            callback(self._rows);
+            return self._next_action(true);
         });
 
         return self;
     };
 
-    JData.prototype._get_page = function (callback, page_num, post_increment_page) {
+    JData.prototype._get_page = function (page_num, post_increment_page, pre_decrement_page) {
         var self = this;
-        var start, end;
-
-        self._current_page = typeof(page_num) != "undefined" ? (page_num - 1)
-                                                             : self._current_page;
-        if (self._current_page < 0) self._current_page = 0;
-
-        start = self._rows_per_page * self._current_page;
-        end   = start + self._rows_per_page;
-
-        callback(self._rows.slice(start, end));
-        if (post_increment_page) self._current_page++;
-
-        return self._next_action(true);
-    };
-
-    JData.prototype.get_page = function () {
-        var self = this, args = Array.prototype.slice.call(arguments);
 
         self._queue_next(function () {
-            self._get_page.apply(self, args);
+            self._worker.postMessage({
+                cmd                 : "get_page",
+                page_num            : page_num,
+                post_increment_page : post_increment_page,
+                pre_decrement_page  : pre_decrement_page
+            });
+        });
+
+        return self;
+    };
+
+    JData.prototype.get_page = function (callback, page_num) {
+        var self = this;
+
+        self._get_page(page_num)._queue_next(function () {
+            callback(self._rows);
+            self._next_action(true);
         });
 
         return self;
     };
 
     JData.prototype.set_page = function (page_num) {
-        var self = this, args = Array.prototype.slice.call(arguments);
+        var self = this;
 
         self._queue_next(function () {
-            self._current_page = page_num > 0 ? (page_num - 1) : 0;
+            self._worker.postMessage({
+                    cmd      : "set_page",
+                    page_num : page_num
+            });
+        });
 
-            return self._next_action(true);
+        return self;
+    };
+
+    JData.prototype.get_rows = function (callback, start, end) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd   : "get_rows",
+                start : start,
+                end   : end
+            });
+        })._queue_next(function () {
+            callback(self._rows);
+            self._next_action(true);
         });
 
         return self;
@@ -374,7 +402,7 @@ var JData;
             return self._next_action(true);
         });
 
-        self._refresh()._queue_next(function () {
+        self._get_columns()._queue_next(function () {
             fdata.get_columns(function (columns) {
                 Object.keys(columns).forEach(function (column_name) {
                     if (column_name in self._columns) {
@@ -609,8 +637,10 @@ var JData;
     JData.prototype.get_number_of_records = function (callback) {
         var self = this;
 
-        self._refresh()._queue_next(function () {
-            callback(self._rows.length);
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "get_num_rows" });
+        })._queue_next(function () {
+            callback(self._num_rows);
             return self._next_action(true);
         });
 
