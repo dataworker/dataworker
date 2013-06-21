@@ -434,6 +434,46 @@ asyncTest('sort (num)', function () {
     }).finish();
 });
 
+asyncTest('sort (num w/ decimals)', function () {
+    expect(1);
+
+    var dataset = [
+        [
+            {
+                name: 'column_a',
+                sort_type: 'alpha',
+                agg_type: 'max'
+            },
+            {
+                name: 'column_b',
+                sort_type: 'alpha',
+                agg_type: 'max'
+            },
+            {
+                name: 'column_c',
+                sort_type: 'num',
+                agg_type: 'max'
+            },
+        ],
+
+        [ 'apple',      'violin',          '8.0' ],
+        [ 'cat',        'tissue',         '85.0' ],
+        [ 'banana',      'piano',         '45.0' ],
+        [ 'gummy',       'power',         '82.0' ]
+    ];
+
+    var d = new JData(dataset);
+    d.sort('column_c').get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'apple', 'violin',  '8.0' ],
+            [ 'banana', 'piano', '45.0' ],
+            [ 'gummy',  'power', '82.0' ],
+            [ 'cat',   'tissue', '85.0' ]
+        ]);
+        start();
+    }).finish();
+});
+
 asyncTest('sort (reverse num)', function () {
     expect(1);
     var dataset = [
@@ -1839,6 +1879,31 @@ asyncTest('get rows (specify start and end)', function () {
 
         start();
     }, 1, 2);
+});
+
+asyncTest('get rows (specify a too-large end)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.get_rows(function (result) {
+        deepEqual(result, [
+            [ 'cat',        'tissue',      'dog' ],
+            [ 'banana',      'piano',      'gum' ],
+            [ 'gummy',       'power',     'star' ]
+        ]);
+
+        start();
+    }, 1, 10);
 });
 
 asyncTest('get number of records', function () {

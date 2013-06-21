@@ -57,6 +57,9 @@ var _alpha_sort = function (a, b) {
 };
 
 var _num_sort = function (a, b) {
+    a = parseFloat(a);
+    b = parseFloat(b);
+
     if (a < b) {
         return -1;
     } else if (a > b) {
@@ -86,9 +89,7 @@ var _sort = function (data) {
                 val_b = b["row"][columns[column_name]["index"]];
             }
 
-            if (typeof(sort_type) === "function") {
-                sort_result = sort_type(val_a, val_b);
-            } else if (sort_type === "alpha") {
+            if (sort_type === "alpha") {
                 sort_result = _alpha_sort(val_a, val_b);
             } else if (sort_type === "num") {
                 sort_result = _num_sort(val_a, val_b);
