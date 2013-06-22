@@ -31,6 +31,14 @@ var _strip_row_metadata = function (processed_rows) {
     return processed_rows.map(function (row) { return row["row"]; });
 };
 
+var _get_visible_rows = function () {
+    return rows.filter(function (row) {
+        return row["is_visible"];
+    }).map(function (row) {
+        return row["row"];
+    });
+};
+
 var _initialize = function (data) {
     columns = _prepare_columns(data.columns);
     rows    = _prepare_rows(data.rows);
@@ -479,9 +487,7 @@ var _partition = function (data) {
 
 var _get_dataset = function (data) {
     var column_names = data.column_names;
-    var visible_rows = rows.filter(function (row) { return row["is_visible"]; })
-                           .map(function (row) { return row["row"]; }),
-        filtered_dataset = [];
+    var visible_rows = _get_visible_rows(), filtered_dataset = [];
 
     if (column_names.length === 0) {
         return { rows : visible_rows };
@@ -555,7 +561,7 @@ var _get_rows = function (data) {
         end += 1;
     }
 
-    return { rows : _strip_row_metadata(rows.slice(start, end)) };
+    return { rows : _get_visible_rows().slice(start, end) };
 };
 
 var _estimate_relative_column_widths = function () {
@@ -675,7 +681,7 @@ self.addEventListener("message", function (e) {
             break;
         case "refresh":
             reply["columns"] = columns;
-            reply["rows"]    = _strip_row_metadata(rows);
+            reply["rows"]    = _get_visible_rows();
             break;
     }
 
