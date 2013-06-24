@@ -558,7 +558,7 @@ var _get_rows = function (data) {
     return { rows : _strip_row_metadata(rows.slice(start, end)) };
 };
 
-var _estimate_relative_column_widths = function () {
+var _estimate_relative_column_widths = function (data) {
     var max_chars = {}, total_max_chars = 0;
 
     rows.forEach(function (row) {
