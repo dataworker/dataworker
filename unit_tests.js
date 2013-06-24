@@ -1996,3 +1996,51 @@ asyncTest('estimate relative column widths', function () {
         start();
     }).finish();
 });
+
+asyncTest('get_rows obeys applied filter', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.apply_filter(/apple/);
+
+    d.get_rows(function(result) {
+        deepEqual(result, [
+            [ 'apple', 'violin', 'music' ],
+        ]);
+        start();
+    }).finish();
+});
+
+asyncTest('get_columns_and_records obeys applied filter', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.apply_filter(/apple/);
+
+    d.get_columns_and_records(function(columns, rows) {
+        deepEqual(rows, [
+            [ 'apple', 'violin', 'music' ],
+        ]);
+        start();
+    }).finish();
+});
