@@ -1,5 +1,3 @@
-var JData;
-
 (function() {
     "use strict";
 
@@ -15,7 +13,7 @@ var JData;
         );
     }
 
-    JData = function (dataset) {
+    var JData = window.JData = function (dataset) {
         var self = this instanceof JData ? this : Object.create(JData.prototype);
 
         self._columns = {};
