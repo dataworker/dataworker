@@ -511,7 +511,7 @@ var _get_dataset = function (data) {
 };
 
 var _get_number_of_records = function (data) {
-    return { num_rows : rows.length };
+    return { num_rows : _get_visible_rows().length };
 };
 
 var _paginate = function (data) {
