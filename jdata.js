@@ -236,6 +236,19 @@
         return self;
     };
 
+    JData.prototype.set_decimal_mark_character = function (decimal_mark_character) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd                    : "set_decimal_mark_character",
+                decimal_mark_character : decimal_mark_character
+            });
+        });
+
+        return self;
+    };
+
     JData.prototype.remove_columns = function () {
         var self = this,
             columns_to_remove = arguments[0] instanceof Array

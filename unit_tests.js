@@ -2044,3 +2044,30 @@ asyncTest('get_columns_and_records obeys applied filter', function () {
         start();
     }).finish();
 });
+
+asyncTest('set_decimal_mark_character', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a' ],
+
+        [ 1.435      ],
+        [ 3,600      ],
+        [ 4.56       ]
+        [ 2,345      ],
+    ];
+
+    var d = new JData(dataset);
+
+    d.alter_column_sort_type('column_a', 'num')
+     .sort('column_a')
+     .get_columns_and_records(function (columns, rows) {
+        deepEqual(rows, [
+            [ 1.435      ],
+            [ 4.56       ],
+            [ 2,345      ],
+            [ 3,600      ]
+        ]);
+        start();
+     }).finish();
+});
