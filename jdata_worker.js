@@ -83,9 +83,9 @@ var _num_sort = function (a, b) {
     b = b.replace(only_valid_for_numbers_regex, '');
     b = parseFloat(b);
 
-    if (a < b) {
+    if (isNaN(a) || a < b) {
         return -1;
-    } else if (a > b) {
+    } else if (isNaN(b) || a > b) {
         return 1;
     } else {
         return 0;
