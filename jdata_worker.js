@@ -1,6 +1,6 @@
 var columns, rows,
     rows_per_page = 10, current_page = 0,
-    only_valid_for_numbers_regex = /[^0-9.]/g;
+    only_valid_for_numbers_regex = /[^0-9.\-]/g;
 
 var _prepare_columns = function (raw_columns) {
     var prepared_columns = {};
@@ -75,10 +75,12 @@ var _locale_alpha_sort = function (a, b) {
 };
 
 var _num_sort = function (a, b) {
-    a.replace(only_valid_for_numbers_regex, '');
-    b.replace(only_valid_for_numbers_regex, '');
-
+    a += "";
+    a = a.replace(only_valid_for_numbers_regex, '');
     a = parseFloat(a);
+
+    b += "";
+    b = b.replace(only_valid_for_numbers_regex, '');
     b = parseFloat(b);
 
     if (a < b) {
@@ -134,7 +136,7 @@ var _sort = function (data) {
 var _set_decimal_mark_character = function (data) {
     var decimal_mark_character = data.decimal_mark_character;
 
-    only_valid_for_numbers_regex = new RegExp("[0-9" + decimal_mark_character + "]", "g");
+    only_valid_for_numbers_regex = new RegExp("[0-9\-" + decimal_mark_character + "]", "g");
 
     return {};
 };

@@ -2051,10 +2051,10 @@ asyncTest('set_decimal_mark_character', function () {
     var dataset = [
         [ 'column_a' ],
 
-        [ 1.435      ],
-        [ 3,600      ],
-        [ 4.56       ]
-        [ 2,345      ],
+        [ "1.435"    ],
+        [ "3,600"    ],
+        [ "4.56"     ],
+        [ "2,345"    ]
     ];
 
     var d = new JData(dataset);
@@ -2063,10 +2063,10 @@ asyncTest('set_decimal_mark_character', function () {
      .sort('column_a')
      .get_columns_and_records(function (columns, rows) {
         deepEqual(rows, [
-            [ 1.435      ],
-            [ 4.56       ],
-            [ 2,345      ],
-            [ 3,600      ]
+            [ "1.435" ],
+            [ "4.56"  ],
+            [ "2,345" ],
+            [ "3,600" ]
         ]);
         start();
      }).finish();
