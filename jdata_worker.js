@@ -1,4 +1,5 @@
 var columns, rows,
+    ws, is_ws_ready, expected_num_rows,
     rows_per_page = 10, current_page = 0,
     only_valid_for_numbers_regex = /[^0-9.\-]/g;
 
@@ -41,13 +42,49 @@ var _get_visible_rows = function () {
 };
 
 var _initialize = function (data) {
-    columns = _prepare_columns(data.columns);
-    rows    = _prepare_rows(data.rows);
+    var wait_to_connect;
 
-    return {
-        columns : columns,
-        rows    : _strip_row_metadata(rows)
-    };
+    if (data.datasource) {
+        /*
+         * Expects the first message back to be:
+         *      {
+         *          total_num_rows => TOTAL_NUM_ROWS,
+         *      }
+         *
+         * Note: Doesn't HAVE to be first message back, but JData will not continue
+         *       operation until it knows how many total rows to expect.
+         */
+        ws = new WebSocket(data.datasource);
+
+        ws.onmessage = function (msg) {
+            if (msg.data.columns) {
+                columns = _prepare_columns(data.columns);
+            }
+
+            if (msg.data.rows) {
+                if (typeof(rows) === "undefined") rows = [];
+                rows.append(_prepare_rows(msg.data.rows));
+            }
+
+            if (msg.data.total_num_rows) {
+                expected_num_rows = msg.data.total_num_rows;
+                is_ws_ready       = true;
+            }
+        };
+
+        if (data.authenticate) {
+            ws.send(data.authenticate);
+        }
+
+        wait_to_connect = true;
+    } else {
+        columns = _prepare_columns(data.columns);
+        rows    = _prepare_rows(data.rows);
+
+        wait_to_connect = false;
+    }
+
+    return wait_to_connect;
 };
 
 var _alpha_sort = function (a, b) {
@@ -607,6 +644,22 @@ var _estimate_relative_column_widths = function (data) {
     return {};
 };
 
+var _request_dataset_from_datasource = function (data) {
+    ws.send(data.request);
+
+    return {};
+};
+
+var _get_expected_num_rows = function (data) {
+    var wait = function () {
+        if (typeof(expected_num_rows) === "undefined") {
+            wait();
+        } else {
+            return { ex_num_rows : expected_num_rows };
+        }
+    };
+};
+
 self.addEventListener("message", function (e) {
     var data = e.data, reply = {};
 
@@ -614,10 +667,25 @@ self.addEventListener("message", function (e) {
         return;
     }
 
+    if (data.cmd === "initialize") {
+        var wait_to_connect = _initialize(data);
+
+        if (wait_to_connect) {
+            var wait = function () {
+                if (is_ws_ready) {
+                    self.postMessage(reply);
+                } else {
+                    setTimeout(wait, 250);
+                }
+            };
+
+            setTimeout(wait, 250);
+
+            return;
+        }
+    }
+
     switch (data.cmd) {
-        case "initialize":
-            reply = _initialize(data);
-            break;
         case "sort":
             reply = _sort(data);
             break;
@@ -695,6 +763,12 @@ self.addEventListener("message", function (e) {
             break;
         case "estimate_relative_column_widths":
             reply = _estimate_relative_column_widths(data);
+            break;
+        case "request_dataset_from_datasource":
+            reply = _request_dataset_from_datasource(data);
+            break;
+        case "get_expected_num_rows":
+            reply = _get_expected_num_rows(data);
             break;
         case "refresh":
             reply["columns"] = columns;

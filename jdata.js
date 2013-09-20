@@ -21,6 +21,7 @@
         self._hash    = {};
 
         self._num_rows = 0;
+        self._expected_num_rows = 0;
 
         self._partitioned_datasets = {};
 
@@ -29,14 +30,22 @@
         self._action_queue = [];
         self._is_in_action = false;
 
-        self._initialize_web_worker(dataset.slice(0, 1)[0], dataset.slice(1));
+        self._initialize_web_worker(dataset);
         self._on_error = function () {};
 
         return self;
     };
 
-    JData.prototype._initialize_web_worker = function (columns, rows) {
-        var self = this;
+    JData.prototype._initialize_web_worker = function (dataset) {
+        var self = this, columns, rows, datasource, authenticate;
+
+        if (dataset instanceof Array) {
+            columns = dataset.slice(0, 1)[0];
+            rows    = dataset.slice(1);
+        } else {
+            datasource   = dataset.datasource;
+            authenticate = dataset.authenticate;
+        }
 
         self._queue_next(function () {
             self._worker = new Worker(srcPath + 'jdata_worker.js');
@@ -47,14 +56,17 @@
                 if (e.data.hash)        self._hash = e.data.hash;
                 if (e.data.partitioned) self._partitioned_datasets = e.data.partitioned;
                 if (e.data.num_rows)    self._num_rows = e.data.num_rows;
+                if (e.data.ex_num_rows) self._expected_num_rows = e.data.ex_num_rows;
 
                 self._next_action(true);
             };
 
             self._worker.postMessage({
-                cmd     : 'initialize',
-                columns : columns,
-                rows    : rows
+                cmd          : 'initialize',
+                columns      : columns,
+                rows         : rows,
+                datasource   : datasource,
+                authenticate : authenticate
             });
         });
 
@@ -681,6 +693,32 @@
 
         self._queue_next(function () {
             self._worker.postMessage({ cmd : "estimate_relative_column_widths" });
+        });
+
+        return self;
+    };
+
+    JData.prototype.request_dataset_from_datasource = function (request) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd     : "request_dataset_from_datasource",
+                request : request
+            });
+        });
+
+        return self;
+    };
+
+    JData.prototype.get_expected_number_of_records = function (callback) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "get_expected_num_rows" });
+        })._queue_next(function () {
+            callback(self._expected_num_rows);
+            return self._next_action(true);
         });
 
         return self;
