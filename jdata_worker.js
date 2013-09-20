@@ -76,6 +76,8 @@ var _initialize = function (data) {
             ws.send(data.authenticate);
         }
 
+        ws.send(data.request);
+
         wait_to_connect = true;
     } else {
         columns = _prepare_columns(data.columns);
@@ -644,12 +646,6 @@ var _estimate_relative_column_widths = function (data) {
     return {};
 };
 
-var _request_dataset_from_datasource = function (data) {
-    ws.send(data.request);
-
-    return {};
-};
-
 var _get_expected_num_rows = function (data) {
     var wait = function () {
         if (typeof(expected_num_rows) === "undefined") {
@@ -763,9 +759,6 @@ self.addEventListener("message", function (e) {
             break;
         case "estimate_relative_column_widths":
             reply = _estimate_relative_column_widths(data);
-            break;
-        case "request_dataset_from_datasource":
-            reply = _request_dataset_from_datasource(data);
             break;
         case "get_expected_num_rows":
             reply = _get_expected_num_rows(data);

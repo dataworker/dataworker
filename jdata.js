@@ -37,7 +37,8 @@
     };
 
     JData.prototype._initialize_web_worker = function (dataset) {
-        var self = this, columns, rows, datasource, authenticate;
+        var self = this, columns, rows,
+            datasource, authenticate, request;
 
         if (dataset instanceof Array) {
             columns = dataset.slice(0, 1)[0];
@@ -45,6 +46,7 @@
         } else {
             datasource   = dataset.datasource;
             authenticate = dataset.authenticate;
+            request      = dataset.request;
         }
 
         self._queue_next(function () {
@@ -66,7 +68,8 @@
                 columns      : columns,
                 rows         : rows,
                 datasource   : datasource,
-                authenticate : authenticate
+                authenticate : authenticate,
+                request      : request
             });
         });
 
@@ -693,19 +696,6 @@
 
         self._queue_next(function () {
             self._worker.postMessage({ cmd : "estimate_relative_column_widths" });
-        });
-
-        return self;
-    };
-
-    JData.prototype.request_dataset_from_datasource = function (request) {
-        var self = this;
-
-        self._queue_next(function () {
-            self._worker.postMessage({
-                cmd     : "request_dataset_from_datasource",
-                request : request
-            });
         });
 
         return self;
