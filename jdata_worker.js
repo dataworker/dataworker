@@ -63,7 +63,7 @@ var _initialize = function (data) {
 
             if (msg.data.rows) {
                 if (typeof(rows) === "undefined") rows = [];
-                rows.append(_prepare_rows(msg.data.rows));
+                rows = rows.concat(_prepare_rows(msg.data.rows));
             }
 
             if (msg.data.total_num_rows) {
