@@ -100,7 +100,13 @@
         alert(error_msg);
     });</pre>
                     <h5>Error handling</h5>
-                    <p>JData can be provided with an error handler
+                    <p>JData can be provided with an error handler:</p>
+                    <pre>
+    d.on_error(function (msg) {
+        alert(msg);
+    });
+                    </pre>
+                    <p>By default, errors are printed to the console.</p>
                     </section>
                     <section id="stream">
                         <h3>Streaming Data</h3>
