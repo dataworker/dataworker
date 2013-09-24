@@ -1,5 +1,5 @@
 var columns, rows,
-    ws, is_ws_ready, expected_num_rows,
+    is_ws_ready, expected_num_rows,
     rows_per_page = 10, current_page = 0,
     only_valid_for_numbers_regex = /[^0-9.\-]/g;
 
@@ -42,48 +42,57 @@ var _get_visible_rows = function () {
 };
 
 var _initialize = function (data) {
-    var wait_to_connect;
+    var socket, wait_to_connect = false;
 
-    if (data.datasource) {
-        /*
-         * Expects the first message back to be:
-         *      {
-         *          total_num_rows => TOTAL_NUM_ROWS,
-         *      }
-         *
-         * Note: Doesn't HAVE to be first message back, but JData will not continue
-         *       operation until it knows how many total rows to expect.
-         */
-        ws = new WebSocket(data.datasource);
+    if (typeof(data.datasource) !== "undefined") {
+        try {
+            socket = new WebSocket(data.datasource);
 
-        ws.onmessage = function (msg) {
-            if (msg.data.columns) {
-                columns = _prepare_columns(data.columns);
-            }
+            socket.onopen  = function () {
+                if (data.authenticate) {
+                    socket.send(data.authenticate);
+                }
 
-            if (msg.data.rows) {
-                if (typeof(rows) === "undefined") rows = [];
-                rows = rows.concat(_prepare_rows(msg.data.rows));
-            }
+                socket.send(data.request);
+            };
+            socket.onclose = function () {};
+            socket.onerror = function (message) {
+                self.postMessage({
+                    error : "Problem connecting to datasource: " + message
+                }); 
+            };
 
-            if (msg.data.total_num_rows) {
-                expected_num_rows = msg.data.total_num_rows;
-                is_ws_ready       = true;
-            }
-        };
+            socket.onmessage = function (msg) {
+                msg = JSON.parse(msg.data);
 
-        if (data.authenticate) {
-            ws.send(data.authenticate);
+                if (msg.columns) {
+                    columns = _prepare_columns(msg.columns);
+                }
+                if (msg.rows) {
+                    if (typeof(rows) === "undefined") rows = [];
+                    rows = rows.concat(_prepare_rows(msg.rows));
+                }
+                if (msg.total_num_rows) {
+                    expected_num_rows = msg.total_num_rows;
+                }
+
+                if (
+                    typeof(columns) !== "undefined"
+                    && typeof(expected_num_rows) !== "undefined"
+                ) {
+                    is_ws_ready = true;
+                }
+            };
+
+            wait_to_connect = true;
+        } catch (error) {
+            self.postMessage({
+                error : "Problem connecting to datasource: " + error.message
+            }); 
         }
-
-        ws.send(data.request);
-
-        wait_to_connect = true;
     } else {
         columns = _prepare_columns(data.columns);
         rows    = _prepare_rows(data.rows);
-
-        wait_to_connect = false;
     }
 
     return wait_to_connect;
@@ -647,13 +656,7 @@ var _estimate_relative_column_widths = function (data) {
 };
 
 var _get_expected_num_rows = function (data) {
-    var wait = function () {
-        if (typeof(expected_num_rows) === "undefined") {
-            wait();
-        } else {
-            return { ex_num_rows : expected_num_rows };
-        }
-    };
+    return { ex_num_rows : expected_num_rows };
 };
 
 self.addEventListener("message", function (e) {
@@ -671,7 +674,7 @@ self.addEventListener("message", function (e) {
                 if (is_ws_ready) {
                     self.postMessage(reply);
                 } else {
-                    setTimeout(wait, 250);
+                    setTimeout(wait, 500);
                 }
             };
 

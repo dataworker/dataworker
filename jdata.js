@@ -31,7 +31,7 @@
         self._is_in_action = false;
 
         self._initialize_web_worker(dataset);
-        self._on_error = function () {};
+        self._on_error = function (msg) { console.log(msg); };
 
         return self;
     };

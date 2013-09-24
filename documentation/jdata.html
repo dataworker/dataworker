@@ -22,6 +22,8 @@
                         <li><a href="#top">JData</a></li>
                         <li class="nav-header">Get started!</li>
                         <li><a href="#construct">Construct</a></li>
+                        <li><a href="#stream">Streaming Data</a></li>
+                        <li><a href="#clone">Clone</a></li>
                         <li class="nav-header">Manipulate the dataset!</li>
                         <li><a href="#alter_columns">Alter columns</a></li>
                         <li><a href="#append">Append</a></li>
@@ -33,6 +35,8 @@
                         <li><a href="#sort">Sort</a></li>
                         <li class="nav-header">Access the dataset!</li>
                         <li><a href="#get_dataset">Get dataset</a></li>
+                        <li><a href="#get_columns_and_records">Get columns and records</a></li>
+                        <li><a href="#get_number_of_records">Get number of records</a></li>
                         <li><a href="#paginate">Paginate</a></li>
                         <li><a href="#partition">Partition</a></li>
                         <li><a href="#render">Render</a></li>
@@ -95,6 +99,57 @@
     var d = new JData(dataset).on_error(function (error_msg) {
         alert(error_msg);
     });</pre>
+                    <h5>Error handling</h5>
+                    <p>JData can be provided with an error handler
+                    </section>
+                    <section id="stream">
+                        <h3>Streaming Data</h3>
+                        <p>Alternatively, JData can stream data from a WebSocket server:</p>
+                        <pre>
+    var d = new JData({
+        datasource   : "ws://127.0.0.1:8888",
+        authenticate : "{}",
+        request      : '{"cmd":"request_dataset"}'
+    });
+                        </pre>
+                        <p><code>datasource</code> should be the URL of the websocket server.</p>
+                        <p><code>authenticate</code> is optional. If present, will be the first message sent to the server upon connecting.</p>
+                        <p><code>request</code> is sent after <code>authenticate</code>.<p>
+                        <p>After the request is sent, JData will expect a reply in the form of a JSON object with <code>total_num_rows</code> and <code>columns</code> properties such as:</p>
+                        <pre>
+    {
+        total_num_rows => 10,
+        columns        => [ 'column_a', 'column_b', 'column_c' ]
+    }
+                        </pre>
+                        <p><code>total_num_rows</code> should be the number of rows to expect in that dataset.</p>
+                        <p><code>columns</code> should be the columns of the expected dataset. They can be provided as simple column names or as hashes with custom column properties.</p>
+                        <p>Note JData cannot proceed without first knowing the columns and the total number of expected rows. That being said, these two properties may be transmitted separately. For example:</p>
+                        <pre>
+    // First message:
+    { total_num_rows => 10 }
+
+    // Second message:
+    { columns => [ 'column_a', 'column_b', 'column_c' ] }
+                        </pre>
+                        <p>Afterwards, JData will expect arrays of dataset rows from the server. These rows will be appended to the dataset. For example:</p>
+                        <pre>
+    [
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ]
+                        </pre>
+                    </section>
+                    <section id="clone">
+                        <h3>Clone</h3>
+                        <p>A JData dataset can be deep-copied by calling <code>clone</code>:</p>
+                        <pre>
+    d.clone(function (new_d) {
+        new_dataset = new_d;
+    });
+                        </pre>
                     </section>
                     <section id="alter_columns">
                         <h3>Alter columns</h3>
@@ -298,6 +353,35 @@
         function (result) { records = result; },
         [ 'column_a', 'column_b' ]
     );</pre>
+                    </section>
+                    <section id="get_columns_and_records">
+                        <h3>Get columns and records</h3>
+                        <p>Columns may be retrieved simultaneously with records with <code>get_columns_and_records</code>.</p>
+                        <pre>
+    d.get_columns_and_records(function (columns, records) {
+        // Do something.
+    });
+                        </pre>
+                        <p>Columns will be given as a dictionary with the <code>column_name</code> as the key and its properties (also in a dictionary) as the value.</p>
+                        <p>Records will be returned the same as in <code>get_dataset</code>.</p>
+                    </section>
+                    <section id="get_number_of_records">
+                        <h3>Get number of records</h3>
+                        <h5>Get number of records</h5>
+                        <p>The <code>get_number_of_records</code> returns the number of rows currently in the dataset:</p>
+                        <pre>
+    d.get_number_of_records(function (num) {
+        number_of_rows = num;
+    });
+                        </pre>
+                        <p>Note that for streaming datasets, this value will be the current number of rows it has (and not the total number of rows expected). Use <code>get_expected_number_of_records</code> to determine the total number of rows in a streaming dataset.</p>
+                        <h5>Get expected number of records</h5>
+                        <p>The <code>get_expected_number_of_records</code> method returns the expected number of records in a streaming dataset.</p>
+                        <pre>
+    d.get_expected_number_of_records(function (num) {
+        expected_number_of_rows = num;
+    });
+                        </pre>
                     </section>
                     <section id="paginate">
                         <h3>Pagination</h3>
