@@ -56,9 +56,9 @@ var _initialize = function (data) {
                 socket.send(data.request);
             };
             socket.onclose = function () {};
-            socket.onerror = function (message) {
+            socket.onerror = function (error) {
                 self.postMessage({
-                    error : "Problem connecting to datasource: " + message
+                    error : "Problem connecting to datasource: " + error.data
                 }); 
             };
 
@@ -68,12 +68,14 @@ var _initialize = function (data) {
                 if (msg.columns) {
                     columns = _prepare_columns(msg.columns);
                 }
+                if (msg.total_num_rows) {
+                    expected_num_rows = msg.total_num_rows;
+                }
+
                 if (msg.rows) {
                     if (typeof(rows) === "undefined") rows = [];
                     rows = rows.concat(_prepare_rows(msg.rows));
-                }
-                if (msg.total_num_rows) {
-                    expected_num_rows = msg.total_num_rows;
+                    self.postMessage({ rows_received : msg.rows.length });
                 }
 
                 if (
@@ -87,7 +89,7 @@ var _initialize = function (data) {
             wait_to_connect = true;
         } catch (error) {
             self.postMessage({
-                error : "Problem connecting to datasource: " + error.message
+                error : "Problem connecting to datasource: " + error.data
             }); 
         }
     } else {

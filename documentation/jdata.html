@@ -147,6 +147,24 @@
         [ 'gummy',       'power',     'star' ]
     ]
                         </pre>
+                        <p>The <code>on_receive_rows</code> callback will be called whenever rows are received from the Websocket server. This callback can be set with the <code>on_receive_rows</code> method:</p>
+                        <pre>
+    d.on_receive_rows(function (num_rows) {
+        alert("Received " + num_rows + " rows.");
+    });
+                        </pre>
+                        <p>Alternatively, this callback can be passed into the constructor:</p>
+                        <pre>
+    var d = new JData({
+        datasource      : "ws://127.0.0.1:8888",
+        authenticate    : "{}",
+        request         : '{"cmd":"request_dataset"}',
+        on_receive_rows : function (num_rows) {
+            alert(num_rows + " rows received.");
+        }
+    });
+                        </pre>
+                        <p>If not set, this callback defaults to doing nothing.</p>
                     </section>
                     <section id="clone">
                         <h3>Clone</h3>

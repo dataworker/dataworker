@@ -30,8 +30,10 @@
         self._action_queue = [];
         self._is_in_action = false;
 
-        self._initialize_web_worker(dataset);
         self._on_error = function (msg) { console.log(msg); };
+        self._on_receive_rows = function (num_received) { };
+
+        self._initialize_web_worker(dataset);
 
         return self;
     };
@@ -47,11 +49,18 @@
             datasource   = dataset.datasource;
             authenticate = dataset.authenticate;
             request      = dataset.request;
+
+            self._on_receive_rows = dataset.on_receive_rows;
         }
 
         self._queue_next(function () {
             self._worker = new Worker(srcPath + 'jdata_worker.js');
             self._worker.onmessage = function (e) {
+                if (e.data.rows_received) {
+                    self._on_receive_rows(e.data.rows_received);
+                    return;
+                }
+
                 if (e.data.error)       self._on_error(e.data.error);
                 if (e.data.columns)     self._columns = e.data.columns;
                 if (e.data.rows)        self._rows = e.data.rows;
@@ -658,6 +667,17 @@
         }
 
         return self;
+    };
+
+    JData.prototype.on_receive_rows = function (callback) {
+        var self = this;
+
+        if (typeof(callback) === "function") {
+            self._queue_next(function () {
+                self._on_receive_rows = callback;
+                return self._next_action(true);
+            });
+        }
     };
 
     JData.prototype.get_number_of_records = function (callback) {
