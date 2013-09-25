@@ -10,9 +10,13 @@ var _prepare_columns = function (raw_columns) {
         var name = typeof(column) === "string" ? column : column["name"];
 
         prepared_columns[name] = {
-            sort_type : column["sort_type"] || "alpha",
-            agg_type  : column["agg_type"]  || "max",
-            title     : column["title"]     || name,
+            sort_type      : column["sort_type"]      || "alpha",
+            agg_type       : column["agg_type"]       || "max",
+            title          : column["title"]          || name,
+            decimal_places : column["decimal_places"] || 0,
+            date_format    : column["date_format"],
+            is_percent     : !!column["is_percent"],
+            name      : name,
             index     : i
         };
     });
@@ -651,11 +655,22 @@ var _get_rows = function (data) {
 var _estimate_relative_column_widths = function (data) {
     var max_chars = {}, total_max_chars = 0;
 
-    rows.forEach(function (row) {
-        row = row["row"];
+    Object.keys(columns).forEach(function (column_name) {
+        var column = columns[column_name];
 
-        Object.keys(columns).forEach(function (column_name) {
-            var content = row[columns[column_name]["index"]] + "";
+        max_chars[column_name] = column.title.length;
+
+        rows.forEach(function (row) {
+            var content = row["row"][column.index];
+
+            if (column.date_format) {
+                content = column.date_format;
+            } else if (column.sort_type === "num") {
+                content = parseFloat(content);
+                content = isNaN(content) ? "" : content.toFixed(column.decimal_places);
+            }
+
+            content += '';
 
             if (
                 ( typeof(max_chars[column_name]) === "undefined" )
