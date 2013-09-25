@@ -32,6 +32,7 @@
 
         self._on_error = function (msg) { console.log(msg); };
         self._on_receive_rows = function (num_received) { };
+        self._on_all_rows_received = function () { };
 
         self._initialize_web_worker(dataset);
 
@@ -51,6 +52,7 @@
             request      = dataset.request;
 
             self._on_receive_rows = dataset.on_receive_rows;
+            self._on_all_rows_received = dataset.on_all_rows_received;
         }
 
         self._queue_next(function () {
@@ -58,6 +60,10 @@
             self._worker.onmessage = function (e) {
                 if (e.data.rows_received) {
                     self._on_receive_rows(e.data.rows_received);
+                    return;
+                }
+                if (e.data.all_rows_received) {
+                    self._on_all_rows_received();
                     return;
                 }
 
@@ -678,6 +684,21 @@
                 return self._next_action(true);
             });
         }
+
+        return self;
+    };
+
+    JData.prototype.on_all_rows_received = function (callback) {
+        var self = this;
+
+        if (typeof(callback) === "function") {
+            self._queue_next(function () {
+                self._on_all_rows_received = callback;
+                return self._next_action(true);
+            });
+        }
+
+        return self;
     };
 
     JData.prototype.get_number_of_records = function (callback) {
@@ -729,6 +750,29 @@
         })._queue_next(function () {
             callback(self._expected_num_rows);
             return self._next_action(true);
+        });
+
+        return self;
+    };
+
+    JData.prototype.request_dataset = function (request) {
+        var self = this;
+
+        self._worker.postMessage({
+            cmd     : "request_dataset",
+            request : request
+        });
+
+        return self;
+    };
+
+
+    JData.prototype.request_dataset_for_append = function (request) {
+        var self = this;
+
+        self._worker.postMessage({
+            cmd     : "request_dataset_for_append",
+            request : request
         });
 
         return self;

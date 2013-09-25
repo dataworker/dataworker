@@ -165,6 +165,38 @@
     });
                         </pre>
                         <p>If not set, this callback defaults to doing nothing.</p>
+                        <p>The <code>on_all_rows_received</code> callback is called when all expected rows have been received from the Websocket server. This callback can be set with the <code>on_all_rows_received</code> method:</p>
+                        <pre>
+    d.on_all_rows_received(function () {
+        alert("All rows have been received!");
+    });
+                        </pre>
+                        <p>Alternatively, this callback can be passed into the constructor:</p>
+                        <pre>
+    var d = new JData({
+        datasource           : "ws://127.0.0.1:8888",
+        authenticate         : "{}",
+        request              : '{"cmd":"request_dataset"}',
+        on_receive_rows      : function (num_rows) {
+            alert(num_rows + " rows received.");
+        }
+        on_all_rows_received : function () {
+            alert("All rows have been received!");
+        }
+    });
+                        </pre>
+                        <p>If not set, this callback does nothing.</p>
+                        <h5>Requesting further data</h5>
+                        <p>A new dataset can be requested using the <code>request_dataset</code> method:</p>
+                        <pre>
+    d.request_dataset('{"cmd":"request_dataset"}');
+                        </pre>
+                        <p>The newly-requested dataset will completely replace the previously-requested dataset.</p>
+                        <p>A new dataset can be requested and appended to the current dataset using the <code>request_dataset_for_append</code> method:</p>
+                        <pre>
+    d.request_dataset_for_append('{"cmd":"request_dataset"}');
+                        </pre>
+                        <p>Note that the newly-requested dataset should have the same columns as the previously-requested dataset.</p>
                     </section>
                     <section id="clone">
                         <h3>Clone</h3>

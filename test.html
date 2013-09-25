@@ -12,18 +12,23 @@
         <script src="jdata.js"></script>
         <script src="AoA_Dataset.js"></script>
 
+        <!--
         <script src="performance_tests.js"></script>
         <script src="unit_tests.js"></script>
+        -->
 
         <script>
-//            var d = new JData({
-//                datasource      : "ws://127.0.0.1:8888",
-//                authenticate    : "{}",
-//                request         : '{"cmd":"request_dataset"}',
-//                on_receive_rows : function (num_received) {
-//                    console.log(num_received + " rows received.");
-//                }
-//            });
+            var d = new JData({
+                datasource           : "ws://127.0.0.1:8888",
+                authenticate         : "{}",
+                request              : '{"cmd":"request_dataset"}',
+                on_receive_rows      : function (num_received) {
+                    console.log(num_received + " rows received.");
+                },
+                on_all_rows_received : function () {
+                    console.log("All rows received!");
+                }
+            });
         </script>
     </head>
 

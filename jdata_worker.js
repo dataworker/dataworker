@@ -1,5 +1,5 @@
-var columns, rows,
-    is_ws_ready, expected_num_rows,
+var columns = {}, rows = [],
+    socket, is_ws_ready, expected_num_rows,
     rows_per_page = 10, current_page = 0,
     only_valid_for_numbers_regex = /[^0-9.\-]/g;
 
@@ -42,62 +42,77 @@ var _get_visible_rows = function () {
 };
 
 var _initialize = function (data) {
-    var socket, wait_to_connect = false;
+    var wait_to_connect = false;
 
     if (typeof(data.datasource) !== "undefined") {
-        try {
-            socket = new WebSocket(data.datasource);
-
-            socket.onopen  = function () {
-                if (data.authenticate) {
-                    socket.send(data.authenticate);
-                }
-
-                socket.send(data.request);
-            };
-            socket.onclose = function () {};
-            socket.onerror = function (error) {
-                self.postMessage({
-                    error : "Problem connecting to datasource: " + error.data
-                }); 
-            };
-
-            socket.onmessage = function (msg) {
-                msg = JSON.parse(msg.data);
-
-                if (msg.columns) {
-                    columns = _prepare_columns(msg.columns);
-                }
-                if (msg.total_num_rows) {
-                    expected_num_rows = msg.total_num_rows;
-                }
-
-                if (msg.rows) {
-                    if (typeof(rows) === "undefined") rows = [];
-                    rows = rows.concat(_prepare_rows(msg.rows));
-                    self.postMessage({ rows_received : msg.rows.length });
-                }
-
-                if (
-                    typeof(columns) !== "undefined"
-                    && typeof(expected_num_rows) !== "undefined"
-                ) {
-                    is_ws_ready = true;
-                }
-            };
-
-            wait_to_connect = true;
-        } catch (error) {
-            self.postMessage({
-                error : "Problem connecting to datasource: " + error.data
-            }); 
-        }
+        wait_to_connect = _initialize_websocket_connection(data);
     } else {
         columns = _prepare_columns(data.columns);
         rows    = _prepare_rows(data.rows);
     }
 
     return wait_to_connect;
+};
+
+var _initialize_websocket_connection = function (data) {
+    try {
+        socket = new WebSocket(data.datasource);
+
+        socket.onopen  = function () {
+            if (data.authenticate) {
+                socket.send(data.authenticate);
+            }
+
+            socket.send(data.request);
+        };
+        socket.onclose = function () {};
+        socket.onerror = function (error) {
+            self.postMessage({
+                error : "Error: Could not connect to datasource."
+            }); 
+        };
+
+        socket.onmessage = function (msg) {
+            msg = JSON.parse(msg.data);
+
+            if (msg.columns) {
+                columns = _prepare_columns(msg.columns);
+            }
+            if (msg.expected_num_rows) {
+                if (typeof(expected_num_rows) === "undefined") {
+                    expected_num_rows = msg.expected_num_rows;
+                } else {
+                    expected_num_rows += msg.expected_num_rows;
+                }
+            }
+
+            if (msg.rows) {
+                if (typeof(rows) === "undefined") rows = [];
+                rows = rows.concat(_prepare_rows(msg.rows));
+
+                if (rows.length == expected_num_rows) {
+                    self.postMessage({ all_rows_received : true });
+                } else {
+                    self.postMessage({ rows_received : msg.rows.length });
+                }
+            }
+
+            if (
+                typeof(columns) !== "undefined"
+                && typeof(expected_num_rows) !== "undefined"
+            ) {
+                is_ws_ready = true;
+            }
+        };
+
+        return true;
+    } catch (error) {
+        self.postMessage({
+            error : "Error: Could not connect to datasource."
+        }); 
+
+        return false;
+    }
 };
 
 var _alpha_sort = function (a, b) {
@@ -661,6 +676,22 @@ var _get_expected_num_rows = function (data) {
     return { ex_num_rows : expected_num_rows };
 };
 
+var _request_dataset = function (data) {
+    columns           = {};
+    rows              = [];
+    expected_num_rows = undefined;
+
+    socket.send(data.request);
+
+    return {};
+};
+
+var _request_dataset_for_append = function (data) {
+    socket.send(data.request);
+
+    return {};
+};
+
 self.addEventListener("message", function (e) {
     var data = e.data, reply = {};
 
@@ -767,6 +798,12 @@ self.addEventListener("message", function (e) {
             break;
         case "get_expected_num_rows":
             reply = _get_expected_num_rows(data);
+            break;
+        case "request_dataset":
+            reply = _request_dataset(data);
+            break;
+        case "request_dataset_for_append":
+            reply = _request_dataset_for_append(data);
             break;
         case "refresh":
             reply["columns"] = columns;
