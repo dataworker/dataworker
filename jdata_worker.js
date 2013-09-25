@@ -75,6 +75,11 @@ var _initialize_websocket_connection = function (data) {
         socket.onmessage = function (msg) {
             msg = JSON.parse(msg.data);
 
+            if (msg.error) {
+                self.postMessage({ error : msg.error });
+                return;
+            }
+
             if (msg.columns) {
                 columns = _prepare_columns(msg.columns);
             }
