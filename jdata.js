@@ -41,18 +41,27 @@
 
     JData.prototype._initialize_web_worker = function (dataset) {
         var self = this, columns, rows,
-            datasource, authenticate, request;
+            datasource, authenticate, request, callbacks;
 
         if (dataset instanceof Array) {
             columns = dataset.slice(0, 1)[0];
             rows    = dataset.slice(1);
         } else {
             datasource   = dataset.datasource;
-            authenticate = dataset.authenticate;
-            request      = dataset.request;
 
-            self._on_receive_rows = dataset.on_receive_rows;
-            self._on_all_rows_received = dataset.on_all_rows_received;
+            authenticate = (typeof dataset.authenticate === 'string')
+                ? dataset.authenticate
+                : JSON.stringify(dataset.authenticate);
+
+            request      = (typeof dataset.request === 'string')
+                ? dataset.request
+                : JSON.stringify(dataset.request);
+
+            callbacks    = [ 'error', 'receive_rows', 'all_rows_received' ];
+
+            callbacks.forEach(function(fnName) {
+                self['_on_' + fnName] = dataset['on_' + fnName] || self['_on_' + fnName];
+            });
         }
 
         self._queue_next(function () {

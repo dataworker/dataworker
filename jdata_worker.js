@@ -87,12 +87,15 @@ var _initialize_websocket_connection = function (data) {
             if (msg.columns) {
                 columns = _prepare_columns(msg.columns);
             }
-            if (msg.expected_num_rows) {
+
+            if (typeof(msg.expected_num_rows) !== 'undefined') {
                 if (typeof(expected_num_rows) === "undefined") {
-                    expected_num_rows = msg.expected_num_rows;
+                    expected_num_rows = parseInt(msg.expected_num_rows);
                 } else {
-                    expected_num_rows += msg.expected_num_rows;
+                    expected_num_rows += parseInt(msg.expected_num_rows);
                 }
+
+                if (expected_num_rows == 0) self.postMessage({ all_rows_received : true });
             }
 
             if (msg.rows) {
