@@ -16,6 +16,7 @@ var _prepare_columns = function (raw_columns) {
             decimal_places : column["decimal_places"] || 0,
             date_format    : column["date_format"],
             is_percent     : !!column["is_percent"],
+            relative_width : column["relative_width"],
             name      : name,
             index     : i
         };
@@ -94,8 +95,6 @@ var _initialize_websocket_connection = function (data) {
                 } else {
                     expected_num_rows += parseInt(msg.expected_num_rows);
                 }
-
-                if (expected_num_rows == 0) self.postMessage({ all_rows_received : true });
             }
 
             if (msg.rows) {
@@ -110,18 +109,26 @@ var _initialize_websocket_connection = function (data) {
             }
 
             if (
-                typeof(columns) !== "undefined"
+                !is_ws_ready
+                && typeof(columns) !== "undefined"
                 && typeof(expected_num_rows) !== "undefined"
             ) {
                 is_ws_ready = true;
+                self.postMessage({
+                    ws_is_ready : true,
+                    columns     : columns,
+                    ex_num_rows : expected_num_rows
+                });
             }
+
+            if (expected_num_rows == 0) self.postMessage({ all_rows_received : true });
         };
 
         return true;
     } catch (error) {
         self.postMessage({
             error : "Error: Could not connect to datasource."
-        }); 
+        });
 
         return false;
     }

@@ -31,6 +31,7 @@
         self._is_in_action = false;
 
         self._on_error = function (msg) { console.log(msg); };
+        self._on_ws_ready = function (columns, expected_num_rows) { };
         self._on_receive_rows = function (num_received) { };
         self._on_all_rows_received = function () { };
 
@@ -57,7 +58,12 @@
                 ? dataset.request
                 : JSON.stringify(dataset.request);
 
-            callbacks    = [ 'error', 'receive_rows', 'all_rows_received' ];
+            callbacks = [
+                'all_rows_received',
+                'error',
+                'receive_rows',
+                'ws_ready'
+            ];
 
             callbacks.forEach(function(fnName) {
                 self['_on_' + fnName] = dataset['on_' + fnName] || self['_on_' + fnName];
@@ -83,6 +89,10 @@
                 if (e.data.partitioned) self._partitioned_datasets = e.data.partitioned;
                 if (e.data.num_rows)    self._num_rows = e.data.num_rows;
                 if (e.data.ex_num_rows) self._expected_num_rows = e.data.ex_num_rows;
+
+                if (e.data.ws_is_ready) {
+                    self._on_ws_ready(self._columns, self._expected_num_rows);
+                }
 
                 self._next_action(true);
             };
