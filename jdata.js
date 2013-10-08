@@ -196,16 +196,14 @@
 
     JData.prototype.apply_filter = function () {
         var self = this,
-            regex = arguments[0],
-            relevant_columns = arguments[1] instanceof Array
-                             ? arguments[1]
-                             : Array.prototype.slice.call(arguments, 1);
+            filters = arguments[0] instanceof Array
+                    ? arguments[0]
+                    : Array.prototype.slice.call(arguments);
 
         self._queue_next(function () {
             self._worker.postMessage({
-                cmd              : "apply_filter",
-                regex            : regex,
-                relevant_columns : relevant_columns
+                cmd     : "apply_filter",
+                filters : filters
             });
         });
 
@@ -746,16 +744,6 @@
             var dataset = [ columns_row ].concat(records);
 
             callback(new JData(dataset));
-        });
-
-        return self;
-    };
-
-    JData.prototype.estimate_relative_column_widths = function () {
-        var self = this;
-
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "estimate_relative_column_widths" });
         });
 
         return self;

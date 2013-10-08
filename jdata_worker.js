@@ -226,27 +226,49 @@ var _set_decimal_mark_character = function (data) {
 };
 
 var _apply_filter = function (data) {
-    var regex = data.regex, relevant_columns = data.relevant_columns;
-    var i, column
-        relevant_indexes = relevant_columns.map(function (column) {
-            return columns[column]["index"];
-        });
+    var filters = data.filters, i = 0, column,
+        is_simple_filter = !("column" in filters[0]);
 
-    rows.forEach(function (row) {
-        row["is_visible"] = false;
+    if (is_simple_filter) {
+        var regex = filters[0],
+            relevant_columns = filters.slice(1),
+            relevant_indexes = relevant_columns.map(function (column) {
+                return columns[column]["index"];
+            });
 
-        for (i = 0; i < row["row"].length; i++) {
-            column = row["row"][i];
+        rows.forEach(function (row) {
+            row["is_visible"] = false;
 
-            if (
-                (relevant_indexes.length === 0 || relevant_indexes.indexOf(i) !== -1)
-                && column !== null && column.match(regex)
-            ) {
-                row["is_visible"] = true;
-                break;
+            for (i = 0; i < row["row"].length; i++) {
+                column = row["row"][i];
+
+                if (
+                    (relevant_indexes.length === 0 || relevant_indexes.indexOf(i) !== -1)
+                    && column !== null && column.match(regex)
+                ) {
+                    row["is_visible"] = true;
+                    break;
+                }
             }
-        }
-    });
+        });
+    } else {
+        rows.forEach(function (row) {
+            row["is_visible"] = true;
+
+            for (i = 0; i < filters.length; i++) {
+                var filter = filters[i],
+                    column_index = columns[filter.column]["index"],
+                    column = row["row"][column_index];
+
+                if (column !== null && column.match(filter.regex)) {
+                    row["is_visible"] = true;
+                } else {
+                    row["is_visible"] = false;
+                    break;
+                }
+            };
+        });
+    }
 
     return {};
 };
@@ -662,46 +684,6 @@ var _get_rows = function (data) {
     return { rows : _get_visible_rows().slice(start, end) };
 };
 
-var _estimate_relative_column_widths = function (data) {
-    var max_chars = {}, total_max_chars = 0;
-
-    Object.keys(columns).forEach(function (column_name) {
-        var column = columns[column_name];
-
-        max_chars[column_name] = column.title.length;
-
-        rows.forEach(function (row) {
-            var content = row["row"][column.index];
-
-            if (column.date_format) {
-                content = column.date_format;
-            } else if (column.sort_type === "num") {
-                content = parseFloat(content);
-                content = isNaN(content) ? "" : content.toFixed(column.decimal_places);
-            }
-
-            content += '';
-
-            if (
-                ( typeof(max_chars[column_name]) === "undefined" )
-                || ( max_chars[column_name] < content.length )
-            ) {
-                max_chars[column_name] = content.length;
-            }
-        });
-    });
-
-    Object.keys(max_chars).forEach(function (column_name) {
-        total_max_chars += max_chars[column_name];
-    });
-
-    Object.keys(max_chars).forEach(function (column_name) {
-        columns[column_name]["relative_width"] = max_chars[column_name] / total_max_chars;
-    });
-
-    return {};
-};
-
 var _get_expected_num_rows = function (data) {
     return { ex_num_rows : expected_num_rows };
 };
@@ -822,9 +804,6 @@ self.addEventListener("message", function (e) {
             break;
         case "get_num_rows":
             reply = _get_number_of_records(data);
-            break;
-        case "estimate_relative_column_widths":
-            reply = _estimate_relative_column_widths(data);
             break;
         case "get_expected_num_rows":
             reply = _get_expected_num_rows(data);

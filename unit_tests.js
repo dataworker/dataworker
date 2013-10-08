@@ -17,25 +17,37 @@ asyncTest('construct (simple columns)', function () {
     d.get_columns(function (columns) {
         deepEqual(columns, {
             column_a: {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'column_a',
-                name      : 'column_a',
-                index     : 0
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_a',
+                name           : 'column_a',
+                index          : 0,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             column_b: {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'column_b',
-                name      : 'column_b',
-                index     : 1
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_b',
+                name           : 'column_b',
+                index          : 1,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             column_c: {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'column_c',
-                name      : 'column_c',
-                index     : 2
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_c',
+                name           : 'column_c',
+                index          : 2,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             }
         });
 
@@ -81,25 +93,37 @@ asyncTest('construct (complex columns)', function () {
     d.get_columns(function (columns) {
         deepEqual(columns, {
             column_a: {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'Column A',
-                name      : 'column_a',
-                index     : 0
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'Column A',
+                name           : 'column_a',
+                index          : 0,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             column_b: {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'Column B',
-                name      : 'column_b',
-                index     : 1
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'Column B',
+                name           : 'column_b',
+                index          : 1,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             column_c: {
-                sort_type : 'alpha',
-                agg_type  : 'min',
-                title     : 'Column C',
-                name      : 'column_c',
-                index     : 2
+                sort_type      : 'alpha',
+                agg_type       : 'min',
+                title          : 'Column C',
+                name           : 'column_c',
+                index          : 2,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             }
         });
 
@@ -107,7 +131,7 @@ asyncTest('construct (complex columns)', function () {
     }).finish();
 });
 
-asyncTest('filter (unrestricted)', function () {
+asyncTest('apply filter (simple, unrestricted)', function () {
     expect(1);
 
     var dataset = [
@@ -131,7 +155,7 @@ asyncTest('filter (unrestricted)', function () {
     }).finish();
 });
 
-asyncTest('filter (column-restricted, single column, found)', function () {
+asyncTest('apply filter (simple, column-restricted, single column, found)', function () {
     expect(1);
 
     var dataset = [
@@ -152,7 +176,7 @@ asyncTest('filter (column-restricted, single column, found)', function () {
     }).finish();
 });
 
-asyncTest('filter (column-restricted, single column, not found)', function () {
+asyncTest('apply filter (simple, column-restricted, single column, not found)', function () {
     expect(1);
 
     var dataset = [
@@ -172,7 +196,7 @@ asyncTest('filter (column-restricted, single column, not found)', function () {
 });
 
 
-asyncTest('filter (column-restricted, multi-column, found)', function () {
+asyncTest('apply filter (simple, column-restricted, multi-column, found)', function () {
     expect(1);
 
     var dataset = [
@@ -196,7 +220,7 @@ asyncTest('filter (column-restricted, multi-column, found)', function () {
      }).finish();
 });
 
-asyncTest('filter (column-restricted, multi-column, not found)', function () {
+asyncTest('apply filter (simple, column-restricted, multi-column, not found)', function () {
     expect(1);
 
     var dataset = [
@@ -208,10 +232,66 @@ asyncTest('filter (column-restricted, multi-column, not found)', function () {
         [ 'gummy',       'power',    'apple' ]
     ];
 
-
     var d = new JData(dataset);
     d.apply_filter(/piano/, 'column_a', 'column_c').get_dataset(function (result) {
         deepEqual(result, []);
+        start();
+    }).finish();
+});
+
+asyncTest('apply filter (complex, single)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ]
+    ];
+
+    var d = new JData(dataset);
+    d.apply_filter(
+        {
+            column : 'column_a',
+            regex  : '^apple$'
+        }
+    ).get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'apple',      'violin',    'music' ],
+        ]);
+        start();
+    }).finish();
+});
+
+asyncTest('apply filter (complex, multi)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'cat',         'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ]
+    ];
+
+    var d = new JData(dataset);
+    d.apply_filter(
+        {
+            column : 'column_a',
+            regex  : '^cat$'
+        },
+        {
+            column : 'column_c',
+            regex  : '^dog|gum$'
+        }
+    ).get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'cat',        'tissue',      'dog' ],
+            [ 'cat',         'piano',      'gum' ],
+        ]);
         start();
     }).finish();
 });
@@ -328,11 +408,15 @@ asyncTest('remove columns', function () {
      .get_columns_and_records(function (columns, rows) {
         deepEqual(columns, {
             column_a : {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'column_a',
-                name      : 'column_a',
-                index     : 0
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_a',
+                name           : 'column_a',
+                index          : 0,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             }
         });
         deepEqual(rows, [
@@ -1026,46 +1110,70 @@ asyncTest('join (inner join on single field)', function () {
     d1.sort('column_a', 'column_f').get_columns_and_records(function (columns, rows) {
         deepEqual(columns, {
             column_a: {
-                agg_type  : 'max',
-                sort_type : 'alpha',
-                title     : 'column_a',
-                name      : 'column_a',
-                index     : 0
+                agg_type       : 'max',
+                sort_type      : 'alpha',
+                title          : 'column_a',
+                name           : 'column_a',
+                index          : 0,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             column_b: {
-                agg_type  : 'max',
-                sort_type : 'alpha',
-                title     : 'column_b',
-                name      : 'column_b',
-                index     : 1
+                agg_type       : 'max',
+                sort_type      : 'alpha',
+                title          : 'column_b',
+                name           : 'column_b',
+                index          : 1,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             column_c: {
-                agg_type  : 'max',
-                sort_type : 'alpha',
-                title     : 'column_c',
-                name      : 'column_c',
-                index     : 2
+                agg_type       : 'max',
+                sort_type      : 'alpha',
+                title          : 'column_c',
+                name           : 'column_c',
+                index          : 2,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             column_d: {
-                agg_type  : 'max',
-                sort_type : 'alpha',
-                title     : 'column_d',
-                name      : 'column_d',
-                index     : 3
+                agg_type       : 'max',
+                sort_type      : 'alpha',
+                title          : 'column_d',
+                name           : 'column_d',
+                index          : 3,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             column_e: {
-                agg_type  : 'max',
-                sort_type : 'alpha',
-                title     : 'column_e',
-                name      : 'column_e',
-                index     : 4
+                agg_type       : 'max',
+                sort_type      : 'alpha',
+                title          : 'column_e',
+                name           : 'column_e',
+                index          : 4,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             column_f: {
-                agg_type  : 'max',
-                sort_type : 'alpha',
-                title     : 'column_f',
-                name      : 'column_f',
-                index     : 5
+                agg_type       : 'max',
+                sort_type      : 'alpha',
+                title          : 'column_f',
+                name           : 'column_f',
+                index          : 5,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             }
         });
         deepEqual(rows, [
@@ -1269,25 +1377,37 @@ asyncTest('prepend column names', function () {
     var d = new JData(dataset).prepend_column_names('p_').get_columns(function (columns) {
         deepEqual(columns, {
             p_column_a: {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'column_a',
-                name      : 'column_a',
-                index     : 0
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_a',
+                name           : 'column_a',
+                index          : 0,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             p_column_b: {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'column_b',
-                name      : 'column_b',
-                index     : 1
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_b',
+                name           : 'column_b',
+                index          : 1,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             p_column_c: {
-                sort_type : 'alpha',
-                agg_type  : 'min',
-                title     : 'column_c',
-                name      : 'column_c',
-                index     : 2
+                sort_type      : 'alpha',
+                agg_type       : 'min',
+                title          : 'column_c',
+                name           : 'column_c',
+                index          : 2,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             }
         });
 
@@ -1312,25 +1432,37 @@ asyncTest('alter column name', function () {
     d.get_columns(function (columns) {
         deepEqual(columns, {
             'a_column': {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'column_a',
-                name      : 'column_a',
-                index     : 0
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_a',
+                name           : 'column_a',
+                index          : 0,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             'column_b': {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'column_b',
-                name      : 'column_b',
-                index     : 1
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_b',
+                name           : 'column_b',
+                index          : 1,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             },
             'column_c': {
-                sort_type : 'alpha',
-                agg_type  : 'max',
-                title     : 'column_c',
-                name      : 'column_c',
-                index     : 2
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_c',
+                name           : 'column_c',
+                index          : 2,
+                relative_width : undefined,
+                is_percent     : false,
+                decimal_places : 0,
+                date_format    : undefined
             }
         });
         start();
@@ -1795,25 +1927,37 @@ asyncTest('clone', function () {
         clone.get_columns_and_records(function (columns, records) {
             deepEqual(columns, {
                 column_a: {
-                    sort_type : 'alpha',
-                    agg_type  : 'max',
-                    title     : 'column_a',
-                    name      : 'column_a',
-                    index     : 0
+                    sort_type      : 'alpha',
+                    agg_type       : 'max',
+                    title          : 'column_a',
+                    name           : 'column_a',
+                    index          : 0,
+                    relative_width : undefined,
+                    is_percent     : false,
+                    decimal_places : 0,
+                    date_format    : undefined
                 },
                 column_b: {
-                    sort_type : 'alpha',
-                    agg_type  : 'max',
-                    title     : 'column_b',
-                    name      : 'column_b',
-                    index     : 1
+                    sort_type      : 'alpha',
+                    agg_type       : 'max',
+                    title          : 'column_b',
+                    name           : 'column_b',
+                    index          : 1,
+                    relative_width : undefined,
+                    is_percent     : false,
+                    decimal_places : 0,
+                    date_format    : undefined
                 },
                 column_c: {
-                    sort_type : 'alpha',
-                    agg_type  : 'max',
-                    title     : 'column_c',
-                    name      : 'column_c',
-                    index     : 2
+                    sort_type      : 'alpha',
+                    agg_type       : 'max',
+                    title          : 'column_c',
+                    name           : 'column_c',
+                    index          : 2,
+                    relative_width : undefined,
+                    is_percent     : false,
+                    decimal_places : 0,
+                    date_format    : undefined
                 }
             });
 
@@ -1970,31 +2114,6 @@ asyncTest('get number of records', function () {
         equal(result, 4);
         start();
     });
-});
-
-asyncTest('estimate relative column widths', function () {
-    expect(1);
-
-    var dataset = [
-        [ 'column_a',   'column_b',  'column_c' ],
-
-        [ 'apple',      'violinissimo', 'music' ],
-        [ 'cat',        'tissue',       'dog'   ],
-        [ 'banana',     'piano',        'gum'   ],
-        [ 'gummy',      'power',        'star'  ]
-    ];
-
-    var d = new JData(dataset).estimate_relative_column_widths();
-
-    d.get_columns(function (columns) {
-        deepEqual(
-            Object.keys(columns).sort().map(function (column_name) {
-                return columns[column_name]["relative_width"];
-            }),
-            [ 6/23, 12/23, 5/23 ]
-        );
-        start();
-    }).finish();
 });
 
 asyncTest('get_rows obeys applied filter', function () {
