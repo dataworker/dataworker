@@ -135,10 +135,8 @@ var _initialize_websocket_connection = function (data) {
 };
 
 var _alpha_sort = function (a, b) {
-    if (typeof(a) === "undefined" || typeof(b) === "undefined") return 0;
-
-    a = a.toLowerCase();
-    b = b.toLowerCase();
+    a = (a || '').toLowerCase();
+    b = (b || '').toLowerCase();
 
     if (a < b) {
         return -1;
@@ -150,10 +148,8 @@ var _alpha_sort = function (a, b) {
 };
 
 var _locale_alpha_sort = function (a, b) {
-    if (typeof(a) === "undefined" || typeof(b) === "undefined") return 0;
-
-    a = a.toLowerCase();
-    b = b.toLowerCase();
+    a = (a || '').toLowerCase();
+    b = (b || '').toLowerCase();
 
     return a.localeCompare(b);
 };
