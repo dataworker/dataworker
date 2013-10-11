@@ -73,7 +73,7 @@ var _initialize_websocket_connection = function (data) {
         socket.onclose = function () {};
         socket.onerror = function (error) {
             self.postMessage({
-                error : "Error: Could not connect to datasource."
+                error : "Error: Problem with connection to datasource."
             }); 
         };
 
@@ -127,7 +127,7 @@ var _initialize_websocket_connection = function (data) {
         return true;
     } catch (error) {
         self.postMessage({
-            error : "Error: Could not connect to datasource."
+            error : "Error: " + error
         });
 
         return false;
