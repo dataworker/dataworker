@@ -2190,3 +2190,43 @@ asyncTest('set_decimal_mark_character', function () {
         start();
      }).finish();
 });
+
+asyncTest('get_distinct_consecutive_rows', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b' ],
+
+        [ 'abc',      '123'      ],
+        [ 'abc',      '456'      ],
+        [ 'abc',      '789'      ],
+        [ 'def',      '123'      ],
+        [ 'ghi',      '123'      ],
+        [ 'ghi',      '456'      ],
+        [ 'def',      '456'      ],
+        [ 'def',      '789'      ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.alter_column_sort_type('column_a', 'num')
+     .sort('column_a')
+     .get_distinct_consecutive_rows(function (rows) {
+        deepEqual(rows, [
+            [ 'abc', 0, 2 ],
+            [ 'def', 3, 3 ],
+            [ 'ghi', 4, 5 ],
+            [ 'def', 6, 7 ]
+        ]);
+     }, 'column_a').get_distinct_consecutive_rows(function (rows) {
+        deepEqual(rows, [
+            [ '123', 0, 0 ],
+            [ '456', 1, 1 ],
+            [ '789', 2, 2 ],
+            [ '123', 3, 4 ],
+            [ '456', 5, 6 ],
+            [ '789', 7, 7 ]
+        ]);
+        start();
+     }, 'column_b').finish();
+});

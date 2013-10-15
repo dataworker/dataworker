@@ -194,6 +194,24 @@
         return self;
     };
 
+    JData.prototype.get_distinct_consecutive_rows = function () {
+        var self = this,
+            callback = arguments[0],
+            column_name = arguments[1];
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd         : "get_distinct_consecutive_rows",
+                column_name : column_name
+            });
+        })._queue_next(function () {
+            callback(self._rows);
+            return self._next_action(true);
+        });
+
+        return self;
+    };
+
     JData.prototype.apply_filter = function () {
         var self = this,
             filters = arguments[0] instanceof Array

@@ -626,6 +626,32 @@ var _get_dataset = function (data) {
     return { rows : filtered_dataset };
 };
 
+var _get_distinct_consecutive_rows = function (data) {
+    var column       = columns[data.column_name],
+        column_idx   = column && column.index,
+        visible_rows = _get_visible_rows(),
+        distinct_consecutive_rows = [],
+        current_row = 0,
+        current_value;
+
+    visible_rows.forEach(function (row, i) {
+        if (!i || (current_value != row[column_idx])) {
+            if (distinct_consecutive_rows.length) {
+                distinct_consecutive_rows[current_row++][2] = i - 1;
+            }
+
+            current_value = row[column_idx];
+            distinct_consecutive_rows.push([ current_value, i, i ]);
+        }
+    });
+
+    if (distinct_consecutive_rows.length) {
+        distinct_consecutive_rows[current_row++][2] = visible_rows.length - 1;
+    }
+
+    return { rows : distinct_consecutive_rows };
+};
+
 var _get_number_of_records = function (data) {
     return { num_rows : _get_visible_rows().length };
 };
@@ -797,6 +823,9 @@ self.addEventListener("message", function (e) {
             break;
         case "get_dataset":
             reply = _get_dataset(data);
+            break;
+        case "get_distinct_consecutive_rows":
+            reply = _get_distinct_consecutive_rows(data);
             break;
         case "get_num_rows":
             reply = _get_number_of_records(data);

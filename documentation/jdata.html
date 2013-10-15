@@ -37,6 +37,7 @@
                         <li><a href="#get_dataset">Get dataset</a></li>
                         <li><a href="#get_columns_and_records">Get columns and records</a></li>
                         <li><a href="#get_number_of_records">Get number of records</a></li>
+                        <li><a href="#get_distinct">Get distinct</a></li>
                         <li><a href="#paginate">Paginate</a></li>
                         <li><a href="#partition">Partition</a></li>
                         <li><a href="#render">Render</a></li>
@@ -438,6 +439,52 @@
         expected_number_of_rows = num;
     });
                         </pre>
+                    </section>
+                    <section id="get_distinct">
+                        <h3>Get distinct</h3>
+                        <h5>Get distinct consecutive rows</h5>
+                        <p>Distinct rows can be retrieved using <code>get_distinct_consecutive_rows</code>. The function takes a <code>callback</code> and <code>column_name</code> as its parameters:</p>
+                        <pre>
+    function do_something_interesting(records) { }
+    d.get_distinct_consecutive_rows(do_something_interesting, 'column_a');
+                        </pre>
+                        <p>The value passed into the callback is an array of records. Each record contains three values: <code>value</code> of the column, <code>start_row</code> of that value, and <code>end_row</code> of that value.</p>
+                        <p>If values are repeated again later, but not consecutively, another record will exist in the results. For example, with the following dataset:</p>
+                        <pre>
+    [
+        [ 'column_a', 'column_b' ]
+
+        [ 'abc',      '123'      ],
+        [ 'abc',      '456'      ],
+        [ 'abc',      '789'      ],
+        [ 'def',      '123'      ],
+        [ 'ghi',      '123'      ],
+        [ 'ghi',      '456'      ],
+        [ 'def',      '456'      ],
+        [ 'def',      '789'      ]
+    ]
+                        </pre>
+                        <p>the function <code>get_distinct_consecutive_rows</code> will pass the following <code>records</code> into the callback as a sole parameter if 'column_a' were passed in as <code>column_name</code>:</p>
+                        <pre>
+    [
+        [ 'abc', 0, 2 ],
+        [ 'def', 3, 3 ],
+        [ 'ghi', 4, 5 ],
+        [ 'def', 6, 7 ]
+    ]
+                        </pre>
+                        <p>but if 'column_b' were passed in as <code>column_name</code> then the results would be:</p>
+                        <pre>
+    [
+        [ '123', 0, 0 ],
+        [ '456', 1, 1 ],
+        [ '789', 2, 2 ],
+        [ '123', 3, 4 ],
+        [ '456', 5, 6 ],
+        [ '789', 7, 7 ]
+    ]
+                        </pre>
+                        <p>The number of records returned will always be equal to or less than the number of records in the original dataset.</p>
                     </section>
                     <section id="paginate">
                         <h3>Pagination</h3>
