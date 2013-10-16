@@ -68,7 +68,9 @@ var _initialize_websocket_connection = function (data) {
                 socket.send(data.authenticate);
             }
 
-            socket.send(data.request);
+            if (typeof(data.request) !== "undefined") {
+                socket.send(data.request);
+            }
         };
         socket.onclose = function () {};
         socket.onerror = function (error) {
