@@ -7,19 +7,16 @@ var _prepare_columns = function (raw_columns) {
     var prepared_columns = {};
 
     raw_columns.forEach(function (column, i) {
-        var name = typeof(column) === "string" ? column : column["name"];
+        if (typeof(column) === "string") {
+            column = { name: column };
+        }
 
-        prepared_columns[name] = {
-            sort_type      : column["sort_type"]      || "alpha",
-            agg_type       : column["agg_type"]       || "max",
-            title          : column["title"]          || name,
-            decimal_places : column["decimal_places"] || 0,
-            date_format    : column["date_format"],
-            is_percent     : !!column["is_percent"],
-            relative_width : column["relative_width"],
-            name      : name,
-            index     : i
-        };
+        column.sort_type = column.sort_type || "alpha";
+        column.agg_type  = column.agg_type  || "max";
+        column.title     = column.title     || column.name;
+        column.index     = i;
+
+        prepared_columns[column.name] = column;
     });
 
     return prepared_columns;
