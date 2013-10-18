@@ -49,7 +49,7 @@ var _get_visible_columns = function () {
         }
     });
 
-    return { columns : visible_columns };
+    return visible_columns;
 };
 
 var _get_visible_rows = function () {
@@ -753,6 +753,10 @@ var _show_all_columns = function (data) {
     return {};
 };
 
+var _get_all_columns = function (data) {
+    return { columns : columns };
+};
+
 var _get_columns = function (data) {
     return { columns : _get_visible_columns() };
 };
@@ -810,109 +814,118 @@ self.addEventListener("message", function (e) {
 
             return;
         }
-    }
-
-    switch (data.cmd) {
-        case "sort":
-            reply = _sort(data);
-            break;
-        case "set_decimal_mark_character":
-            reply = _set_decimal_mark_character(data);
-            break;
-        case "apply_filter":
-            reply = _apply_filter(data);
-            break;
-        case "clear_filters":
-            reply = _clear_filters(data);
-            break;
-        case "filter":
-            reply = _filter(data);
-            break;
-        case "apply_limit":
-            reply = _apply_limit(data);
-            break;
-        case "limit":
-            reply = _limit(data);
-            break;
-        case "remove_columns":
-            reply = _remove_columns(data);
-            break;
-        case "prepend_column_names":
-            reply = _prepend_column_names(data);
-            break;
-        case "alter_column_name":
-            reply = _alter_column_name(data);
-            break;
-        case "alter_column_sort_type":
-            reply = _alter_column_sort_type(data);
-            break;
-        case "alter_column_agg_type":
-            reply = _alter_column_agg_type(data);
-            break;
-        case "alter_column_title":
-            reply = _alter_column_title(data);
-            break;
-        case "append":
-            reply = _append(data);
-            break;
-        case "hash":
-            reply = _hash_dataset_by_key_columns(data);
-            break;
-        case "join":
-            reply = _join_hashes(data);
-            break;
-        case "group":
-            reply = _group(data);
-            break;
-        case "partition":
-            reply = _partition(data);
-            break;
-        case "paginate":
-            reply = _paginate(data);
-            break;
-        case "get_page":
-            reply = _get_page(data);
-            break;
-        case "set_page":
-            reply = _set_page(data);
-            break;
-        case "hide_columns":
-            reply = _hide_columns(data);
-            break;
-        case "hide_columns":
-            reply = _show_columns(data);
-            break;
-        case "show_all_columns":
-            reply = _show_all_columns(data);
-            break;
-        case "get_columns":
-            reply = _get_columns(data);
-            break;
-        case "get_rows":
-            reply = _get_rows(data);
-            break;
-        case "get_dataset":
-            reply = _get_dataset(data);
-            break;
-        case "get_distinct_consecutive_rows":
-            reply = _get_distinct_consecutive_rows(data);
-            break;
-        case "get_num_rows":
-            reply = _get_number_of_records(data);
-            break;
-        case "get_expected_num_rows":
-            reply = _get_expected_num_rows(data);
-            break;
-        case "request_dataset":
-            reply = _request_dataset(data);
-            break;
-        case "request_dataset_for_append":
-            reply = _request_dataset_for_append(data);
-            break;
-        case "refresh":
-            reply["columns"] = _get_visible_columns();
-            reply["rows"]    = _get_visible_rows();
-            break;
+    } else {
+        switch (data.cmd) {
+            case "sort":
+                reply = _sort(data);
+                break;
+            case "set_decimal_mark_character":
+                reply = _set_decimal_mark_character(data);
+                break;
+            case "apply_filter":
+                reply = _apply_filter(data);
+                break;
+            case "clear_filters":
+                reply = _clear_filters(data);
+                break;
+            case "filter":
+                reply = _filter(data);
+                break;
+            case "apply_limit":
+                reply = _apply_limit(data);
+                break;
+            case "limit":
+                reply = _limit(data);
+                break;
+            case "remove_columns":
+                reply = _remove_columns(data);
+                break;
+            case "prepend_column_names":
+                reply = _prepend_column_names(data);
+                break;
+            case "alter_column_name":
+                reply = _alter_column_name(data);
+                break;
+            case "alter_column_sort_type":
+                reply = _alter_column_sort_type(data);
+                break;
+            case "alter_column_agg_type":
+                reply = _alter_column_agg_type(data);
+                break;
+            case "alter_column_title":
+                reply = _alter_column_title(data);
+                break;
+            case "append":
+                reply = _append(data);
+                break;
+            case "hash":
+                reply = _hash_dataset_by_key_columns(data);
+                break;
+            case "join":
+                reply = _join_hashes(data);
+                break;
+            case "group":
+                reply = _group(data);
+                break;
+            case "partition":
+                reply = _partition(data);
+                break;
+            case "paginate":
+                reply = _paginate(data);
+                break;
+            case "get_page":
+                reply = _get_page(data);
+                break;
+            case "set_page":
+                reply = _set_page(data);
+                break;
+            case "hide_columns":
+                reply = _hide_columns(data);
+                break;
+            case "show_columns":
+                reply = _show_columns(data);
+                break;
+            case "show_all_columns":
+                reply = _show_all_columns(data);
+                break;
+            case "get_all_columns":
+                reply = _get_all_columns(data);
+                break;
+            case "get_columns":
+                reply = _get_columns(data);
+                break;
+            case "get_rows":
+                reply = _get_rows(data);
+                break;
+            case "get_dataset":
+                reply = _get_dataset(data);
+                break;
+            case "get_distinct_consecutive_rows":
+                reply = _get_distinct_consecutive_rows(data);
+                break;
+            case "get_num_rows":
+                reply = _get_number_of_records(data);
+                break;
+            case "get_expected_num_rows":
+                reply = _get_expected_num_rows(data);
+                break;
+            case "request_dataset":
+                reply = _request_dataset(data);
+                break;
+            case "request_dataset_for_append":
+                reply = _request_dataset_for_append(data);
+                break;
+            case "refresh":
+                reply["columns"] = _get_visible_columns();
+                reply["rows"]    = _get_visible_rows();
+                break;
+            case "refresh_all":
+                reply["columns"] = columns;
+                reply["rows"]    = rows.map(function (row) { return row.row; });
+                break;
+            default:
+                reply["error"] = "Unrecognized jdata_worker command: " + data.cmd;
+        }
     }
 
     self.postMessage(reply);

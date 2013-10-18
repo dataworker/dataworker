@@ -143,12 +143,20 @@
         return self;
     };
 
-    JData.prototype.get_columns = function (callback) {
+    JData.prototype._get_columns = function () {
         var self = this;
 
         self._queue_next(function () {
             self._worker.postMessage({ cmd : "get_columns" });
-        })._queue_next(function () {
+        });
+
+        return self;
+    };
+
+    JData.prototype.get_columns = function (callback) {
+        var self = this;
+
+        self._get_columns()._queue_next(function () {
             callback(self._columns);
             return self._next_action(true);
         });
@@ -161,6 +169,16 @@
 
         self._queue_next(function () {
             self._worker.postMessage({ cmd : "refresh" });
+        });
+
+        return self;
+    };
+
+    JData.prototype._refresh_all = function () {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "refresh_all" });
         });
 
         return self;
@@ -418,7 +436,17 @@
 
         self._refresh()._queue_next(function () {
             callback(self._columns, self._rows);
-            
+            return self._next_action(true);
+        });
+
+        return self;
+    };
+
+    JData.prototype.get_all_columns_and_all_records = function (callback) {
+        var self = this;
+
+        self._refresh_all()._queue_next(function () {
+            callback(self._columns, self._rows);
             return self._next_action(true);
         });
 
@@ -430,7 +458,7 @@
 
         self._queue_next(function () {
             if (data instanceof JData) {
-                data.get_columns_and_records(function (new_columns, new_rows) {
+                data.get_all_columns_and_all_records(function (new_columns, new_rows) {
                     self._worker.postMessage({
                         cmd         : "append",
                         new_columns : new_columns,
@@ -470,8 +498,11 @@
             return self._next_action(true);
         });
 
-        self._get_columns()._queue_next(function () {
-            fdata.get_columns(function (columns) {
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "get_all_columns" });
+        })._queue_next(function () {
+            fdata.get_all_columns(function (columns) {
                 Object.keys(columns).forEach(function (column_name) {
                     if (column_name in self._columns) {
                         self._on_error("Column names overlap.");
@@ -480,24 +511,19 @@
 
                 f_columns = columns;
 
-                self._next_action(true);
+                return self._next_action(true);
             });
-        });
-
-        self._queue_next(function () {
+        })._queue_next(function () {
             self._worker.postMessage({
                 cmd         : "hash",
-                key_columns : pk
+                key_columns : pk,
             });
-        });
-        self._queue_next(function () {
+        })._queue_next(function () {
             fdata.get_hash_of_dataset_by_key_columns.call(fdata, function (hash) {
                 f_hash = hash;
-                self._next_action(true);
+                return self._next_action(true);
             }, fk);
-        });
-
-        self._queue_next(function () {
+        })._queue_next(function () {
             self._worker.postMessage({
                 cmd       : "join",
                 l_hash    : self._hash,
@@ -744,7 +770,7 @@
     JData.prototype.clone = function (callback) {
         var self = this;
 
-        self.get_columns_and_records(function (columns, records) {
+        self.get_all_columns_and_all_records(function (columns, records) {
             var columns_row = Object.keys(columns).map(function (column_name) {
                 return columns[column_name];
             }).sort(function (a, b) {
@@ -835,5 +861,18 @@
         });
 
         return self
+    };
+
+    JData.prototype.get_all_columns = function (callback) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "get_all_columns" });
+        })._queue_next(function () {
+            callback(self._columns);
+            return self._next_action(true);
+        });
+
+        return self;
     };
 })();

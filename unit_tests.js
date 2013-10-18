@@ -21,6 +21,7 @@ asyncTest('construct (simple columns)', function () {
                 agg_type       : 'max',
                 title          : 'column_a',
                 name           : 'column_a',
+                is_visible     : true,
                 index          : 0
             },
             column_b: {
@@ -28,6 +29,7 @@ asyncTest('construct (simple columns)', function () {
                 agg_type       : 'max',
                 title          : 'column_b',
                 name           : 'column_b',
+                is_visible     : true,
                 index          : 1
             },
             column_c: {
@@ -35,6 +37,7 @@ asyncTest('construct (simple columns)', function () {
                 agg_type       : 'max',
                 title          : 'column_c',
                 name           : 'column_c',
+                is_visible     : true,
                 index          : 2
             }
         });
@@ -85,6 +88,7 @@ asyncTest('construct (complex columns)', function () {
                 agg_type       : 'max',
                 title          : 'Column A',
                 name           : 'column_a',
+                is_visible     : true,
                 index          : 0
             },
             column_b: {
@@ -92,6 +96,7 @@ asyncTest('construct (complex columns)', function () {
                 agg_type       : 'max',
                 title          : 'Column B',
                 name           : 'column_b',
+                is_visible     : true,
                 index          : 1
             },
             column_c: {
@@ -99,6 +104,7 @@ asyncTest('construct (complex columns)', function () {
                 agg_type       : 'min',
                 title          : 'Column C',
                 name           : 'column_c',
+                is_visible     : true,
                 index          : 2
             }
         });
@@ -388,6 +394,7 @@ asyncTest('remove columns', function () {
                 agg_type       : 'max',
                 title          : 'column_a',
                 name           : 'column_a',
+                is_visible     : true,
                 index          : 0
             }
         });
@@ -1086,6 +1093,7 @@ asyncTest('join (inner join on single field)', function () {
                 sort_type      : 'alpha',
                 title          : 'column_a',
                 name           : 'column_a',
+                is_visible     : true,
                 index          : 0
             },
             column_b: {
@@ -1093,6 +1101,7 @@ asyncTest('join (inner join on single field)', function () {
                 sort_type      : 'alpha',
                 title          : 'column_b',
                 name           : 'column_b',
+                is_visible     : true,
                 index          : 1
             },
             column_c: {
@@ -1100,6 +1109,7 @@ asyncTest('join (inner join on single field)', function () {
                 sort_type      : 'alpha',
                 title          : 'column_c',
                 name           : 'column_c',
+                is_visible     : true,
                 index          : 2
             },
             column_d: {
@@ -1107,6 +1117,7 @@ asyncTest('join (inner join on single field)', function () {
                 sort_type      : 'alpha',
                 title          : 'column_d',
                 name           : 'column_d',
+                is_visible     : true,
                 index          : 3
             },
             column_e: {
@@ -1114,6 +1125,7 @@ asyncTest('join (inner join on single field)', function () {
                 sort_type      : 'alpha',
                 title          : 'column_e',
                 name           : 'column_e',
+                is_visible     : true,
                 index          : 4
             },
             column_f: {
@@ -1121,6 +1133,7 @@ asyncTest('join (inner join on single field)', function () {
                 sort_type      : 'alpha',
                 title          : 'column_f',
                 name           : 'column_f',
+                is_visible     : true,
                 index          : 5
             }
         });
@@ -1325,25 +1338,28 @@ asyncTest('prepend column names', function () {
     var d = new JData(dataset).prepend_column_names('p_').get_columns(function (columns) {
         deepEqual(columns, {
             p_column_a: {
-                sort_type      : 'alpha',
-                agg_type       : 'max',
-                title          : 'column_a',
-                name           : 'column_a',
-                index          : 0
+                sort_type  : 'alpha',
+                agg_type   : 'max',
+                title      : 'column_a',
+                name       : 'column_a',
+                is_visible : true,
+                index      : 0
             },
             p_column_b: {
-                sort_type      : 'alpha',
-                agg_type       : 'max',
-                title          : 'column_b',
-                name           : 'column_b',
-                index          : 1
+                sort_type  : 'alpha',
+                agg_type   : 'max',
+                title      : 'column_b',
+                name       : 'column_b',
+                is_visible : true,
+                index      : 1
             },
             p_column_c: {
-                sort_type      : 'alpha',
-                agg_type       : 'min',
-                title          : 'column_c',
-                name           : 'column_c',
-                index          : 2
+                sort_type  : 'alpha',
+                agg_type   : 'min',
+                title      : 'column_c',
+                name       : 'column_c',
+                is_visible : true,
+                index      : 2
             }
         });
 
@@ -1368,25 +1384,28 @@ asyncTest('alter column name', function () {
     d.get_columns(function (columns) {
         deepEqual(columns, {
             'a_column': {
-                sort_type      : 'alpha',
-                agg_type       : 'max',
-                title          : 'column_a',
-                name           : 'column_a',
-                index          : 0
+                sort_type  : 'alpha',
+                agg_type   : 'max',
+                title      : 'column_a',
+                name       : 'column_a',
+                is_visible : true,
+                index      : 0
             },
             'column_b': {
-                sort_type      : 'alpha',
-                agg_type       : 'max',
-                title          : 'column_b',
-                name           : 'column_b',
-                index          : 1
+                sort_type  : 'alpha',
+                agg_type   : 'max',
+                title      : 'column_b',
+                name       : 'column_b',
+                is_visible : true,
+                index      : 1
             },
             'column_c': {
-                sort_type      : 'alpha',
-                agg_type       : 'max',
-                title          : 'column_c',
-                name           : 'column_c',
-                index          : 2
+                sort_type  : 'alpha',
+                agg_type   : 'max',
+                title      : 'column_c',
+                name       : 'column_c',
+                is_visible : true,
+                index      : 2
             }
         });
         start();
@@ -1851,25 +1870,28 @@ asyncTest('clone', function () {
         clone.get_columns_and_records(function (columns, records) {
             deepEqual(columns, {
                 column_a: {
-                    sort_type      : 'alpha',
-                    agg_type       : 'max',
-                    title          : 'column_a',
-                    name           : 'column_a',
-                    index          : 0
+                    sort_type  : 'alpha',
+                    agg_type   : 'max',
+                    title      : 'column_a',
+                    name       : 'column_a',
+                    is_visible : true,
+                    index      : 0
                 },
                 column_b: {
-                    sort_type      : 'alpha',
-                    agg_type       : 'max',
-                    title          : 'column_b',
-                    name           : 'column_b',
-                    index          : 1
+                    sort_type  : 'alpha',
+                    agg_type   : 'max',
+                    title      : 'column_b',
+                    name       : 'column_b',
+                    is_visible : true,
+                    index      : 1
                 },
                 column_c: {
-                    sort_type      : 'alpha',
-                    agg_type       : 'max',
-                    title          : 'column_c',
-                    name           : 'column_c',
-                    index          : 2
+                    sort_type  : 'alpha',
+                    agg_type   : 'max',
+                    title      : 'column_c',
+                    name       : 'column_c',
+                    is_visible : true,
+                    index      : 2
                 }
             });
 
@@ -2176,6 +2198,7 @@ asyncTest('extra_column_info_gets_passed_along', function () {
                 agg_type     : 'max',
                 title        : 'column_a',
                 name         : 'column_a',
+                is_visible   : true,
                 index        : 0,
                 abc          : 'xyz',
                 random_stuff : 'still here'
@@ -2185,10 +2208,227 @@ asyncTest('extra_column_info_gets_passed_along', function () {
                 agg_type     : 'max',
                 title        : 'column_b',
                 name         : 'column_b',
+                is_visible   : true,
                 index        : 1,
                 elephants    : 'donkeys'
             }
         });
+
+        start();
+    }).finish();
+});
+
+asyncTest('hide columns (single)', function () {
+    expect(4);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.hide_columns('column_a').get_columns_and_records(function (columns, records) {
+        deepEqual(columns, {
+            column_b: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_b',
+                name           : 'column_b',
+                is_visible     : true,
+                index          : 0
+            },
+            column_c: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_c',
+                name           : 'column_c',
+                is_visible     : true,
+                index          : 1
+            }
+        });
+
+        deepEqual(records, [
+            [ 'violin',    'music' ],
+            [ 'tissue',      'dog' ],
+            [  'piano',      'gum' ],
+            [  'power',     'star' ]
+        ]);
+    }).get_all_columns_and_all_records(function (columns, records) {
+        deepEqual(columns, {
+            column_a: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_a',
+                name           : 'column_a',
+                is_visible     : false,
+                index          : 0
+            },
+            column_b: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_b',
+                name           : 'column_b',
+                is_visible     : true,
+                index          : 1
+            },
+            column_c: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_c',
+                name           : 'column_c',
+                is_visible     : true,
+                index          : 2
+            }
+        });
+
+        deepEqual(records, [
+            [ 'apple',      'violin',    'music' ],
+            [ 'cat',        'tissue',      'dog' ],
+            [ 'banana',      'piano',      'gum' ],
+            [ 'gummy',       'power',     'star' ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest('hide columns (multi)', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).hide_columns('column_a', 'column_c');
+
+    d .get_columns_and_records(function (columns, records) {
+        deepEqual(columns, {
+            column_b: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_b',
+                name           : 'column_b',
+                is_visible     : true,
+                index          : 0
+            }
+        });
+
+        deepEqual(records, [
+            [ 'violin' ],
+            [ 'tissue' ],
+            [  'piano' ],
+            [  'power' ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest('show columns', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).hide_columns('column_a', 'column_c')
+                              .show_columns('column_a');
+
+    d.get_columns_and_records(function (columns, records) {
+        deepEqual(columns, {
+            column_a: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_a',
+                name           : 'column_a',
+                is_visible     : true,
+                index          : 0
+            },
+            column_b: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_b',
+                name           : 'column_b',
+                is_visible     : true,
+                index          : 1
+            }
+        });
+
+        deepEqual(records, [
+            [ 'apple',      'violin' ],
+            [ 'cat',        'tissue' ],
+            [ 'banana',      'piano' ],
+            [ 'gummy',       'power' ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest('show all columns', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).hide_columns('column_a', 'column_c')
+                              .show_all_columns();
+
+    d.get_columns_and_records(function (columns, records) {
+        deepEqual(columns, {
+            column_a: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_a',
+                name           : 'column_a',
+                is_visible     : true,
+                index          : 0
+            },
+            column_b: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_b',
+                name           : 'column_b',
+                is_visible     : true,
+                index          : 1
+            },
+            column_c: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_c',
+                name           : 'column_c',
+                is_visible     : true,
+                index          : 2
+            }
+        });
+
+        deepEqual(records, [
+            [ 'apple',      'violin',    'music' ],
+            [ 'cat',        'tissue',      'dog' ],
+            [ 'banana',      'piano',      'gum' ],
+            [ 'gummy',       'power',     'star' ]
+        ]);
 
         start();
     }).finish();
