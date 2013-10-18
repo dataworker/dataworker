@@ -11,10 +11,11 @@ var _prepare_columns = function (raw_columns) {
             column = { name: column };
         }
 
-        column.sort_type = column.sort_type || "alpha";
-        column.agg_type  = column.agg_type  || "max";
-        column.title     = column.title     || column.name;
-        column.index     = i;
+        column.sort_type  = column.sort_type || "alpha";
+        column.agg_type   = column.agg_type  || "max";
+        column.title      = column.title     || column.name;
+        column.index      = i;
+        column.is_visible = column.is_visible || true;
 
         prepared_columns[column.name] = column;
     });
@@ -35,12 +36,46 @@ var _strip_row_metadata = function (processed_rows) {
     return processed_rows.map(function (row) { return row["row"]; });
 };
 
-var _get_visible_rows = function () {
-    return rows.filter(function (row) {
-        return row["is_visible"];
-    }).map(function (row) {
-        return row["row"];
+var _get_visible_columns = function () {
+    var visible_columns = {}, index = 0;
+
+    Object.keys(columns).sort(function (a, b) {
+        return columns[a].index - columns[b].index;
+    }).forEach(function (column_name) {
+        if (columns[column_name].is_visible) {
+            visible_columns[column_name] = JSON.parse(JSON.stringify(columns[column_name]));
+
+            visible_columns[column_name].index = index++;
+        }
     });
+
+    return { columns : visible_columns };
+};
+
+var _get_visible_rows = function () {
+    var visible_column_idxs = [], visible_rows = [];
+    
+    Object.keys(columns).forEach(function (column_name) {
+        var column = columns[column_name];
+
+        if (column.is_visible) {
+            visible_column_idxs.push(column.index);
+        }
+    });
+    
+    visible_column_idxs.sort(function (a, b) { return a - b; });
+
+    rows.forEach(function (row) {
+        if (row["is_visible"]) {
+            visible_rows.push(
+                visible_column_idxs.map(function (idx) {
+                    return row["row"][idx];
+                })
+            );
+        }
+    });
+
+    return visible_rows;
 };
 
 var _initialize = function (data) {
@@ -115,7 +150,7 @@ var _initialize_websocket_connection = function (data) {
                 is_ws_ready = true;
                 self.postMessage({
                     ws_is_ready : true,
-                    columns     : columns,
+                    columns     : _get_visible_columns(),
                     ex_num_rows : expected_num_rows
                 });
             }
@@ -601,8 +636,8 @@ var _partition = function (data) {
 };
 
 var _get_dataset = function (data) {
-    var column_names = data.column_names;
-    var visible_rows = _get_visible_rows(), filtered_dataset = [];
+    var column_names = data.column_names, column_idxs,
+        visible_rows = _get_visible_rows(), filtered_dataset = [];
 
     if (column_names.length === 0) {
         return { rows : visible_rows };
@@ -690,13 +725,40 @@ var _set_page = function (data) {
     return {};
 };
 
+var _hide_columns = function (data) {
+    var column_names = data.column_names;
+
+    column_names.forEach(function (column) {
+        columns[column]["is_visible"] = false;
+    });
+
+    return {};
+};
+
+var _show_columns = function (data) {
+    var column_names = data.column_names;
+
+    column_names.forEach(function (column) {
+        columns[column]["is_visible"] = true;
+    });
+
+    return {};
+};
+
+var _show_all_columns = function (data) {
+    Object.keys(columns).forEach(function (column) {
+        columns[column]["is_visible"] = true;
+    });
+
+    return {};
+};
+
 var _get_columns = function (data) {
-    return { columns : columns };
+    return { columns : _get_visible_columns() };
 };
 
 var _get_rows = function (data) {
-    var start = data.start,
-        end = data.end;
+    var start = data.start, end = data.end;
 
     if (typeof(end) !== "undefined") {
         end += 1;
@@ -814,6 +876,15 @@ self.addEventListener("message", function (e) {
         case "set_page":
             reply = _set_page(data);
             break;
+        case "hide_columns":
+            reply = _hide_columns(data);
+            break;
+        case "hide_columns":
+            reply = _show_columns(data);
+            break;
+        case "show_all_columns":
+            reply = _show_all_columns(data);
+            break;
         case "get_columns":
             reply = _get_columns(data);
             break;
@@ -839,7 +910,7 @@ self.addEventListener("message", function (e) {
             reply = _request_dataset_for_append(data);
             break;
         case "refresh":
-            reply["columns"] = columns;
+            reply["columns"] = _get_visible_columns();
             reply["rows"]    = _get_visible_rows();
             break;
     }

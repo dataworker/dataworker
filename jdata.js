@@ -143,20 +143,12 @@
         return self;
     };
 
-    JData.prototype._get_columns = function () {
+    JData.prototype.get_columns = function (callback) {
         var self = this;
 
         self._queue_next(function () {
             self._worker.postMessage({ cmd : "get_columns" });
-        });
-
-        return self;
-    };
-
-    JData.prototype.get_columns = function (callback) {
-        var self = this;
-
-        self._get_columns()._queue_next(function () {
+        })._queue_next(function () {
             callback(self._columns);
             return self._next_action(true);
         });
@@ -801,5 +793,47 @@
         });
 
         return self;
+    };
+
+    JData.prototype.hide_columns = function () {
+        var self = this,
+            column_names = arguments[0] instanceof Array
+                         ? arguments[0]
+                         : Array.prototype.slice.call(arguments);
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd          : "hide_columns",
+                column_names : column_names
+            });
+        });
+
+        return self;
+    };
+
+    JData.prototype.show_columns = function () {
+        var self = this,
+            column_names = arguments[0] instanceof Array
+                         ? arguments[0]
+                         : Array.prototype.slice.call(arguments);
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd          : "show_columns",
+                column_names : column_names
+            });
+        });
+
+        return self;
+    };
+
+    JData.prototype.show_all_columns = function () {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "show_all_columns" });
+        });
+
+        return self
     };
 })();
