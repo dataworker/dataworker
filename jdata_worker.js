@@ -15,7 +15,7 @@ var _prepare_columns = function (raw_columns) {
         column.agg_type   = column.agg_type  || "max";
         column.title      = column.title     || column.name;
         column.index      = i;
-        column.is_visible = column.is_visible || true;
+        column.is_visible = ("is_visible" in column) ? column.is_visible : true;
 
         prepared_columns[column.name] = column;
     });
