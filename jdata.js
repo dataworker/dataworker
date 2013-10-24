@@ -27,8 +27,9 @@
 
         self._render_function = function () {};
 
-        self._action_queue = [];
-        self._is_in_action = false;
+        self._action_queue    = [];
+        self._is_in_action    = false;
+        self._previous_action = undefined;
 
         self._on_error = function (msg) { console.log(msg); };
         self._on_ws_ready = function (columns, expected_num_rows) { };
@@ -136,7 +137,10 @@
 
         if (!self._is_in_action && self._action_queue.length > 0) {
             var action = self._action_queue.shift();
+
             self._is_in_action = true;
+            self._previous_action = action;
+
             action();
         }
 
