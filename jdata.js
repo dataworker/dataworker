@@ -31,11 +31,6 @@
         self._is_in_action    = false;
         self._previous_action = undefined;
 
-        self._on_error = function (msg) { console.log(msg); };
-        self._on_ws_ready = function (columns, expected_num_rows) { };
-        self._on_receive_rows = function (num_received) { };
-        self._on_all_rows_received = function () { };
-
         self._initialize_web_worker(dataset);
 
         return self;
@@ -59,15 +54,20 @@
                 ? dataset.request
                 : JSON.stringify(dataset.request);
 
-            callbacks = [
+            [
                 'all_rows_received',
                 'error',
-                'receive_rows',
-                'ws_ready'
-            ];
+                'receive_columns',
+                'receive_rows'
+            ].forEach(function(fnName) {
+                var privateName = '_on_' + fnName,
+                    publicName  = 'on_'  + fnName;
 
-            callbacks.forEach(function(fnName) {
-                self['_on_' + fnName] = dataset['on_' + fnName] || self['_on_' + fnName];
+                JData.prototype[publicName] = function(callback) {
+                    return this._set_callback(privateName, callback);
+                };
+
+                self[privateName] = dataset[publicName] || new Function();
             });
         }
 
@@ -84,15 +84,18 @@
                 }
 
                 if (e.data.error)       self._on_error(e.data.error);
-                if (e.data.columns)     self._columns = e.data.columns;
                 if (e.data.rows)        self._rows = e.data.rows;
                 if (e.data.hash)        self._hash = e.data.hash;
                 if (e.data.partitioned) self._partitioned_datasets = e.data.partitioned;
                 if (e.data.num_rows)    self._num_rows = e.data.num_rows;
-                if (e.data.ex_num_rows) self._expected_num_rows = e.data.ex_num_rows;
+                if (e.data.ex_num_rows) {
+                    self._expected_num_rows = e.data.ex_num_rows;
+                    self._num_rows = undefined;
+                }
 
-                if (e.data.ws_is_ready) {
-                    self._on_ws_ready(self._columns, self._expected_num_rows);
+                if (e.data.columns) {
+                    self._columns = e.data.columns;
+                    self._on_receive_columns(self._columns, self._expected_num_rows);
                 }
 
                 self._next_action(true);
@@ -719,38 +722,12 @@
         return self;
     };
 
-    JData.prototype.on_error = function (error_callback) {
-        var self = this;
-
-        if (typeof(error_callback) === "function") {
-            self._queue_next(function () {
-                self._on_error = error_callback;
-                return self._next_action(true);
-            });
-        }
-
-        return self;
-    };
-
-    JData.prototype.on_receive_rows = function (callback) {
+    JData.prototype._set_callback = function (name, callback) {
         var self = this;
 
         if (typeof(callback) === "function") {
             self._queue_next(function () {
-                self._on_receive_rows = callback;
-                return self._next_action(true);
-            });
-        }
-
-        return self;
-    };
-
-    JData.prototype.on_all_rows_received = function (callback) {
-        var self = this;
-
-        if (typeof(callback) === "function") {
-            self._queue_next(function () {
-                self._on_all_rows_received = callback;
+                self[name] = callback;
                 return self._next_action(true);
             });
         }

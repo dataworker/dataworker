@@ -140,16 +140,12 @@ var _initialize_websocket_connection = function (data) {
                 } else {
                     self.postMessage({ rows_received : msg.rows.length });
                 }
-            }
-
-            if (
-                !is_ws_ready
-                && typeof(columns) !== "undefined"
+            } else if (
+                typeof(columns) !== "undefined"
                 && typeof(expected_num_rows) !== "undefined"
             ) {
                 is_ws_ready = true;
                 self.postMessage({
-                    ws_is_ready : true,
                     columns     : _get_visible_columns(),
                     ex_num_rows : expected_num_rows
                 });
