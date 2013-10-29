@@ -2433,3 +2433,62 @@ asyncTest('show all columns', function () {
         start();
     }).finish();
 });
+
+asyncTest('changes for "on_" functions are added to the queue by default', function () {
+    expect(4);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var numCalls = 0;
+
+    var d = new JData(dataset).on_error(function (error) {
+        equal(error, 'Column column_b already exists in the dataset.');
+
+        d.on_error(function (error) {
+            equal(error, 'Column column_c already exists in the dataset.');
+            equal(numCalls, 2);
+        }).alter_column_name('column_a', 'column_c').finish();
+
+        if (!numCalls++) start();
+    });
+
+    d.alter_column_name('column_a', 'column_b').alter_column_name('column_a', 'column_b');
+});
+
+asyncTest('changes for "on_" functions can happen immediately with a flag', function () {
+    expect(5);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var numCalls = 0;
+    var column_name = 'column_b';
+
+    var d = new JData(dataset).on_error(function (error) {
+        equal(error, 'Column column_b already exists in the dataset.');
+
+        d.on_error(function (error) {
+            equal(error, 'Column ' + column_name + ' already exists in the dataset.');
+            equal(numCalls, 1);
+
+            column_name = 'column_c';
+        }, true).alter_column_name('column_a', 'column_c').finish();
+
+        if (!numCalls++) start();
+    });
+
+    d.alter_column_name('column_a', 'column_b').alter_column_name('column_a', 'column_b');
+});

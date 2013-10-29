@@ -96,6 +96,7 @@ var _initialize_websocket_connection = function (data) {
         socket = new WebSocket(data.datasource);
 
         socket.onopen  = function () {
+            is_ws_ready = true;
             if (data.authenticate) {
                 socket.send(data.authenticate);
             }
@@ -144,14 +145,13 @@ var _initialize_websocket_connection = function (data) {
                 typeof(columns) !== "undefined"
                 && typeof(expected_num_rows) !== "undefined"
             ) {
-                is_ws_ready = true;
                 self.postMessage({
                     columns     : _get_visible_columns(),
                     ex_num_rows : expected_num_rows
                 });
             }
 
-            if (expected_num_rows == 0) self.postMessage({ all_rows_received : true });
+            if (msg.expected_num_rows == 0) self.postMessage({ all_rows_received : true });
         };
 
         return true;
@@ -496,7 +496,7 @@ var _append = function (data) {
 
 var _hash_dataset_by_key_columns = function (data) {
     var key_columns = data.key_columns;
-    var key_indexes, hash = {}, errors = [];
+    var key_indexes, hash = {}, errors = [], reply = {};
 
     key_columns = key_columns instanceof Array ? key_columns : [ key_columns ];
     key_columns.forEach(function (column) {
@@ -519,10 +519,10 @@ var _hash_dataset_by_key_columns = function (data) {
         }
     });
 
-    return {
-        hash  : hash,
-        error : errors.join("\n")
-    };
+    reply["hash"] = hash;
+    if (errors.length) reply["error"] = errors.join("\n");
+
+    return reply;
 };
 
 var _join_hashes = function (data) {
@@ -679,7 +679,7 @@ var _get_distinct_consecutive_rows = function (data) {
         distinct_consecutive_rows[current_row++][2] = visible_rows.length - 1;
     }
 
-    return { rows : distinct_consecutive_rows };
+    return { distinct_rows : distinct_consecutive_rows };
 };
 
 var _get_number_of_records = function (data) {

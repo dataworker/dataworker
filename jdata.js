@@ -13,12 +13,13 @@
         );
     }
 
-    var JData = window.JData = function (dataset) {
+    var JData = window.JData = function JData (dataset) {
         var self = this instanceof JData ? this : Object.create(JData.prototype);
 
-        self._columns = {};
-        self._rows = [];
-        self._hash    = {};
+        self._columns       = {};
+        self._rows          = [];
+        self._distinct_rows = [];
+        self._hash          = {};
 
         self._num_rows = 0;
         self._expected_num_rows = 0;
@@ -38,7 +39,14 @@
 
     JData.prototype._initialize_web_worker = function (dataset) {
         var self = this, columns, rows,
-            datasource, authenticate, request, callbacks;
+            datasource, authenticate, request,
+            callbacks =
+                [
+                    'all_rows_received',
+                    'error',
+                    'receive_columns',
+                    'receive_rows'
+                ];
 
         if (dataset instanceof Array) {
             columns = dataset.slice(0, 1)[0];
@@ -53,48 +61,40 @@
             request      = (typeof dataset.request === 'string')
                 ? dataset.request
                 : JSON.stringify(dataset.request);
-
-            [
-                'all_rows_received',
-                'error',
-                'receive_columns',
-                'receive_rows'
-            ].forEach(function(fnName) {
-                var privateName = '_on_' + fnName,
-                    publicName  = 'on_'  + fnName;
-
-                JData.prototype[publicName] = function(callback) {
-                    return this._set_callback(privateName, callback);
-                };
-
-                self[privateName] = dataset[publicName] || new Function();
-            });
         }
+
+        callbacks.forEach(function(fnName) {
+            var privateName = '_on_' + fnName,
+                publicName  = 'on_'  + fnName;
+
+            JData.prototype[publicName] = function(callback, actImmediately) {
+                return this._set_callback(privateName, callback, actImmediately);
+            };
+
+            self[privateName] = dataset[publicName] || new Function();
+        });
 
         self._queue_next(function () {
             self._worker = new Worker(srcPath + 'jdata_worker.js');
             self._worker.onmessage = function (e) {
-                if (e.data.rows_received) {
+                if ('rows_received' in e.data) {
                     self._on_receive_rows(e.data.rows_received);
                     return;
                 }
-                if (e.data.all_rows_received) {
+                if ('all_rows_received' in e.data) {
                     self._on_all_rows_received();
                     return;
                 }
 
-                if (e.data.error)       self._on_error(e.data.error);
-                if (e.data.rows)        self._rows = e.data.rows;
-                if (e.data.hash)        self._hash = e.data.hash;
-                if (e.data.partitioned) self._partitioned_datasets = e.data.partitioned;
-                if (e.data.num_rows)    self._num_rows = e.data.num_rows;
-                if (e.data.ex_num_rows) {
+                if ('error'         in e.data) self._on_error(e.data.error);
+                if ('columns'       in e.data) self._columns = e.data.columns;
+                if ('rows'          in e.data) self._rows = e.data.rows;
+                if ('distinct_rows' in e.data) self._distinct_rows = e.data.distinct_rows;
+                if ('hash'          in e.data) self._hash = e.data.hash;
+                if ('partitioned'   in e.data) self._partitioned_datasets = e.data.partitioned;
+                if ('num_rows'      in e.data) self._num_rows = e.data.num_rows;
+                if ('ex_num_rows'   in e.data) {
                     self._expected_num_rows = e.data.ex_num_rows;
-                    self._num_rows = undefined;
-                }
-
-                if (e.data.columns) {
-                    self._columns = e.data.columns;
                     self._on_receive_columns(self._columns, self._expected_num_rows);
                 }
 
@@ -222,7 +222,7 @@
                 column_name : column_name
             });
         })._queue_next(function () {
-            callback(self._rows);
+            callback(self._distinct_rows);
             return self._next_action(true);
         });
 
@@ -722,14 +722,18 @@
         return self;
     };
 
-    JData.prototype._set_callback = function (name, callback) {
+    JData.prototype._set_callback = function (name, callback, actImmediately) {
         var self = this;
 
         if (typeof(callback) === "function") {
-            self._queue_next(function () {
+            if (actImmediately === true) {
                 self[name] = callback;
-                return self._next_action(true);
-            });
+            } else {
+                self._queue_next(function () {
+                    self[name] = callback;
+                    return self._next_action(true);
+                });
+            }
         }
 
         return self;
