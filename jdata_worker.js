@@ -96,7 +96,6 @@ var _initialize_websocket_connection = function (data) {
         socket = new WebSocket(data.datasource);
 
         socket.onopen  = function () {
-            is_ws_ready = true;
             if (data.authenticate) {
                 socket.send(data.authenticate);
             }
@@ -104,6 +103,8 @@ var _initialize_websocket_connection = function (data) {
             if (typeof(data.request) !== "undefined") {
                 socket.send(data.request);
             }
+
+            is_ws_ready = true;
         };
         socket.onclose = function () {};
         socket.onerror = function (error) {
@@ -143,7 +144,8 @@ var _initialize_websocket_connection = function (data) {
                 }
             } else if (
                 typeof(columns) !== "undefined"
-                && typeof(expected_num_rows) !== "undefined"
+                && typeof(msg.expected_num_rows) !== "undefined"
+                && expected_num_rows != rows.length
             ) {
                 self.postMessage({
                     columns     : _get_visible_columns(),
