@@ -1,5 +1,6 @@
 var columns = {}, rows = [],
     socket, is_ws_ready, expected_num_rows,
+    ajax_datasource,
     rows_per_page = 10, current_page = 0,
     only_valid_for_numbers_regex = /[^0-9.\-]/g;
 
@@ -81,14 +82,52 @@ var _get_visible_rows = function () {
 var _initialize = function (data) {
     var wait_to_connect = false;
 
-    if (typeof(data.datasource) !== "undefined") {
-        wait_to_connect = _initialize_websocket_connection(data);
-    } else {
+    if (typeof(data.datasource) === "undefined") {
         columns = _prepare_columns(data.columns);
         rows    = _prepare_rows(data.rows);
+    } else if (data.datasource.match(/^https?:\/\//)) {
+        ajax_datasource = data.datasource;
+
+        if (typeof(data.request) !== "undefined") {
+            _request_dataset(data);
+        }
+    } else if (data.datasource.match(/^wss?:\/\//)) {
+        wait_to_connect = _initialize_websocket_connection(data);
+    } else {
+        self.postMessage({
+            error: "Error: Could not initialize JData; unrecognized datasource."
+        });
     }
 
     return wait_to_connect;
+};
+
+var _ajax = function (request) {
+    var xml_http = new XMLHttpRequest(),
+        url = ajax_datasource + (request.match(/^\?/) ? "" : "?") + request;
+
+    xml_http.onreadystatechange = function () {
+        if (xml_http.readyState == 4 && xml_http.status == 200) {
+            var msg = JSON.parse(xml_http.responseText);
+
+            if (msg.error) {
+                self.postMessage({ error : msg.error });    
+            }
+
+            if (msg.columns) {
+                columns = _prepare_columns(msg.columns);
+            }
+            if (msg.rows) {
+                if (typeof(rows) === "undefined") rows = [];
+                rows = rows.concat(_prepare_rows(msg.rows));
+            }
+
+            self.postMessage({ all_rows_received : true });
+        }
+    };
+
+    xml_http.open("GET", url, true);
+    xml_http.send();
 };
 
 var _initialize_websocket_connection = function (data) {
@@ -774,19 +813,37 @@ var _get_expected_num_rows = function (data) {
 };
 
 var _request_dataset = function (data) {
+    var request_made = false;
+
     columns           = {};
     rows              = [];
     expected_num_rows = undefined;
 
-    socket.send(data.request);
+    if (typeof(socket) !== "undefined") {
+        socket.send(data.request);
+        request_made = true;
+    }
+    if (typeof(ajax_datasource) !== "undefined") {
+        _ajax(data.request);
+        request_made = true;
+    }
 
-    return {};
+    return request_made ? {} : { error: "Could not request dataset; no datasource defined." };
 };
 
 var _request_dataset_for_append = function (data) {
-    socket.send(data.request);
+    var request_made = false;
 
-    return {};
+    if (typeof(socket) !== "undefined") {
+        socket.send(data.request);
+        request_made = true;
+    }
+    if (typeof(ajax_datasource) !== "undefined") {
+        _ajax(data.request);
+        request_made = true;
+    }
+
+    return request_made ? {} : { error: "Could not request dataset; no datasource defined." };
 };
 
 self.addEventListener("message", function (e) {

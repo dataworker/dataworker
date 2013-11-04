@@ -111,6 +111,7 @@
                     </section>
                     <section id="stream">
                         <h3>Streaming Data</h3>
+                        <h5>Via Websockets</h5>
                         <p>Alternatively, JData can stream data from a WebSocket server:</p>
                         <pre>
     var d = new JData({
@@ -139,7 +140,7 @@
     // Second message:
     { columns => [ 'column_a', 'column_b', 'column_c' ] }
                         </pre>
-                        <p>Afterwards, JData will expect arrays of dataset rows from the server. These rows will be appended to the dataset. For example:</p>
+                        <p>Afterwards, JData will expect arrays of dataset rows from the server. These rows will be appended to the dataset. The reply will be similar to the following:</p>
                         <pre>
     [
         [ 'apple',      'violin',    'music' ],
@@ -187,15 +188,37 @@
     });
                         </pre>
                         <p>If not set, this callback does nothing.</p>
+                        <h5>Via AJAX</h5>
+                        <p>If WebSockets are not available, data can be received via AJAX as well:</p>
+                        <pre>
+    var d = new JData({
+        datasource           : "http://127.0.0.1:8888",
+        request              : '?this=is;a=query;string',
+        on_all_rows_received : function () {
+            alert("all rows have been received!");
+        }
+    });
+                        </pre>
+                        <p><code>datasource</code> should be the base url to send GET requests to.</p>
+                        <p><code>request</code> should be the query string to append to the base url. The prepended question mark is optional; if it is missing, one will automatically be inserted.</p>
+                        <p>The only callback triggered by AJAX datasets is the <code>on_all_rows_received</code> callback.</p>
                         <h5>Requesting further data</h5>
                         <p>A new dataset can be requested using the <code>request_dataset</code> method:</p>
                         <pre>
+    // For WebSockets:
     d.request_dataset('{"cmd":"request_dataset"}');
+
+    // For AJAX:
+    d.request_dataset('query=string');
                         </pre>
                         <p>The newly-requested dataset will completely replace the previously-requested dataset.</p>
                         <p>A new dataset can be requested and appended to the current dataset using the <code>request_dataset_for_append</code> method:</p>
                         <pre>
+    // For WebSockets:
     d.request_dataset_for_append('{"cmd":"request_dataset"}');
+
+    // For AJAX:
+    d.request_dataset_for_append('query=string');
                         </pre>
                         <p>Note that the newly-requested dataset should have the same columns as the previously-requested dataset.</p>
                     </section>
