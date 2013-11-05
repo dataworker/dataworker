@@ -32,9 +32,11 @@
                         <li><a href="#join">Join</a></li>
                         <li><a href="#limit">Limit</a></li>
                         <li><a href="#remove_columns">Remove columns</a></li>
+                        <li><a href="#hide_columns">Hide columns</a></li>
                         <li><a href="#sort">Sort</a></li>
                         <li class="nav-header">Access the dataset!</li>
                         <li><a href="#get_dataset">Get dataset</a></li>
+                        <li><a href="#get_columns">Get columns</a></li>
                         <li><a href="#get_columns_and_records">Get columns and records</a></li>
                         <li><a href="#get_number_of_records">Get number of records</a></li>
                         <li><a href="#get_distinct">Get distinct</a></li>
@@ -105,8 +107,7 @@
                     <pre>
     d.on_error(function (msg) {
         alert(msg);
-    });
-                    </pre>
+    });</pre>
                     <p>By default, errors are printed to the console.</p>
                     </section>
                     <section id="stream">
@@ -118,8 +119,7 @@
         datasource   : "ws://127.0.0.1:8888",
         authenticate : "{}",
         request      : '{"cmd":"request_dataset"}'
-    });
-                        </pre>
+    });</pre>
                         <p><code>datasource</code> should be the URL of the websocket server.</p>
                         <p><code>authenticate</code> is optional. If present, will be the first message sent to the server upon connecting.</p>
                         <p><code>request</code> is sent after <code>authenticate</code>.<p>
@@ -128,8 +128,7 @@
     {
         total_num_rows => 10,
         columns        => [ 'column_a', 'column_b', 'column_c' ]
-    }
-                        </pre>
+    }</pre>
                         <p><code>total_num_rows</code> should be the number of rows to expect in that dataset.</p>
                         <p><code>columns</code> should be the columns of the expected dataset. They can be provided as simple column names or as hashes with custom column properties.</p>
                         <p>Note JData cannot proceed without first knowing the columns and the total number of expected rows. That being said, these two properties may be transmitted separately. For example:</p>
@@ -138,8 +137,7 @@
     { total_num_rows => 10 }
 
     // Second message:
-    { columns => [ 'column_a', 'column_b', 'column_c' ] }
-                        </pre>
+    { columns => [ 'column_a', 'column_b', 'column_c' ] }</pre>
                         <p>Afterwards, JData will expect arrays of dataset rows from the server. These rows will be appended to the dataset. The reply will be similar to the following:</p>
                         <pre>
     [
@@ -147,14 +145,12 @@
         [ 'cat',        'tissue',      'dog' ],
         [ 'banana',      'piano',      'gum' ],
         [ 'gummy',       'power',     'star' ]
-    ]
-                        </pre>
+    ]</pre>
                         <p>The <code>on_receive_rows</code> callback will be called whenever rows are received from the Websocket server. This callback can be set with the <code>on_receive_rows</code> method:</p>
                         <pre>
     d.on_receive_rows(function (num_rows) {
         alert("Received " + num_rows + " rows.");
-    });
-                        </pre>
+    });</pre>
                         <p>Alternatively, this callback can be passed into the constructor:</p>
                         <pre>
     var d = new JData({
@@ -164,15 +160,13 @@
         on_receive_rows : function (num_rows) {
             alert(num_rows + " rows received.");
         }
-    });
-                        </pre>
+    });</pre>
                         <p>If not set, this callback defaults to doing nothing.</p>
                         <p>The <code>on_all_rows_received</code> callback is called when all expected rows have been received from the Websocket server. This callback can be set with the <code>on_all_rows_received</code> method:</p>
                         <pre>
     d.on_all_rows_received(function () {
         alert("All rows have been received!");
-    });
-                        </pre>
+    });</pre>
                         <p>Alternatively, this callback can be passed into the constructor:</p>
                         <pre>
     var d = new JData({
@@ -185,8 +179,7 @@
         on_all_rows_received : function () {
             alert("All rows have been received!");
         }
-    });
-                        </pre>
+    });</pre>
                         <p>If not set, this callback does nothing.</p>
                         <h5>Via AJAX</h5>
                         <p>If WebSockets are not available, data can be received via AJAX as well:</p>
@@ -197,8 +190,7 @@
         on_all_rows_received : function () {
             alert("all rows have been received!");
         }
-    });
-                        </pre>
+    });</pre>
                         <p><code>datasource</code> should be the base url to send GET requests to.</p>
                         <p><code>request</code> should be the query string to append to the base url. The prepended question mark is optional; if it is missing, one will automatically be inserted.</p>
                         <p>The only callback triggered by AJAX datasets is the <code>on_all_rows_received</code> callback.</p>
@@ -209,8 +201,7 @@
     d.request_dataset('{"cmd":"request_dataset"}');
 
     // For AJAX:
-    d.request_dataset('query=string');
-                        </pre>
+    d.request_dataset('query=string');</pre>
                         <p>The newly-requested dataset will completely replace the previously-requested dataset.</p>
                         <p>A new dataset can be requested and appended to the current dataset using the <code>request_dataset_for_append</code> method:</p>
                         <pre>
@@ -218,8 +209,7 @@
     d.request_dataset_for_append('{"cmd":"request_dataset"}');
 
     // For AJAX:
-    d.request_dataset_for_append('query=string');
-                        </pre>
+    d.request_dataset_for_append('query=string');</pre>
                         <p>Note that the newly-requested dataset should have the same columns as the previously-requested dataset.</p>
                     </section>
                     <section id="clone">
@@ -228,8 +218,7 @@
                         <pre>
     d.clone(function (new_d) {
         new_dataset = new_d;
-    });
-                        </pre>
+    });</pre>
                     </section>
                     <section id="alter_columns">
                         <h3>Alter columns</h3>
@@ -359,8 +348,12 @@
                     </section>
                     <section id="limit">
                         <h3>Limit</h3>
-                        <p>The <code>limit</code> method limits the amount of rows in the dataset. The following keeps only the first 10 rows in the dataset:</p>
-                        <pre>   d.limit(10);</pre>
+                        <p>The <code>apply_limit</code> method limits the amount of visible rows in the dataset. The following allows only the first 10 rows in the dataset to be visible:</p>
+                        <pre>   d.apply_limit(10);</pre>
+                        <p>The limit can be cleared by calling the <code>clear_filters</code> method:</p>
+                        <pre>   d.clear_filters();</pre>
+                        <p>To permanently remove rows from a dataset with a limit, use the <code>limit</code> method:</p>
+                        <pre>   d.limit(10)</pre>
                     </section>
                     <section id="remove_columns">
                         <h3>Remove columns</h3>
@@ -368,12 +361,24 @@
                         <pre>   d.remove_columns('column_a', 'column_b');</pre>
                         <p>Note that the following is also valid:</p>
                         <pre>   d.remove_columns([ 'column_a', 'column_b' ]);</pre>
-                        <p>The limit can be cleared by calling the <code>clear_filters</code> method:</p>
+                    </section>
+                    <section id="hide_columns">
+                        <h3>Hide columns</h3>
+                        <p>Instead of permanently deleting the columns, you may also temporarily hide them from view using the <code>hide_columns</code> method:</p>
+                        <pre>   d.hide_columns('column_a', 'column_b');</pre>
+                        <p>Note that the following is also valid:</p>
+                        <pre>   d.hide_columns([ 'column_a', 'column_b' ]);</pre>
+                        <p>Hidden columns can be shown with the <code>show_columns</code> method:</p>
+                        <pre>   d.show_columns('column_a', 'column_b');</pre>
+                        <p>Note that the following is also valid:</p>
+                        <pre>   d.show_columns([ 'column_a', 'column_b' ]);</pre>
+                        <p>All hidden columns can be revealed with the <code>show_all_columns</code> method:</p>
+                        <pre>   d.show_all_columns()</pre>
+                        <p>Alternatively, you may retrieve all columns (visible AND non-visible) by using the <code>get_all_columns</code> method:</p>
                         <pre>
-    d.clear_filters();</pre>
-                        <p>To permanently remove rows from a dataset with a limit, use the <code>limit</code> method:</p>
-                        <pre>
-    d.limit(10)</pre>
+    d.get_all_columns(function (columns) {
+        all_columns = columns; 
+    })</pre>
                     </section>
                     <section id="sort">
                         <h3>Sort</h3>
@@ -393,7 +398,7 @@
                     </section>
                     <section id="get_dataset">
                         <h3>Get dataset</h3>
-                        <p>Dataset rows can be retrieved for use via the <code>get_dataset</code> method.</p>
+                        <p>Visible dataset rows can be retrieved for use via the <code>get_dataset</code> method.</p>
                         <pre>
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
@@ -434,34 +439,39 @@
         [ 'column_a', 'column_b' ]
     );</pre>
                     </section>
+                    <section id="get_columns">
+                        <p>The <code>get_columns</code> method is used to get the visible columns of the dataset:</p>
+                        <pre>
+    d.get_columns(function (columns) {
+        visible_columns = columns;
+    });</pre>
+                        <p>Use <code>get_all_columns</code> to retrieve both visible and non-visible columns.</p>
+                    </section>
                     <section id="get_columns_and_records">
                         <h3>Get columns and records</h3>
-                        <p>Columns may be retrieved simultaneously with records with <code>get_columns_and_records</code>.</p>
+                        <p>Visible columns may be retrieved simultaneously with visible records with <code>get_columns_and_records</code>.</p>
                         <pre>
     d.get_columns_and_records(function (columns, records) {
         // Do something.
-    });
-                        </pre>
+    });</pre>
                         <p>Columns will be given as a dictionary with the <code>column_name</code> as the key and its properties (also in a dictionary) as the value.</p>
                         <p>Records will be returned the same as in <code>get_dataset</code>.</p>
                     </section>
                     <section id="get_number_of_records">
                         <h3>Get number of records</h3>
                         <h5>Get number of records</h5>
-                        <p>The <code>get_number_of_records</code> returns the number of rows currently in the dataset:</p>
+                        <p>The <code>get_number_of_records</code> returns the number of visible rows currently in the dataset:</p>
                         <pre>
     d.get_number_of_records(function (num) {
         number_of_rows = num;
-    });
-                        </pre>
+    });</pre>
                         <p>Note that for streaming datasets, this value will be the current number of rows it has (and not the total number of rows expected). Use <code>get_expected_number_of_records</code> to determine the total number of rows in a streaming dataset.</p>
                         <h5>Get expected number of records</h5>
                         <p>The <code>get_expected_number_of_records</code> method returns the expected number of records in a streaming dataset.</p>
                         <pre>
     d.get_expected_number_of_records(function (num) {
         expected_number_of_rows = num;
-    });
-                        </pre>
+    });</pre>
                     </section>
                     <section id="get_distinct">
                         <h3>Get distinct</h3>
@@ -469,8 +479,7 @@
                         <p>Distinct rows can be retrieved using <code>get_distinct_consecutive_rows</code>. The function takes a <code>callback</code> and <code>column_name</code> as its parameters:</p>
                         <pre>
     function do_something_interesting(records) { }
-    d.get_distinct_consecutive_rows(do_something_interesting, 'column_a');
-                        </pre>
+    d.get_distinct_consecutive_rows(do_something_interesting, 'column_a');</pre>
                         <p>The value passed into the callback is an array of records. Each record contains three values: <code>value</code> of the column, <code>start_row</code> of that value, and <code>end_row</code> of that value.</p>
                         <p>If values are repeated again later, but not consecutively, another record will exist in the results. For example, with the following dataset:</p>
                         <pre>
@@ -485,8 +494,7 @@
         [ 'ghi',      '456'      ],
         [ 'def',      '456'      ],
         [ 'def',      '789'      ]
-    ]
-                        </pre>
+    ]</pre>
                         <p>the function <code>get_distinct_consecutive_rows</code> will pass the following <code>records</code> into the callback as a sole parameter if 'column_a' were passed in as <code>column_name</code>:</p>
                         <pre>
     [
@@ -494,8 +502,7 @@
         [ 'def', 3, 3 ],
         [ 'ghi', 4, 5 ],
         [ 'def', 6, 7 ]
-    ]
-                        </pre>
+    ]</pre>
                         <p>but if 'column_b' were passed in as <code>column_name</code> then the results would be:</p>
                         <pre>
     [
@@ -505,8 +512,7 @@
         [ '123', 3, 4 ],
         [ '456', 5, 6 ],
         [ '789', 7, 7 ]
-    ]
-                        </pre>
+    ]</pre>
                         <p>The number of records returned will always be equal to or less than the number of records in the original dataset.</p>
                     </section>
                     <section id="paginate">
