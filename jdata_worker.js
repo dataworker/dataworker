@@ -763,21 +763,33 @@ var _set_page = function (data) {
 };
 
 var _hide_columns = function (data) {
-    var column_names = data.column_names;
-
-    column_names.forEach(function (column) {
-        columns[column]["is_visible"] = false;
-    });
+    if ("column_names" in data) {
+        data.column_names.forEach(function (column) {
+            columns[column]["is_visible"] = false;
+        });
+    } else if ("column_name_regex" in data) {
+        Object.keys(columns).forEach(function (column) {
+            if (column.match(data.column_name_regex)) {
+                columns[column]["is_visible"] = false;
+            }
+        });
+    }
 
     return {};
 };
 
 var _show_columns = function (data) {
-    var column_names = data.column_names;
-
-    column_names.forEach(function (column) {
-        columns[column]["is_visible"] = true;
-    });
+    if ("column_names" in data) {
+        data.column_names.forEach(function (column) {
+            columns[column]["is_visible"] = true;
+        });
+    } else if ("column_name_regex" in data) {
+        Object.keys(columns).forEach(function (column) {
+            if (column.match(data.column_name_regex)) {
+                columns[column]["is_visible"] = true;
+            }
+        });
+    }
 
     return {};
 };

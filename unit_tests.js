@@ -2311,13 +2311,87 @@ asyncTest('hide columns (multi)', function () {
 
     var d = new JData(dataset).hide_columns('column_a', 'column_c');
 
-    d .get_columns_and_records(function (columns, records) {
+    d.get_columns_and_records(function (columns, records) {
         deepEqual(columns, {
             column_b: {
                 sort_type      : 'alpha',
                 agg_type       : 'max',
                 title          : 'column_b',
                 name           : 'column_b',
+                is_visible     : true,
+                index          : 0
+            }
+        });
+
+        deepEqual(records, [
+            [ 'violin' ],
+            [ 'tissue' ],
+            [  'piano' ],
+            [  'power' ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest('hide columns (regex)', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'notcolumn_b', 'column_c' ],
+
+        [ 'apple',         'violin',    'music' ],
+        [ 'cat',           'tissue',      'dog' ],
+        [ 'banana',         'piano',      'gum' ],
+        [ 'gummy',          'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).hide_columns(/^column/);
+
+    d.get_columns_and_records(function (columns, records) {
+        deepEqual(columns, {
+            notcolumn_b : {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'notcolumn_b',
+                name           : 'notcolumn_b',
+                is_visible     : true,
+                index          : 0
+            }
+        });
+
+        deepEqual(records, [
+            [ 'violin' ],
+            [ 'tissue' ],
+            [  'piano' ],
+            [  'power' ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest('hide columns (regex, w/ flags)', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'notcolumn_b', 'COLumn_c' ],
+
+        [ 'apple',         'violin',    'music' ],
+        [ 'cat',           'tissue',      'dog' ],
+        [ 'banana',         'piano',      'gum' ],
+        [ 'gummy',          'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).hide_columns(/^column/i);
+
+    d.get_columns_and_records(function (columns, records) {
+        deepEqual(columns, {
+            notcolumn_b : {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'notcolumn_b',
+                name           : 'notcolumn_b',
                 is_visible     : true,
                 index          : 0
             }
@@ -2364,6 +2438,52 @@ asyncTest('show columns', function () {
                 agg_type       : 'max',
                 title          : 'column_b',
                 name           : 'column_b',
+                is_visible     : true,
+                index          : 1
+            }
+        });
+
+        deepEqual(records, [
+            [ 'apple',      'violin' ],
+            [ 'cat',        'tissue' ],
+            [ 'banana',      'piano' ],
+            [ 'gummy',       'power' ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest('show columns (regex)', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'notcolumn_b', 'COLumn_c' ],
+
+        [ 'apple',         'violin',    'music' ],
+        [ 'cat',           'tissue',      'dog' ],
+        [ 'banana',         'piano',      'gum' ],
+        [ 'gummy',          'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).hide_columns('column_a', 'notcolumn_b', 'COLumn_c')
+                              .show_columns(/^(?:not)?column_/);
+
+    d.get_columns_and_records(function (columns, records) {
+        deepEqual(columns, {
+            column_a: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'column_a',
+                name           : 'column_a',
+                is_visible     : true,
+                index          : 0
+            },
+            notcolumn_b: {
+                sort_type      : 'alpha',
+                agg_type       : 'max',
+                title          : 'notcolumn_b',
+                name           : 'notcolumn_b',
                 is_visible     : true,
                 index          : 1
             }

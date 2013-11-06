@@ -807,32 +807,38 @@
     };
 
     JData.prototype.hide_columns = function () {
-        var self = this,
+        var self = this, msg = { cmd : "hide_columns" },
             column_names = arguments[0] instanceof Array
                          ? arguments[0]
                          : Array.prototype.slice.call(arguments);
 
+        if (column_names[0] instanceof RegExp) {
+            msg["column_name_regex"] = column_names[0];
+        } else {
+            msg["column_names"] = column_names;
+        }
+
         self._queue_next(function () {
-            self._worker.postMessage({
-                cmd          : "hide_columns",
-                column_names : column_names
-            });
+            self._worker.postMessage(msg);
         });
 
         return self;
     };
 
     JData.prototype.show_columns = function () {
-        var self = this,
+        var self = this, msg = { cmd : "show_columns" },
             column_names = arguments[0] instanceof Array
                          ? arguments[0]
                          : Array.prototype.slice.call(arguments);
 
+        if (column_names[0] instanceof RegExp) {
+            msg["column_name_regex"] = column_names[0];
+        } else {
+            msg["column_names"] = column_names;
+        }
+
         self._queue_next(function () {
-            self._worker.postMessage({
-                cmd          : "show_columns",
-                column_names : column_names
-            });
+            self._worker.postMessage(msg);
         });
 
         return self;

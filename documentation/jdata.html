@@ -219,6 +219,7 @@
     d.clone(function (new_d) {
         new_dataset = new_d;
     });</pre>
+                        <p>Note that any streaming datasources are not copied as part of the cloning process.</p>
                     </section>
                     <section id="alter_columns">
                         <h3>Alter columns</h3>
@@ -372,6 +373,8 @@
                         <pre>   d.show_columns('column_a', 'column_b');</pre>
                         <p>Note that the following is also valid:</p>
                         <pre>   d.show_columns([ 'column_a', 'column_b' ]);</pre>
+                        <p>The <code>hide_columns</code> and <code>show_columns</code> methods may also take a regex as an argument. Any column name matching the regex will be hidden/shown, respectively.</p>
+                        <pre>   d.hide_columns(/^column_[ab]$/i);</pre>
                         <p>All hidden columns can be revealed with the <code>show_all_columns</code> method:</p>
                         <pre>   d.show_all_columns()</pre>
                         <p>Alternatively, you may retrieve all columns (visible AND non-visible) by using the <code>get_all_columns</code> method:</p>
