@@ -28,11 +28,29 @@
 
         self._render_function = function () {};
 
-        self._action_queue    = [];
-        self._is_in_action    = false;
-        self._previous_action = undefined;
+        self._action_queue = new ActionQueue();
 
         self._initialize_web_worker(dataset);
+
+        return self;
+    };
+
+    JData.prototype._queue_next = function (action) {
+        var self = this;
+
+        self._action_queue.queueNext(action);
+
+        return self;
+    };
+
+    JData.prototype._next_action = function (finish_previous) {
+        var self = this;
+
+        if (finish_previous) {
+            self._action_queue.finish();
+        } else {
+            self._action_queue.nextAction();
+        }
 
         return self;
     };
@@ -120,32 +138,6 @@
         self._queue_next(function () {
             self._worker.terminate();
         });
-
-        return self;
-    };
-
-    JData.prototype._queue_next = function (action) {
-        var self = this;
-
-        self._action_queue.push(action);
-        self._next_action();
-
-        return self;
-    };
-
-    JData.prototype._next_action = function (finish_previous) {
-        var self = this;
-
-        if (finish_previous) self._is_in_action = false;
-
-        if (!self._is_in_action && self._action_queue.length > 0) {
-            var action = self._action_queue.shift();
-
-            self._is_in_action = true;
-            self._previous_action = action;
-
-            action();
-        }
 
         return self;
     };
