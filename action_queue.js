@@ -14,8 +14,8 @@
     ActionQueue.prototype.queueNext = function (action) {
         var self = this;
 
-        self._actionQueue.push(action);
-        self._nextAction();
+        self._queue.push(action);
+        self.nextAction();
 
         return self;
     };
@@ -25,8 +25,8 @@
 
         if (finishPrevious) self._isInAction = false;
 
-        if (!self._isInAction && self._actionQueue.length > 0) {
-            var action = self._actionQueue.shift();
+        if (!self._isInAction && self._queue.length > 0) {
+            var action = self._queue.shift();
 
             self._isInAction = true;
             self._previousAction = action;

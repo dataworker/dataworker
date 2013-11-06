@@ -47,7 +47,7 @@
         var self = this;
 
         if (finish_previous) {
-            self._action_queue.finish();
+            self._action_queue.finishAction();
         } else {
             self._action_queue.nextAction();
         }
