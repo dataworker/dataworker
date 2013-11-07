@@ -2500,6 +2500,29 @@ asyncTest('show columns (regex)', function () {
     }).finish();
 });
 
+asyncTest('hide all columns' , function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).hide_columns('column_a', 'column_c')
+                              .hide_all_columns();
+
+    d.get_columns_and_records(function (columns, records) {
+        deepEqual(columns, {});
+        deepEqual(records, [ [], [], [], [] ]);
+
+        start();
+    }).finish();
+});
+
 asyncTest('show all columns', function () {
     expect(2);
 

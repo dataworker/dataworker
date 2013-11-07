@@ -794,6 +794,14 @@ var _show_columns = function (data) {
     return {};
 };
 
+var _hide_all_columns = function (data) {
+    Object.keys(columns).forEach(function (column) {
+        columns[column]["is_visible"] = false;
+    });
+
+    return {};
+};
+
 var _show_all_columns = function (data) {
     Object.keys(columns).forEach(function (column) {
         columns[column]["is_visible"] = true;
@@ -951,6 +959,9 @@ self.addEventListener("message", function (e) {
                 break;
             case "show_columns":
                 reply = _show_columns(data);
+                break;
+            case "hide_all_columns":
+                reply = _hide_all_columns(data);
                 break;
             case "show_all_columns":
                 reply = _show_all_columns(data);

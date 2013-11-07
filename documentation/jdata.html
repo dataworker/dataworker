@@ -375,13 +375,15 @@
                         <pre>   d.show_columns([ 'column_a', 'column_b' ]);</pre>
                         <p>The <code>hide_columns</code> and <code>show_columns</code> methods may also take a regex as an argument. Any column name matching the regex will be hidden/shown, respectively.</p>
                         <pre>   d.hide_columns(/^column_[ab]$/i);</pre>
+                        <p>All columns can be hidden with the <code>hide_all_columns</code> method:</p>
+                        <pre>   d.hide_all_columns();</pre>
                         <p>All hidden columns can be revealed with the <code>show_all_columns</code> method:</p>
-                        <pre>   d.show_all_columns()</pre>
+                        <pre>   d.show_all_columns();</pre>
                         <p>Alternatively, you may retrieve all columns (visible AND non-visible) by using the <code>get_all_columns</code> method:</p>
                         <pre>
     d.get_all_columns(function (columns) {
         all_columns = columns; 
-    })</pre>
+    });</pre>
                     </section>
                     <section id="sort">
                         <h3>Sort</h3>

@@ -836,6 +836,16 @@
         return self;
     };
 
+    JData.prototype.hide_all_columns = function () {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "hide_all_columns" });
+        });
+
+        return self;
+    };
+
     JData.prototype.show_all_columns = function () {
         var self = this;
 
