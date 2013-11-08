@@ -43,14 +43,10 @@
         return self;
     };
 
-    JData.prototype._next_action = function (finish_previous) {
+    JData.prototype._finish_action = function () {
         var self = this;
 
-        if (finish_previous) {
-            self._action_queue.finishAction();
-        } else {
-            self._action_queue.nextAction();
-        }
+        self._action_queue.finishAction();
 
         return self;
     };
@@ -116,7 +112,7 @@
                     self._on_receive_columns(self._columns, self._expected_num_rows);
                 }
 
-                self._next_action(true);
+                self._finish_action();
             };
 
             self._worker.postMessage({
@@ -157,7 +153,7 @@
 
         self._get_columns()._queue_next(function () {
             callback(self._columns);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -197,7 +193,7 @@
             });
         })._queue_next(function () {
             callback(self._rows);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -215,7 +211,7 @@
             });
         })._queue_next(function () {
             callback(self._distinct_rows);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -357,7 +353,7 @@
 
         self._get_page(undefined, true, false)._queue_next(function() {
             callback(self._rows);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -368,7 +364,7 @@
 
         self._get_page(undefined, false, true)._queue_next(function () {
             callback(self._rows);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -394,7 +390,7 @@
 
         self._get_page(page_num)._queue_next(function () {
             callback(self._rows);
-            self._next_action(true);
+            self._finish_action();
         });
 
         return self;
@@ -424,7 +420,7 @@
             });
         })._queue_next(function () {
             callback(self._rows);
-            self._next_action(true);
+            self._finish_action();
         });
 
         return self;
@@ -435,7 +431,7 @@
 
         self._refresh()._queue_next(function () {
             callback(self._columns, self._rows);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -446,7 +442,7 @@
 
         self._refresh_all()._queue_next(function () {
             callback(self._columns, self._rows);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -494,7 +490,7 @@
                 self._on_error("Unknown join type.");
             }
 
-            return self._next_action(true);
+            return self._finish_action();
         });
 
 
@@ -510,7 +506,7 @@
 
                 f_columns = columns;
 
-                return self._next_action(true);
+                return self._finish_action();
             });
         })._queue_next(function () {
             self._worker.postMessage({
@@ -520,7 +516,7 @@
         })._queue_next(function () {
             fdata.get_hash_of_dataset_by_key_columns.call(fdata, function (hash) {
                 f_hash = hash;
-                return self._next_action(true);
+                return self._finish_action();
             }, fk);
         })._queue_next(function () {
             self._worker.postMessage({
@@ -545,7 +541,7 @@
             });
         })._queue_next(function () {
             callback(self._hash);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -675,7 +671,7 @@
                 return key.split("|");
             }));
 
-            self._next_action(true);
+            self._finish_action();
         });
 
         return self;
@@ -690,7 +686,7 @@
 
         self._queue_next(function () {
             callback(self._partitioned_datasets[keys.join("|")]);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -702,12 +698,12 @@
         if (typeof(render_function) === "function") {
             self._queue_next(function () {
                 self._render_function = render_function;
-                return self._next_action(true);
+                return self._finish_action();
             });
         } else {
             self._queue_next(function () {
                 self._render_function();
-                return self._next_action(true);
+                return self._finish_action();
             });
         }
 
@@ -723,7 +719,7 @@
             } else {
                 self._queue_next(function () {
                     self[name] = callback;
-                    return self._next_action(true);
+                    return self._finish_action();
                 });
             }
         }
@@ -738,7 +734,7 @@
             self._worker.postMessage({ cmd : "get_num_rows" });
         })._queue_next(function () {
             callback(self._num_rows);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -769,7 +765,7 @@
             self._worker.postMessage({ cmd : "get_expected_num_rows" });
         })._queue_next(function () {
             callback(self._expected_num_rows);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;
@@ -863,7 +859,7 @@
             self._worker.postMessage({ cmd : "get_all_columns" });
         })._queue_next(function () {
             callback(self._columns);
-            return self._next_action(true);
+            return self._finish_action();
         });
 
         return self;

@@ -11,27 +11,31 @@
         return self;
     };
 
-    ActionQueue.prototype.queueNext = function (action) {
-        var self = this;
+    ActionQueue.prototype.queueNext = function () {
+        var self = this,
+            args = [];
 
-        self._queue.push(action);
-        self.nextAction();
+        Array.prototype.push.apply(args, arguments);
+
+        self._queue.push(args);
+        nextAction.call(self);
 
         return self;
     };
 
-    ActionQueue.prototype.nextAction = function (finishPrevious) {
+    function nextAction (finishPrevious) {
         var self = this;
 
         if (finishPrevious) self._isInAction = false;
 
         if (!self._isInAction && self._queue.length > 0) {
-            var action = self._queue.shift();
+            var args   = self._queue.shift(),
+                action = args.shift();
 
             self._isInAction = true;
             self._previousAction = action;
 
-            action();
+            action.apply(self, args);
         }
 
         return self;
@@ -40,7 +44,7 @@
     ActionQueue.prototype.finishAction = function () {
         var self = this;
 
-        self.nextAction(true);
+        nextAction.call(self, true);
 
         return self;
     };
