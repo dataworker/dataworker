@@ -153,7 +153,7 @@ var _initialize_websocket_connection = function (data) {
         };
 
         socket.onmessage = function (msg) {
-            msg = JSON.parse(msg.data);
+            msg = JSON.parse(decodeURIComponent(msg.data));
 
             if (msg.error) {
                 self.postMessage({ error : msg.error });
