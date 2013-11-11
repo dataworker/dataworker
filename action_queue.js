@@ -34,12 +34,13 @@
 
             self._isInAction = true;
             self._previousAction = action;
-
-            action.apply(self, args);
+            self._callAction(function () { action.apply(self, args) });
         }
 
         return self;
     };
+
+    ActionQueue.prototype._callAction = function(func) { func(); };
 
     ActionQueue.prototype.finishAction = function () {
         var self = this;
