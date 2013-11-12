@@ -2334,6 +2334,24 @@ asyncTest('hide columns (multi)', function () {
     }).finish();
 });
 
+asyncTest('hide column that does not exist does not error out', function () {
+    expect(0);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).render(function () { start(); })
+                              .hide_columns('column_d')
+                              .render()
+                              .finish();
+});
+
 asyncTest('hide columns (regex)', function () {
     expect(2);
 
@@ -2452,6 +2470,24 @@ asyncTest('show columns', function () {
 
         start();
     }).finish();
+});
+
+asyncTest('show column that does not exist does not error out', function () {
+    expect(0);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset).render(function () { start(); })
+                              .show_columns('column_d')
+                              .render()
+                              .finish();
 });
 
 asyncTest('show columns (regex)', function () {

@@ -765,7 +765,9 @@ var _set_page = function (data) {
 var _hide_columns = function (data) {
     if ("column_names" in data) {
         data.column_names.forEach(function (column) {
-            columns[column]["is_visible"] = false;
+            if (column in columns) {
+                columns[column]["is_visible"] = false;
+            }
         });
     } else if ("column_name_regex" in data) {
         Object.keys(columns).forEach(function (column) {
@@ -781,7 +783,9 @@ var _hide_columns = function (data) {
 var _show_columns = function (data) {
     if ("column_names" in data) {
         data.column_names.forEach(function (column) {
-            columns[column]["is_visible"] = true;
+            if (column in columns) {
+                columns[column]["is_visible"] = true;
+            }
         });
     } else if ("column_name_regex" in data) {
         Object.keys(columns).forEach(function (column) {
