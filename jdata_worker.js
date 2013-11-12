@@ -311,7 +311,7 @@ var _apply_filter = function (data) {
 
                 if (
                     (relevant_indexes.length === 0 || relevant_indexes.indexOf(i) !== -1)
-                    && column !== null && column.match(regex)
+                    && column && column.match(regex)
                 ) {
                     row["is_visible"] = true;
                     break;
@@ -327,7 +327,7 @@ var _apply_filter = function (data) {
                     column_index = columns[filter.column]["index"],
                     column = row["row"][column_index];
 
-                if (column !== null && column.match(filter.regex)) {
+                if (column && column.match(filter.regex)) {
                     row["is_visible"] = true;
                 } else {
                     row["is_visible"] = false;
