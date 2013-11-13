@@ -53,17 +53,19 @@ var _get_visible_columns = function () {
     return visible_columns;
 };
 
-var _get_visible_rows = function () {
+var _get_visible_rows = function (requested_columns) {
     var visible_column_idxs = [], visible_rows = [];
-    
-    Object.keys(columns).forEach(function (column_name) {
+
+    if (!(requested_columns || []).length) requested_columns = undefined;
+
+    (requested_columns || Object.keys(columns)).forEach(function (column_name) {
         var column = columns[column_name];
 
-        if (column.is_visible) {
+        if (requested_columns || column.is_visible) {
             visible_column_idxs.push(column.index);
         }
     });
-    
+
     visible_column_idxs.sort(function (a, b) { return a - b; });
 
     rows.forEach(function (row) {
@@ -673,45 +675,22 @@ var _partition = function (data) {
 };
 
 var _get_dataset = function (data) {
-    var column_names = data.column_names, column_idxs,
-        visible_rows = _get_visible_rows(), filtered_dataset = [];
-
-    if (column_names.length === 0) {
-        return { rows : visible_rows };
-    }
-
-    column_idxs = column_names.map(function (column) {
-        return columns[column]["index"];
-    });
-
-    visible_rows.forEach(function (row, i) {
-        var filtered_row = [];
-
-        column_idxs.forEach(function (column_idx, i) {
-            filtered_row[i] = row[column_idx];
-        });
-
-        filtered_dataset[i] = filtered_row;
-    });
-
-    return { rows : filtered_dataset };
+    return { rows : _get_visible_rows(data.column_names) };
 };
 
 var _get_distinct_consecutive_rows = function (data) {
-    var column       = columns[data.column_name],
-        column_idx   = column && column.index,
-        visible_rows = _get_visible_rows(),
+    var visible_rows = _get_visible_rows([ data.column_name ]),
         distinct_consecutive_rows = [],
         current_row = 0,
         current_value;
 
     visible_rows.forEach(function (row, i) {
-        if (!i || (current_value != row[column_idx])) {
+        if (!i || (current_value != row[0])) {
             if (distinct_consecutive_rows.length) {
                 distinct_consecutive_rows[current_row++][2] = i - 1;
             }
 
-            current_value = row[column_idx];
+            current_value = row[0];
             distinct_consecutive_rows.push([ current_value, i, i ]);
         }
     });
@@ -829,7 +808,7 @@ var _get_rows = function (data) {
         end += 1;
     }
 
-    return { rows : _get_visible_rows().slice(start, end) };
+    return { rows : _get_dataset(data).rows.slice(start, end) };
 };
 
 var _get_expected_num_rows = function (data) {

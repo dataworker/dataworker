@@ -410,13 +410,17 @@
     };
 
     JData.prototype.get_rows = function (callback, start, end) {
-        var self = this;
+        var self         = this,
+            column_names = arguments[3] instanceof Array
+                         ? arguments[3]
+                         : Array.prototype.slice.call(arguments, 3);
 
         self._queue_next(function () {
             self._worker.postMessage({
-                cmd   : "get_rows",
-                start : start,
-                end   : end
+                cmd          : "get_rows",
+                start        : start,
+                end          : end,
+                column_names : column_names
             });
         })._queue_next(function () {
             callback(self._rows);
