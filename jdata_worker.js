@@ -66,8 +66,6 @@ var _get_visible_rows = function (requested_columns) {
         }
     });
 
-    visible_column_idxs.sort(function (a, b) { return a - b; });
-
     rows.forEach(function (row) {
         if (row["is_visible"]) {
             visible_rows.push(
