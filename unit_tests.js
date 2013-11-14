@@ -2080,6 +2080,29 @@ asyncTest('get rows (specify columns as array)', function () {
     }, 1, 10, [ 'column_a', 'column_c' ]);
 });
 
+asyncTest('get rows (specify out-of-order columns)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.get_rows(function (result) {
+        deepEqual(result, [
+            [ 'dog', 'cat' ]
+        ]);
+
+        start();
+    }, 1, 1, 'column_c', 'column_a');
+});
+
 asyncTest('get number of records', function () {
     expect(1);
 
