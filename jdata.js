@@ -30,6 +30,7 @@
 
         self._action_queue = new ActionQueue();
 
+        self._initialize_callbacks(dataset);
         self._initialize_web_worker(dataset);
 
         return self;
@@ -51,16 +52,30 @@
         return self;
     };
 
+    JData.prototype._initialize_callbacks = function (dataset) {
+        var self = this;
+
+        [
+            'all_rows_received',
+            'error',
+            'receive_columns',
+            'receive_rows'
+        ].forEach(function(fnName) {
+            var privateName = '_on_' + fnName,
+                publicName  = 'on_'  + fnName;
+
+            JData.prototype[publicName] = function(callback, actImmediately) {
+                return this._set_callback(privateName, callback, actImmediately);
+            };
+
+            self[privateName] = dataset[publicName] || new Function();
+        });
+
+        return self;
+    };
+
     JData.prototype._initialize_web_worker = function (dataset) {
-        var self = this, columns, rows,
-            datasource, authenticate, request,
-            callbacks =
-                [
-                    'all_rows_received',
-                    'error',
-                    'receive_columns',
-                    'receive_rows'
-                ];
+        var self = this, columns, rows, datasource, authenticate, request;
 
         if (dataset instanceof Array) {
             columns = dataset.slice(0, 1)[0];
@@ -76,17 +91,6 @@
                 ? dataset.request
                 : JSON.stringify(dataset.request);
         }
-
-        callbacks.forEach(function(fnName) {
-            var privateName = '_on_' + fnName,
-                publicName  = 'on_'  + fnName;
-
-            JData.prototype[publicName] = function(callback, actImmediately) {
-                return this._set_callback(privateName, callback, actImmediately);
-            };
-
-            self[privateName] = dataset[publicName] || new Function();
-        });
 
         self._queue_next(function () {
             self._worker = new Worker(srcPath + 'jdata_worker.js');

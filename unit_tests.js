@@ -1,3 +1,129 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                           *
+ * Tests for ActionQueue                                                     *
+ *                                                                           *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+module('ActionQueue');
+
+test('construct', function () {
+    var q = new ActionQueue();
+
+    ok(q instanceof ActionQueue);
+});
+
+test('queue action (not in action)', function () {
+    var q = new ActionQueue(), actionDone = false;
+
+    q.queueNext(function () {
+        actionDone = true;
+        q.finishAction();
+    });
+
+    ok(actionDone);
+});
+
+test('queue action (in action)', function () {
+    var q = new ActionQueue();
+
+    function toQ() { q.finishAction(); };
+
+    q._isInAction = true;
+    q.queueNext(toQ);
+
+    deepEqual(
+        q._queue,
+        [
+            [ toQ ]
+        ]
+    );
+});
+
+test('queue action (named function with args)', function () {
+    var q = new ActionQueue(), toSet = 'arghh';
+
+    function toQ(arg) {
+        toSet = arg;
+        q.finishAction();
+    };
+
+    q.queueNext(toQ, 'Hello, world!');
+
+    equal(toSet, 'Hello, world!');
+});
+
+test('queue action (within queued action)', function () {
+    expect(7);
+
+    var q = new ActionQueue(), steps = 0;
+
+    q._isInAction = true;
+
+    q.queueNext(function () {
+        equal(steps++, 0);
+
+        this.queueNext(function () {
+            equal(steps++, 1);
+
+            this.queueNext(function () {
+                equal(steps++, 2);
+                this.finishAction();
+            });
+
+            this.finishAction();
+        });
+
+        this.finishAction();
+    }).queueNext(function () {
+        equal(steps++, 3);
+
+        this.queueNext(function () {
+            equal(steps++, 4);
+
+            this.finishAction();
+        });
+
+        this.finishAction();
+    }).queueNext(function () {
+        equal(steps++, 5);
+
+        this.finishAction();
+    });
+
+    q.finishAction();
+
+    equal(steps, 6);
+});
+
+test('finish action', function () {
+    var q = new ActionQueue(),
+        action1Done = false, action2Done = false;
+
+    function toQ1() {
+        action1Done = true;
+        q.finishAction();
+    };
+    function toQ2() {
+        action2Done = true;
+        q.finishAction();
+    };
+
+    q._isInAction = true;
+
+    q.queueNext(toQ1).queueNext(toQ2).finishAction();
+
+    ok(action1Done);
+    ok(action2Done);
+});
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *                                                                           *
+ * Tests for JData                                                           *
+ *                                                                           *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+module('JData');
+
 asyncTest('construct (simple columns)', function () {
     expect(2);
 
@@ -2687,7 +2813,7 @@ asyncTest('show all columns', function () {
 });
 
 asyncTest('changes for "on_" functions are added to the queue by default', function () {
-    expect(4);
+    expect(2);
 
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
@@ -2698,24 +2824,26 @@ asyncTest('changes for "on_" functions are added to the queue by default', funct
         [ 'gummy',       'power',     'star' ]
     ];
 
-    var numCalls = 0;
+    var d = new JData(dataset);
 
-    var d = new JData(dataset).on_error(function (error) {
+    d._action_queue._isInAction = true;
+
+    d.on_error(function (error) {
         equal(error, 'Column column_b already exists in the dataset.');
 
-        d.on_error(function (error) {
-            equal(error, 'Column column_c already exists in the dataset.');
-            equal(numCalls, 2);
-        }).alter_column_name('column_a', 'column_c').finish();
-
-        if (!numCalls++) start();
+        d.finish();
+        start();
     });
 
-    d.alter_column_name('column_a', 'column_b').alter_column_name('column_a', 'column_b');
+    equal(d._action_queue._queue.length, 1);
+
+    d.alter_column_name('column_a', 'column_b');
+
+    d._finish_action();
 });
 
 asyncTest('changes for "on_" functions can happen immediately with a flag', function () {
-    expect(5);
+    expect(2);
 
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
@@ -2726,21 +2854,20 @@ asyncTest('changes for "on_" functions can happen immediately with a flag', func
         [ 'gummy',       'power',     'star' ]
     ];
 
-    var numCalls = 0;
-    var column_name = 'column_b';
+    var d = new JData(dataset);
 
-    var d = new JData(dataset).on_error(function (error) {
+    d._action_queue._isInAction = true;
+
+    d.on_error(function (error) {
         equal(error, 'Column column_b already exists in the dataset.');
 
-        d.on_error(function (error) {
-            equal(error, 'Column ' + column_name + ' already exists in the dataset.');
-            equal(numCalls, 1);
+        d.finish();
+        start();
+    }, true);
 
-            column_name = 'column_c';
-        }, true).alter_column_name('column_a', 'column_c').finish();
+    equal(d._action_queue._queue.length, 0);
 
-        if (!numCalls++) start();
-    });
+    d.alter_column_name('column_a', 'column_b');
 
-    d.alter_column_name('column_a', 'column_b').alter_column_name('column_a', 'column_b');
+    d._finish_action();
 });

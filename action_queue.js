@@ -1,40 +1,42 @@
 (function () {
     "use strict";
 
-    var ActionQueue = window.ActionQueue = function () {
+    var ActionQueue = window.ActionQueue = function (parentQueue) {
         var self = this instanceof ActionQueue ? this : Object.create(ActionQueue.prototype);
 
         self._queue          = [];
         self._isInAction     = false;
         self._previousAction = undefined;
 
+        self._parentQueue    = parentQueue;
+
         return self;
     };
 
     ActionQueue.prototype.queueNext = function () {
-        var self = this,
-            args = [];
-
-        Array.prototype.push.apply(args, arguments);
+        var self = this, args = Array.prototype.slice.call(arguments);
 
         self._queue.push(args);
-        nextAction.call(self);
+        self._nextAction();
 
         return self;
     };
 
-    function nextAction (finishPrevious) {
+    ActionQueue.prototype._nextAction = function () {
         var self = this;
 
-        if (finishPrevious) self._isInAction = false;
+        if (!self._isInAction) {
+            if (self._queue.length > 0) {
+                var args   = self._queue.shift(),
+                    action = args.shift();
 
-        if (!self._isInAction && self._queue.length > 0) {
-            var args   = self._queue.shift(),
-                action = args.shift();
+                self._isInAction = true;
+                self._previousAction = action;
 
-            self._isInAction = true;
-            self._previousAction = action;
-            self._callAction(function () { action.apply(self, args) });
+                self._callAction(function () { action.apply(new ActionQueue(self), args) });
+            } else if (typeof(self._parentQueue) !== "undefined") {
+                self._parentQueue.finishAction();
+            }
         }
 
         return self;
@@ -45,7 +47,8 @@
     ActionQueue.prototype.finishAction = function () {
         var self = this;
 
-        nextAction.call(self, true);
+        self._isInAction = false;
+        self._nextAction();
 
         return self;
     };
