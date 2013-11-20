@@ -404,6 +404,41 @@ asyncTest('apply filter (complex, multi)', function () {
     }).finish();
 });
 
+asyncTest('apply filter (complex, ignores column not found)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'cat',         'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ]
+    ];
+
+    var d = new JData(dataset);
+    d.apply_filter(
+        {
+            column : 'column_a',
+            regex  : '^cat$'
+        },
+        {
+            column : 'column_c',
+            regex  : '^dog|gum$'
+        },
+        {
+            column : 'column_d',
+            regex  : '^nothing$'
+        }
+    ).get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'cat',        'tissue',      'dog' ],
+            [ 'cat',         'piano',      'gum' ],
+        ]);
+        start();
+    }).finish();
+});
+
 asyncTest('clear filter', function () {
     expect(1);
 

@@ -323,14 +323,19 @@ var _apply_filter = function (data) {
             row["is_visible"] = true;
 
             for (i = 0; i < filters.length; i++) {
-                var filter = filters[i],
+                var filter = filters[i], column_index, column;
+
+                if (filter.column in columns) {
                     column_index = columns[filter.column]["index"],
                     column = row["row"][column_index];
 
-                if (column && column.match(filter.regex)) {
-                    row["is_visible"] = true;
+                    if (column && column.match(filter.regex)) {
+                        row["is_visible"] = true;
+                    } else {
+                        row["is_visible"] = false;
+                        break;
+                    }
                 } else {
-                    row["is_visible"] = false;
                     break;
                 }
             };
