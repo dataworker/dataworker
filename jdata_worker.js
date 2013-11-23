@@ -164,7 +164,7 @@ var _initialize_websocket_connection = function (data) {
                 columns = _prepare_columns(msg.columns);
             }
 
-            if (typeof(msg.expected_num_rows) !== 'undefined') {
+            if (typeof(msg.expected_num_rows) !== "undefined") {
                 if (typeof(expected_num_rows) === "undefined") {
                     expected_num_rows = parseInt(msg.expected_num_rows);
                 } else {

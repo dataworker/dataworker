@@ -30,6 +30,13 @@
 
         self._action_queue = new ActionQueue();
 
+        self._streaming_data_callbacks = [
+            'all_rows_received', 
+            'receive_columns',
+            'receive_rows'
+        ];
+        self._on_error = "on_error" in dataset ? dataset["on_error"] : function () {};
+
         self._initialize_callbacks(dataset);
         self._initialize_web_worker(dataset);
 
@@ -55,20 +62,27 @@
     JData.prototype._initialize_callbacks = function (dataset) {
         var self = this;
 
-        [
-            'all_rows_received',
-            'error',
-            'receive_columns',
-            'receive_rows'
-        ].forEach(function(fnName) {
+        self._streaming_data_callbacks.forEach(function(fnName) {
             var privateName = '_on_' + fnName,
-                publicName  = 'on_'  + fnName;
+                publicName  = 'on_'  + fnName,
+                tracker   = privateName + '_tracker';
 
             JData.prototype[publicName] = function(callback, actImmediately) {
-                return this._set_callback(privateName, callback, actImmediately);
+                return this._set_callback(privateName, tracker, callback, actImmediately);
             };
 
-            self[privateName] = dataset[publicName] || new Function();
+            self[tracker] = false;
+
+            if (publicName in dataset) {
+                self[privateName] = function () {
+                    self[tracker] = true;
+                    dataset[publicName]();
+                };
+            } else {
+                self[privateName] = function () {
+                    self[tracker] = true;
+                };
+            }
         });
 
         return self;
@@ -718,15 +732,39 @@
         return self;
     };
 
-    JData.prototype._set_callback = function (name, callback, actImmediately) {
+    JData.prototype.on_error = function (cb, actImmediately) {
         var self = this;
+
+        if (actImmediately) {
+            self._on_error = cb;
+        } else {
+            self._queue_next(function () {
+                self._on_error = cb;
+
+                return self._finish_action();
+            });
+        }
+
+        return self;
+    };
+
+    JData.prototype._set_callback = function (name, tracker, callback, actImmediately) {
+        var self = this;
+
+        var wrappedCallback = function () {
+            self[tracker] = true;
+            callback.apply(this, arguments);
+        };
 
         if (typeof(callback) === "function") {
             if (actImmediately === true) {
-                self[name] = callback;
+                self[name] = wrappedCallback;
+                if (self[tracker]) wrappedCallback();
             } else {
                 self._queue_next(function () {
-                    self[name] = callback;
+                    self[name] = wrappedCallback;
+                    if (self[tracker]) wrappedCallback();
+
                     return self._finish_action();
                 });
             }
@@ -779,12 +817,29 @@
         return self;
     };
 
+    JData.prototype._reset_streaming_data_callback_trackers = function () {
+        var self = this;
+
+        self._queue_next(function () {
+            self._streaming_data_callbacks.forEach(function (cb_name) {
+                var tracker = '_on_' + cb_name + '_tracker';
+                self[tracker] = false;
+            });
+
+            self._finish_action();
+        });
+
+        return self;
+    };
+
     JData.prototype.request_dataset = function (request) {
         var self = this;
 
-        self._worker.postMessage({
-            cmd     : "request_dataset",
-            request : request
+        self._reset_streaming_data_callback_trackers()._queue_next(function () {
+            self._worker.postMessage({
+                cmd     : "request_dataset",
+                request : request
+            });
         });
 
         return self;
@@ -794,9 +849,11 @@
     JData.prototype.request_dataset_for_append = function (request) {
         var self = this;
 
-        self._worker.postMessage({
-            cmd     : "request_dataset_for_append",
-            request : request
+        self._reset_streaming_data_callback_trackers()._queue_next(function () {
+            _worker.postMessage({
+                cmd     : "request_dataset_for_append",
+                request : request
+            });
         });
 
         return self;
