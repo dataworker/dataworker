@@ -850,7 +850,7 @@
         var self = this;
 
         self._reset_streaming_data_callback_trackers()._queue_next(function () {
-            _worker.postMessage({
+            self._worker.postMessage({
                 cmd     : "request_dataset_for_append",
                 request : request
             });
