@@ -107,6 +107,8 @@
         }
 
         self._queue_next(function () {
+            var this_action_queue = this;
+
             self._worker = new Worker(srcPath + 'jdata_worker.js');
             self._worker.onmessage = function (e) {
                 if ('rows_received' in e.data) {
@@ -130,7 +132,7 @@
                     self._on_receive_columns(self._columns, self._expected_num_rows);
                 }
 
-                self._finish_action();
+                this_action_queue.finishAction();
             };
 
             self._worker.postMessage({
