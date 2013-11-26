@@ -32,9 +32,11 @@ test('queue action (in action)', function () {
     q.queueNext(toQ);
 
     deepEqual(
-        q._queue,
+        q._queueStack,
         [
-            [ toQ ]
+            [
+                [ toQ ]
+            ]
         ]
     );
 });
@@ -52,8 +54,8 @@ test('queue action (named function with args)', function () {
     equal(toSet, 'Hello, world!');
 });
 
-test('queue action (within queued action)', function () {
-    expect(7);
+asyncTest('queue action (within queued action)', function () {
+    expect(6);
 
     var q = new ActionQueue(), steps = 0;
 
@@ -62,37 +64,36 @@ test('queue action (within queued action)', function () {
     q.queueNext(function () {
         equal(steps++, 0);
 
-        this.queueNext(function () {
+        q.queueNext(function () {
             equal(steps++, 1);
 
-            this.queueNext(function () {
+            q.queueNext(function () {
                 equal(steps++, 2);
-                this.finishAction();
+                setTimeout(function () { q.finishAction(); }, 50);
             });
 
-            this.finishAction();
+            setTimeout(function () { q.finishAction(); }, 10);
         });
 
-        this.finishAction();
+        q.finishAction();
     }).queueNext(function () {
         equal(steps++, 3);
 
-        this.queueNext(function () {
+        q.queueNext(function () {
             equal(steps++, 4);
 
-            this.finishAction();
+            q.finishAction();
         });
 
-        this.finishAction();
+        q.finishAction();
     }).queueNext(function () {
         equal(steps++, 5);
 
-        this.finishAction();
+        q.finishAction();
+        start();
     });
 
     q.finishAction();
-
-    equal(steps, 6);
 });
 
 test('finish action', function () {
@@ -2848,7 +2849,7 @@ asyncTest('show all columns', function () {
 });
 
 asyncTest('changes for "on_" functions are added to the queue by default', function () {
-    expect(2);
+    expect(4);
 
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
@@ -2870,7 +2871,9 @@ asyncTest('changes for "on_" functions are added to the queue by default', funct
         start();
     });
 
-    equal(d._action_queue._queue.length, 1);
+    equal(d._action_queue._queueStack.length, 2);
+    equal(d._action_queue._queueStack[0].length, 0);
+    equal(d._action_queue._queueStack[1].length, 1);
 
     d.alter_column_name('column_a', 'column_b');
 
@@ -2878,7 +2881,7 @@ asyncTest('changes for "on_" functions are added to the queue by default', funct
 });
 
 asyncTest('changes for "on_" functions can happen immediately with a flag', function () {
-    expect(2);
+    expect(3);
 
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
@@ -2900,7 +2903,8 @@ asyncTest('changes for "on_" functions can happen immediately with a flag', func
         start();
     }, true);
 
-    equal(d._action_queue._queue.length, 0);
+    equal(d._action_queue._queueStack.length, 1);
+    equal(d._action_queue._queueStack[0].length, 0);
 
     d.alter_column_name('column_a', 'column_b');
 

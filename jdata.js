@@ -132,7 +132,7 @@
                     self._on_receive_columns(self._columns, self._expected_num_rows);
                 }
 
-                this_action_queue.finishAction();
+                self._finish_action();
             };
 
             self._worker.postMessage({
