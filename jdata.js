@@ -30,13 +30,6 @@
 
         self._action_queue = new ActionQueue();
 
-        self._streaming_data_callbacks = [
-            'all_rows_received', 
-            'receive_columns',
-            'receive_rows'
-        ];
-        self._on_error = "on_error" in dataset ? dataset["on_error"] : function () {};
-
         self._initialize_callbacks(dataset);
         self._initialize_web_worker(dataset);
 
@@ -62,28 +55,35 @@
     JData.prototype._initialize_callbacks = function (dataset) {
         var self = this;
 
-        self._streaming_data_callbacks.forEach(function(fnName) {
-            var privateName = '_on_' + fnName,
-                publicName  = 'on_'  + fnName,
-                tracker   = privateName + '_tracker';
-
-            JData.prototype[publicName] = function(callback, actImmediately) {
-                return this._set_callback(privateName, tracker, callback, actImmediately);
+        self._on_receive_columns_tracker = false;
+        if ("on_receive_columns" in dataset) {
+            self._on_receive_columns = function () {
+                self._on_receive_columns_tracker = true;
+                dataset["on_receive_columns"].apply(this, arguments);
             };
+        } else {
+            self._on_receive_columns = function () {
+                self._on_receive_columns_tracker = true;
+            };
+        }
 
-            self[tracker] = false;
+        self._on_all_rows_received_tracker = false;
+        if ("on_all_rows_received" in dataset) {
+            self._on_all_rows_received = function () {
+                self._on_all_rows_received_tracker = true;
+                dataset["on_all_rows_received"].apply(this, arguments);
+            };
+        } else {
+            self._on_all_rows_received = function () {
+                self._on_all_rows_received_tracker = true;
+            };
+        }
 
-            if (publicName in dataset) {
-                self[privateName] = function () {
-                    self[tracker] = true;
-                    dataset[publicName]();
-                };
-            } else {
-                self[privateName] = function () {
-                    self[tracker] = true;
-                };
-            }
-        });
+        self._on_receive_rows = "on_receive_rows" in dataset
+                              ? dataset["on_receive_rows"]
+                              : function () {};
+
+        self._on_error = "on_error" in dataset ? dataset["on_error"] : function () {};
 
         return self;
     };
@@ -750,22 +750,76 @@
         return self;
     };
 
-    JData.prototype._set_callback = function (name, tracker, callback, actImmediately) {
+    JData.prototype.on_receive_columns = function (callback, actImmediately) {
         var self = this;
 
         var wrappedCallback = function () {
-            self[tracker] = true;
+            self._on_receive_columns_tracker = true;
             callback.apply(this, arguments);
         };
 
         if (typeof(callback) === "function") {
-            if (actImmediately === true) {
-                self[name] = wrappedCallback;
-                if (self[tracker]) wrappedCallback();
+            if (actImmediately) {
+                self._on_receive_columns = wrappedCallback;
+
+                if (self._on_receive_columns_tracker) {
+                    callback(self._columns, self._expected_num_rows);
+                }
             } else {
                 self._queue_next(function () {
-                    self[name] = wrappedCallback;
-                    if (self[tracker]) wrappedCallback();
+                    self._on_receive_columns = wrappedCallback;
+
+                    if (self._on_receive_columns_tracker) {
+                        callback(self._columns, self._expected_num_rows);
+                    }
+
+                    return self._finish_action();
+                });
+            }
+        }
+
+        return self;
+    };
+
+    JData.prototype.on_receive_rows = function (callback, actImmediately) {
+        var self = this;
+
+        if (typeof(callback) === "function") {
+            if (actImmediately) {
+                self._on_receive_rows = callback;
+            } else {
+                self._queue_next(function () {
+                    self._on_receive_rows = callback;
+                    return self._finish_action();
+                });
+            }
+        }
+
+        return self;
+    };
+
+    JData.prototype.on_all_rows_received = function (callback, actImmediately) {
+        var self = this;
+
+        var wrappedCallback = function () {
+            self._on_all_rows_received_tracker = true;
+            callback.apply(this, arguments);
+        };
+
+        if (typeof(callback) === "function") {
+            if (actImmediately) {
+                self._on_all_rows_received = wrappedCallback;
+
+                if (self._on_all_rows_received_tracker) {
+                    callback();
+                }
+            } else {
+                self._queue_next(function () {
+                    self._on_all_rows_received = wrappedCallback;
+
+                    if (self._on_all_rows_received_tracker) {
+                        callback();
+                    }
 
                     return self._finish_action();
                 });
@@ -819,25 +873,12 @@
         return self;
     };
 
-    JData.prototype._reset_streaming_data_callback_trackers = function () {
-        var self = this;
-
-        self._queue_next(function () {
-            self._streaming_data_callbacks.forEach(function (cb_name) {
-                var tracker = '_on_' + cb_name + '_tracker';
-                self[tracker] = false;
-            });
-
-            self._finish_action();
-        });
-
-        return self;
-    };
-
     JData.prototype.request_dataset = function (request) {
         var self = this;
 
-        self._reset_streaming_data_callback_trackers()._queue_next(function () {
+        self._queue_next(function () {
+            self._on_receive_columns_tracker = false;
+
             self._worker.postMessage({
                 cmd     : "request_dataset",
                 request : request
@@ -851,7 +892,9 @@
     JData.prototype.request_dataset_for_append = function (request) {
         var self = this;
 
-        self._reset_streaming_data_callback_trackers()._queue_next(function () {
+        self._queue_next(function () {
+            self._on_receive_columns_tracker = false;
+
             self._worker.postMessage({
                 cmd     : "request_dataset_for_append",
                 request : request
