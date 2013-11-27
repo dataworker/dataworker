@@ -28,7 +28,7 @@
     };
 
     ActionQueue.prototype._nextAction = function (finishPrevious) {
-        var self = this, args, action, queue = self._queueStack[self._stackIndex];
+        var self = this, args, action, queue;
 
         if (finishPrevious) self._isInAction = false;
 
@@ -39,6 +39,10 @@
                 if (queue && queue.length > 0) {
                     args   = queue.shift();
                     action = args.shift();
+
+                    if (queue.length === 0) {
+                        self._queueStack.splice(self._stackIndex, 1);
+                    }
 
                     self._isInAction = true;
                     self._previousAction = action;

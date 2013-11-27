@@ -2872,7 +2872,7 @@ asyncTest('changes for "on_" functions are added to the queue by default', funct
     });
 
     equal(d._action_queue._queueStack.length, 2);
-    equal(d._action_queue._queueStack[0].length, 0);
+    ok(typeof(d._action_queue._queueStack[0]) === "undefined")
     equal(d._action_queue._queueStack[1].length, 1);
 
     d.alter_column_name('column_a', 'column_b');
@@ -2881,7 +2881,7 @@ asyncTest('changes for "on_" functions are added to the queue by default', funct
 });
 
 asyncTest('changes for "on_" functions can happen immediately with a flag', function () {
-    expect(3);
+    expect(2);
 
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
@@ -2903,8 +2903,7 @@ asyncTest('changes for "on_" functions can happen immediately with a flag', func
         start();
     }, true);
 
-    equal(d._action_queue._queueStack.length, 1);
-    equal(d._action_queue._queueStack[0].length, 0);
+    equal(d._action_queue._queueStack.length, 0);
 
     d.alter_column_name('column_a', 'column_b');
 
