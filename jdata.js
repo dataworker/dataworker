@@ -139,13 +139,14 @@
             };
 
             self._worker.postMessage({
-                cmd          : 'initialize',
-                columns      : columns,
-                rows         : rows,
-                datasource   : datasource,
-                authenticate : authenticate,
-                request      : request,
-                on_close     : dataset.on_close
+                cmd               : 'initialize',
+                columns           : columns,
+                rows              : rows,
+                datasource        : datasource,
+                backup_datasource : dataset.backup_datasource,
+                authenticate      : authenticate,
+                request           : request,
+                on_close          : dataset.on_close
             });
         });
 
@@ -883,6 +884,7 @@
         var self = this;
 
         self._queue_next(function () {
+            self._on_all_rows_received_tracker = false;
             self._on_receive_columns_tracker = false;
 
             self._worker.postMessage({
@@ -899,6 +901,7 @@
         var self = this;
 
         self._queue_next(function () {
+            self._on_all_rows_received_tracker = false;
             self._on_receive_columns_tracker = false;
 
             self._worker.postMessage({

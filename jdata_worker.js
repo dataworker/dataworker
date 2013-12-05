@@ -1,8 +1,11 @@
+"use strict";
+
 var columns = {}, rows = [],
     socket, on_socket_close, is_ws_ready, expected_num_rows,
     ajax_datasource,
     rows_per_page = 10, current_page = 0,
-    only_valid_for_numbers_regex = /[^0-9.\-]/g;
+    only_valid_for_numbers_regex = /[^0-9.\-]/g,
+    authentication;
 
 var _prepare_columns = function (raw_columns) {
     var prepared_columns = {};
@@ -79,32 +82,74 @@ var _get_visible_rows = function (requested_columns) {
     return visible_rows;
 };
 
-var _initialize = function (data) {
+var _initialize = function (data, use_backup) {
     var wait_to_connect = false;
 
-    if (typeof(data.datasource) === "undefined") {
-        columns = _prepare_columns(data.columns);
-        rows    = _prepare_rows(data.rows);
-    } else if (data.datasource.match(/^https?:\/\//)) {
-        ajax_datasource = data.datasource;
+    authentication = data.authenticate;
 
-        if (typeof(data.request) !== "undefined") {
-            _request_dataset(data);
+    try {
+        if (use_backup) throw new Error();
+
+        if (typeof(data.datasource) === "undefined") {
+            columns = _prepare_columns(data.columns);
+            rows    = _prepare_rows(data.rows);
+        } else if (data.datasource.match(/^https?:\/\//)) {
+            ajax_datasource = data.datasource;
+
+            if (typeof(data.request) !== "undefined") {
+                _request_dataset(data);
+            }
+        } else if (data.datasource.match(/^wss?:\/\//)) {
+            wait_to_connect = _initialize_websocket_connection(data);
+        } else {
+            self.postMessage({
+                error: "Error: Could not initialize JData; unrecognized datasource."
+            });
         }
-    } else if (data.datasource.match(/^wss?:\/\//)) {
-        wait_to_connect = _initialize_websocket_connection(data);
-    } else {
-        self.postMessage({
-            error: "Error: Could not initialize JData; unrecognized datasource."
-        });
+    } catch (error) {
+        if (data.backup_datasource) {
+            data.datasource = data.backup_datasource;
+            delete data.backup_datasource;
+
+            wait_to_connect = _initialize(data);
+        } else {
+            self.postMessage({
+                error : "Error: " + error
+            });
+        }
     }
 
     return wait_to_connect;
 };
 
+var _get_request_params = function (params) {
+    var query_string = "";
+
+    try {
+        if (params) {
+            if (typeof params === "string") {
+                params = JSON.parse(params);
+            }
+
+            for (var key in params) {
+                query_string += key + "=" + encodeURIComponent(params[key]) + "&";
+            }
+        }
+    } catch (e) {
+        if (typeof params === "string") {
+            query_string += params;
+        }
+    }
+
+    return query_string;
+}
+
 var _ajax = function (request) {
     var xml_http = new XMLHttpRequest(),
-        url = ajax_datasource + (request.match(/^\?/) ? "" : "?") + request;
+        url = ajax_datasource + (request.match(/^\?/) ? "" : "?");
+
+    url += _get_request_params(request);
+    url += _get_request_params(authentication);
 
     xml_http.onreadystatechange = function () {
         if (xml_http.readyState == 4 && xml_http.status == 200) {
@@ -122,6 +167,11 @@ var _ajax = function (request) {
                 rows = rows.concat(_prepare_rows(msg.rows));
             }
 
+            self.postMessage({
+                columns     : _get_visible_columns(),
+                ex_num_rows : _get_visible_rows().length
+            });
+
             self.postMessage({ all_rows_received : true });
         }
     };
@@ -131,80 +181,80 @@ var _ajax = function (request) {
 };
 
 var _initialize_websocket_connection = function (data) {
-    try {
-        socket = new WebSocket(data.datasource);
+    socket = new WebSocket(data.datasource);
+    is_ws_ready = false;
 
-        socket.onopen  = function () {
-            if (data.authenticate) {
-                socket.send(data.authenticate);
-            }
+    socket.onopen  = function () {
+        if (data.authenticate) {
+            socket.send(data.authenticate);
+        }
 
-            if (typeof(data.request) !== "undefined") {
-                socket.send(data.request);
-            }
+        if (typeof(data.request) !== "undefined") {
+            socket.send(data.request);
+        }
 
+        is_ws_ready = true;
+    };
+    socket.onclose = function () {};
+    socket.onerror = function (error) {
+        if (error.target.readyState === 0 || error.target.readyState === 3) {
             is_ws_ready = true;
-        };
-        socket.onclose = function () {};
-        socket.onerror = function (error) {
+            delete socket;
+
+            _initialize(data, true);
+        } else {
             self.postMessage({
                 error : "Error: Problem with connection to datasource."
-            }); 
-        };
+            });
+        }
+    };
 
-        socket.onmessage = function (msg) {
-            msg = JSON.parse(msg.data);
+    socket.onmessage = function (msg) {
+        msg = JSON.parse(msg.data);
 
-            if (msg.error) {
-                self.postMessage({ error : msg.error });
-                return;
+        if (msg.error) {
+            self.postMessage({ error : msg.error });
+            return;
+        }
+
+        if (msg.columns) {
+            columns = _prepare_columns(msg.columns);
+        }
+
+        if (typeof(msg.expected_num_rows) !== "undefined") {
+            if (typeof(expected_num_rows) === "undefined") {
+                expected_num_rows = parseInt(msg.expected_num_rows);
+            } else {
+                expected_num_rows += parseInt(msg.expected_num_rows);
             }
+        }
 
-            if (msg.columns) {
-                columns = _prepare_columns(msg.columns);
+        if (msg.rows) {
+            if (typeof(rows) === "undefined") rows = [];
+            rows = rows.concat(_prepare_rows(msg.rows));
+
+            if (rows.length == expected_num_rows) {
+                self.postMessage({ all_rows_received : true });
+            } else {
+                self.postMessage({ rows_received : msg.rows.length });
             }
+        } else if (
+            typeof(columns) !== "undefined"
+            && typeof(msg.expected_num_rows) !== "undefined"
+            && expected_num_rows != rows.length
+        ) {
+            self.postMessage({
+                columns     : _get_visible_columns(),
+                ex_num_rows : expected_num_rows
+            });
+        }
 
-            if (typeof(msg.expected_num_rows) !== "undefined") {
-                if (typeof(expected_num_rows) === "undefined") {
-                    expected_num_rows = parseInt(msg.expected_num_rows);
-                } else {
-                    expected_num_rows += parseInt(msg.expected_num_rows);
-                }
-            }
-
-            if (msg.rows) {
-                if (typeof(rows) === "undefined") rows = [];
-                rows = rows.concat(_prepare_rows(msg.rows));
-
-                if (rows.length == expected_num_rows) {
-                    self.postMessage({ all_rows_received : true });
-                } else {
-                    self.postMessage({ rows_received : msg.rows.length });
-                }
-            } else if (
-                typeof(columns) !== "undefined"
-                && typeof(msg.expected_num_rows) !== "undefined"
-                && expected_num_rows != rows.length
-            ) {
-                self.postMessage({
-                    columns     : _get_visible_columns(),
-                    ex_num_rows : expected_num_rows
-                });
-            }
-
-            if (msg.expected_num_rows == 0) self.postMessage({ all_rows_received : true });
-        };
+        if (msg.expected_num_rows == 0) self.postMessage({ all_rows_received : true });
 
         on_socket_close = data.on_close;
+    };
 
-        return true;
-    } catch (error) {
-        self.postMessage({
-            error : "Error: " + error
-        });
-
-        return false;
-    }
+    return true;
 };
 
 var _alpha_sort = function (a, b) {
@@ -855,7 +905,9 @@ var _request_dataset_for_append = function (data) {
 };
 
 var _finish = function () {
-    if (typeof(on_socket_close) !== "undefined") socket.send(on_socket_close);
+    if (typeof(on_socket_close) !== "undefined" && socket.readyState !== 0 && socket.readyState !== 3) {
+        socket.send(on_socket_close);
+    }
 };
 
 self.addEventListener("message", function (e) {
