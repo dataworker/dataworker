@@ -33,6 +33,10 @@
         self._initialize_callbacks(dataset);
         self._initialize_web_worker(dataset);
 
+        window.addEventListener("beforeunload", function () {
+            self._worker.postMessage({ cmd : "finish" });
+        });
+
         return self;
     };
 
@@ -58,25 +62,21 @@
         self._on_receive_columns_tracker = false;
         if ("on_receive_columns" in dataset) {
             self._on_receive_columns = function () {
-                self._on_receive_columns_tracker = true;
+                self._on_receive_columns_tracker = false;
                 dataset["on_receive_columns"].apply(this, arguments);
             };
         } else {
-            self._on_receive_columns = function () {
-                self._on_receive_columns_tracker = true;
-            };
+            self._on_receive_columns = function () {};
         }
 
         self._on_all_rows_received_tracker = false;
         if ("on_all_rows_received" in dataset) {
             self._on_all_rows_received = function () {
-                self._on_all_rows_received_tracker = true;
+                self._on_all_rows_received_tracker = false;
                 dataset["on_all_rows_received"].apply(this, arguments);
             };
         } else {
-            self._on_all_rows_received = function () {
-                self._on_all_rows_received_tracker = true;
-            };
+            self._on_all_rows_received = function () {};
         }
 
         self._on_receive_rows = "on_receive_rows" in dataset
@@ -116,6 +116,7 @@
                     return;
                 }
                 if ('all_rows_received' in e.data) {
+                    self._on_all_rows_received_tracker = true;
                     self._on_all_rows_received();
                     return;
                 }
@@ -129,6 +130,8 @@
                 if ('num_rows'      in e.data) self._num_rows = e.data.num_rows;
                 if ('ex_num_rows'   in e.data) {
                     self._expected_num_rows = e.data.ex_num_rows;
+
+                    self._on_receive_columns_tracker = true;
                     self._on_receive_columns(self._columns, self._expected_num_rows);
                 }
 
@@ -141,7 +144,8 @@
                 rows         : rows,
                 datasource   : datasource,
                 authenticate : authenticate,
-                request      : request
+                request      : request,
+                on_close     : dataset.on_close
             });
         });
 
@@ -152,6 +156,8 @@
         var self = this;
 
         self._queue_next(function () {
+            self._worker.postMessage({ cmd : "finish" });
+        })._queue_next(function () {
             self._worker.terminate();
         });
 
@@ -754,7 +760,7 @@
         var self = this;
 
         var wrappedCallback = function () {
-            self._on_receive_columns_tracker = true;
+            self._on_receive_columns_tracker = false;
             callback.apply(this, arguments);
         };
 
@@ -802,7 +808,7 @@
         var self = this;
 
         var wrappedCallback = function () {
-            self._on_all_rows_received_tracker = true;
+            self._on_all_rows_received_tracker = false;
             callback.apply(this, arguments);
         };
 

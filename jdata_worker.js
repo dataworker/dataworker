@@ -1,5 +1,5 @@
 var columns = {}, rows = [],
-    socket, is_ws_ready, expected_num_rows,
+    socket, on_socket_close, is_ws_ready, expected_num_rows,
     ajax_datasource,
     rows_per_page = 10, current_page = 0,
     only_valid_for_numbers_regex = /[^0-9.\-]/g;
@@ -194,6 +194,8 @@ var _initialize_websocket_connection = function (data) {
 
             if (msg.expected_num_rows == 0) self.postMessage({ all_rows_received : true });
         };
+
+        on_socket_close = data.on_close;
 
         return true;
     } catch (error) {
@@ -852,6 +854,10 @@ var _request_dataset_for_append = function (data) {
     return request_made ? {} : { error: "Could not request dataset; no datasource defined." };
 };
 
+var _finish = function () {
+    if (typeof(on_socket_close) !== "undefined") socket.send(on_socket_close);
+};
+
 self.addEventListener("message", function (e) {
     var data = e.data, reply = {};
 
@@ -986,6 +992,9 @@ self.addEventListener("message", function (e) {
             case "refresh_all":
                 reply["columns"] = columns;
                 reply["rows"]    = rows.map(function (row) { return row.row; });
+                break;
+            case "finish":
+                _finish();
                 break;
             default:
                 reply["error"] = "Unrecognized jdata_worker command: " + data.cmd;
