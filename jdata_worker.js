@@ -251,6 +251,8 @@ var _initialize_websocket_connection = function (data) {
 
         if (msg.expected_num_rows == 0) self.postMessage({ all_rows_received : true });
 
+        if (msg.trigger) self.postMessage({ trigger_msg : msg.msg });
+
         on_socket_close = data.on_close;
     };
 

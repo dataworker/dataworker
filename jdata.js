@@ -83,6 +83,10 @@
                               ? dataset["on_receive_rows"]
                               : function () {};
 
+        self._on_trigger = "on_trigger" in dataset
+                         ? dataset["on_trigger"]
+                         : function () {};
+
         self._on_error = "on_error" in dataset ? dataset["on_error"] : function () {};
 
         return self;
@@ -113,6 +117,10 @@
             self._worker.onmessage = function (e) {
                 if ('rows_received' in e.data) {
                     self._on_receive_rows(e.data.rows_received);
+                    return;
+                }
+                if ('trigger_msg' in e.data) {
+                    self._on_trigger(e.data.trigger_msg);
                     return;
                 }
                 if ('all_rows_received' in e.data) {
@@ -797,6 +805,23 @@
             } else {
                 self._queue_next(function () {
                     self._on_receive_rows = callback;
+                    return self._finish_action();
+                });
+            }
+        }
+
+        return self;
+    };
+
+    JData.prototype.on_trigger = function (callback, actImmediately) {
+        var self = this;
+
+        if (typeof(callback) === "function") {
+            if (actImmediately) {
+                self._on_trigger = callback;
+            } else {
+                self._queue_next(function () {
+                    self._on_trigger = callback;
                     return self._finish_action();
                 });
             }
