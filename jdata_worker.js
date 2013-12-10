@@ -1,6 +1,6 @@
 "use strict";
 
-var columns = {}, rows = [],
+var columns = {}, rows = [], partitioned_rows = {},
     socket, on_socket_close, is_ws_ready, expected_num_rows,
     ajax_datasource,
     rows_per_page = 10, current_page = 0,
@@ -626,8 +626,15 @@ var _hash_dataset_by_key_columns = function (data) {
 };
 
 var _join_hashes = function (data) {
-    var l_hash = data.l_hash, r_hash = data.r_hash,
+    var l_hash = _hash_dataset_by_key_columns(data), r_hash = data.r_hash,
         join_type = data.join_type, f_columns = data.f_columns;
+
+    if ("error" in l_hash) {
+        return { error : l_hash.error };
+    } else {
+        l_hash = l_hash.hash;
+    }
+
     var joined_dataset = [],
         p_hash = join_type === "right" ? r_hash : l_hash,
         f_hash = join_type === "right" ? l_hash : r_hash,
@@ -671,8 +678,14 @@ var _join_hashes = function (data) {
 };
 
 var _group = function (data) {
-    var hashed_dataset = data.hashed_dataset, group_by = data.group_by;
+    var hashed_dataset = _hash_dataset_by_key_columns(data), group_by = data.key_columns;
     var grouped_dataset = [], errors = [];
+
+    if ("error" in hashed_dataset) {
+        return { "error" : hashed_dataset.error };
+    } else {
+        hashed_dataset = hashed_dataset.hash;
+    }
 
     Object.keys(hashed_dataset).forEach(function (key) {
         var grouped_row = [];
@@ -714,21 +727,38 @@ var _group = function (data) {
 };
 
 var _partition = function (data) {
-    var hashed_dataset = data.hashed_dataset;
-    var columns_row = Object.keys(columns).map(function (column_name) {
-            var column = columns[column_name];
+    var hashed_dataset = _hash_dataset_by_key_columns(data);
 
-            return column;
-        }).sort(function (a, b) {
-            return _num_sort(a["index"], b["index"]);
-        }), partitioned_datasets = {};
+    if ("error" in hashed_dataset) {
+        return { "error" : hashed_dataset.error };
+    } else {
+        hashed_dataset = hashed_dataset.hash;
+    }
+
+    var columns_row = Object.keys(columns).map(function (column_name) {
+        return columns[column_name];
+    }).sort(function (a, b) {
+        return _num_sort(a["index"], b["index"]);
+    });
 
     Object.keys(hashed_dataset).forEach(function (key) {
         var dataset = hashed_dataset[key];
-        partitioned_datasets[key] = dataset;
+        partitioned_rows[key] = dataset;
     });
 
-    return { partitioned : partitioned_datasets };
+    return {};
+};
+
+var _get_partition_keys = function (data) {
+    var keys =  Object.keys(partitioned_rows).map(function (key) {
+        return key.split("|");
+    });
+
+    return { keys : keys };
+};
+
+var _get_partitioned = function (data) {
+    return { rows : partitioned_rows[data.key] };
 };
 
 var _get_dataset = function (data) {
@@ -990,6 +1020,12 @@ self.addEventListener("message", function (e) {
                 break;
             case "partition":
                 reply = _partition(data);
+                break;
+            case "get_partition_keys":
+                reply = _get_partition_keys(data);
+                break;
+            case "get_partitioned":
+                reply = _get_partitioned(data);
                 break;
             case "paginate":
                 reply = _paginate(data);

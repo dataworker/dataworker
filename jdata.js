@@ -101,11 +101,11 @@
         } else {
             datasource   = dataset.datasource;
 
-            authenticate = (typeof dataset.authenticate === 'string')
+            authenticate = (typeof dataset.authenticate === "string")
                 ? dataset.authenticate
                 : JSON.stringify(dataset.authenticate);
 
-            request      = (typeof dataset.request === 'string')
+            request      = (typeof dataset.request === "string")
                 ? dataset.request
                 : JSON.stringify(dataset.request);
         }
@@ -113,30 +113,33 @@
         self._queue_next(function () {
             var this_action_queue = this;
 
-            self._worker = new Worker(srcPath + 'jdata_worker.js');
+            self._worker = new Worker(srcPath + "jdata_worker.js");
             self._worker.onmessage = function (e) {
-                if ('rows_received' in e.data) {
+                if ("rows_received" in e.data) {
                     self._on_receive_rows(e.data.rows_received);
                     return;
                 }
-                if ('trigger_msg' in e.data) {
+                if ("trigger_msg" in e.data) {
                     self._on_trigger(e.data.trigger_msg);
                     return;
                 }
-                if ('all_rows_received' in e.data) {
+                if ("all_rows_received" in e.data) {
                     self._on_all_rows_received_tracker = true;
                     self._on_all_rows_received();
                     return;
                 }
 
-                if ('error'         in e.data) self._on_error(e.data.error);
-                if ('columns'       in e.data) self._columns = e.data.columns;
-                if ('rows'          in e.data) self._rows = e.data.rows;
-                if ('distinct_rows' in e.data) self._distinct_rows = e.data.distinct_rows;
-                if ('hash'          in e.data) self._hash = e.data.hash;
-                if ('partitioned'   in e.data) self._partitioned_datasets = e.data.partitioned;
-                if ('num_rows'      in e.data) self._num_rows = e.data.num_rows;
-                if ('ex_num_rows'   in e.data) {
+                if ("error"         in e.data) self._on_error(e.data.error);
+
+                if ("columns"       in e.data) self._columns = e.data.columns;
+                if ("rows"          in e.data) self._rows = e.data.rows;
+                if ("distinct_rows" in e.data) self._distinct_rows = e.data.distinct_rows;
+
+                if ("hash"          in e.data) self._hash = e.data.hash;
+                if ("keys"          in e.data) self._keys = e.data.keys;
+
+                if ("num_rows"      in e.data) self._num_rows = e.data.num_rows;
+                if ("ex_num_rows"   in e.data) {
                     self._expected_num_rows = e.data.ex_num_rows;
 
                     self._on_receive_columns_tracker = true;
@@ -147,7 +150,7 @@
             };
 
             self._worker.postMessage({
-                cmd               : 'initialize',
+                cmd               : "initialize",
                 columns           : columns,
                 rows              : rows,
                 datasource        : datasource,
@@ -548,22 +551,17 @@
                 return self._finish_action();
             });
         })._queue_next(function () {
-            self._worker.postMessage({
-                cmd         : "hash",
-                key_columns : pk,
-            });
-        })._queue_next(function () {
             fdata.get_hash_of_dataset_by_key_columns.call(fdata, function (hash) {
                 f_hash = hash;
                 return self._finish_action();
             }, fk);
         })._queue_next(function () {
             self._worker.postMessage({
-                cmd       : "join",
-                l_hash    : self._hash,
-                r_hash    : f_hash,
-                join_type : join_type,
-                f_columns : f_columns
+                cmd         : "join",
+                key_columns : pk,
+                r_hash      : f_hash,
+                join_type   : join_type,
+                f_columns   : f_columns
             });
         });
 
@@ -663,16 +661,8 @@
         
         self._queue_next(function () {
             self._worker.postMessage({
-                cmd         : "hash",
-                key_columns : group_by
-            });
-        });
-
-        self._queue_next(function () {
-            self._worker.postMessage({
                 cmd            : "group",
-                hashed_dataset : self._hash,
-                group_by       : group_by
+                key_columns    : group_by
             });
         });
 
@@ -687,15 +677,8 @@
 
         self._queue_next(function () {
             self._worker.postMessage({
-                cmd         : "hash",
+                cmd         : "partition",
                 key_columns : partition_by
-            });
-        });
-
-        self._queue_next(function () {
-            self._worker.postMessage({
-                cmd            : "partition",
-                hashed_dataset : self._hash
             });
         });
 
@@ -706,10 +689,9 @@
         var self = this;
 
         self._queue_next(function () {
-            callback(Object.keys(self._partitioned_datasets).map(function (key) {
-                return key.split("|");
-            }));
-
+            self._worker.postMessage({ cmd : "get_partition_keys" });
+        })._queue_next(function () {
+            callback(self._keys);
             self._finish_action();
         });
 
@@ -724,7 +706,12 @@
                  : Array.prototype.slice.call(arguments, 1);
 
         self._queue_next(function () {
-            callback(self._partitioned_datasets[keys.join("|")]);
+            self._worker.postMessage({
+                cmd : "get_partitioned",
+                key : keys.join("|")
+            });
+        })._queue_next(function () {
+            callback(self._rows);
             return self._finish_action();
         });
 
