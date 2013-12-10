@@ -199,7 +199,7 @@ var _initialize_websocket_connection = function (data) {
     socket.onerror = function (error) {
         if (error.target.readyState === 0 || error.target.readyState === 3) {
             is_ws_ready = true;
-            delete socket;
+            socket = null;
 
             _initialize(data, true);
         } else {
