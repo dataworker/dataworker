@@ -1,6 +1,7 @@
 "use strict";
 
-var columns = {}, rows = [], partitioned_rows = {},
+var columns = {}, rows = [],
+    partitioned_by = [], partitioned_rows = {},
     socket, on_socket_close, is_ws_ready, expected_num_rows,
     ajax_datasource,
     rows_per_page = 10, current_page = 0,
@@ -56,10 +57,11 @@ var _get_visible_columns = function () {
     return visible_columns;
 };
 
-var _get_visible_rows = function (requested_columns) {
+var _get_visible_rows = function (requested_columns, requested_rows) {
     var visible_column_idxs = [], visible_rows = [];
 
     if (!(requested_columns || []).length) requested_columns = undefined;
+    requested_rows = requested_rows || rows;
 
     (requested_columns || Object.keys(columns)).forEach(function (column_name) {
         var column = columns[column_name];
@@ -69,7 +71,7 @@ var _get_visible_rows = function (requested_columns) {
         }
     });
 
-    rows.forEach(function (row) {
+    requested_rows.forEach(function (row) {
         if (row["is_visible"]) {
             visible_rows.push(
                 visible_column_idxs.map(function (idx) {
@@ -230,8 +232,14 @@ var _initialize_websocket_connection = function (data) {
         }
 
         if (msg.rows) {
+            var prepared_rows = _prepare_rows(msg.rows);
+
             if (typeof(rows) === "undefined") rows = [];
-            rows = rows.concat(_prepare_rows(msg.rows));
+            rows.push.apply(rows, prepared_rows);
+
+            if (partitioned_by.length > 0) {
+                _insert_into_partitioned_rows(prepared_rows);
+            }
 
             if (rows.length == expected_num_rows) {
                 self.postMessage({ all_rows_received : true });
@@ -257,6 +265,15 @@ var _initialize_websocket_connection = function (data) {
     };
 
     return true;
+};
+
+var _insert_into_partitioned_rows = function (prepared_rows) {
+    _hash_rows_by_key_columns(
+        partitioned_by,
+        prepared_rows,
+        partitioned_rows,
+        true
+    );
 };
 
 var _alpha_sort = function (a, b) {
@@ -594,7 +611,26 @@ var _append = function (data) {
     return reply;
 };
 
-var _hash_dataset_by_key_columns = function (data) {
+var _hash_rows_by_key_columns = function (key_columns, my_rows, hash, prepared_rows) {
+    var key_indexes = key_columns.map(function (column_name) {
+        return columns[column_name]["index"];
+    });
+
+    my_rows.forEach(function (row) {
+        var row_values = row["row"],
+            key = key_indexes.map(function (i) { return row_values[i]; }).join("|");
+
+        if (key in hash) {
+            hash[key].push(prepared_rows ? row : row_values);
+        } else {
+            hash[key] = [ prepared_rows ? row : row_values ];
+        }
+    });
+
+    return hash;
+};
+
+var _hash_dataset_by_key_columns = function (data, prepared_rows) {
     var key_columns = data.key_columns;
     var key_indexes, hash = {}, errors = [], reply = {};
 
@@ -605,19 +641,7 @@ var _hash_dataset_by_key_columns = function (data) {
         }
     });
 
-    key_indexes = key_columns.map(function (column_name) {
-        return columns[column_name]["index"];
-    });
-
-    rows.map(function (row) { return row["row"]; }).forEach(function (row) {
-        var key = key_indexes.map(function (i) { return row[i]; }).join("|");
-
-        if (key in hash) {
-            hash[key].push(row);
-        } else {
-            hash[key] = [ row ];
-        }
-    });
+    _hash_rows_by_key_columns(key_columns, rows, hash, prepared_rows);
 
     reply["hash"] = hash;
     if (errors.length) reply["error"] = errors.join("\n");
@@ -727,13 +751,15 @@ var _group = function (data) {
 };
 
 var _partition = function (data) {
-    var hashed_dataset = _hash_dataset_by_key_columns(data);
+    var hashed_dataset = _hash_dataset_by_key_columns(data, true);
 
     if ("error" in hashed_dataset) {
         return { "error" : hashed_dataset.error };
     } else {
         hashed_dataset = hashed_dataset.hash;
     }
+
+    partitioned_by = data.key_columns;
 
     var columns_row = Object.keys(columns).map(function (column_name) {
         return columns[column_name];
@@ -758,7 +784,7 @@ var _get_partition_keys = function (data) {
 };
 
 var _get_partitioned = function (data) {
-    return { rows : partitioned_rows[data.key] };
+    return { rows : _get_visible_rows(undefined, partitioned_rows[data.key]) };
 };
 
 var _get_dataset = function (data) {

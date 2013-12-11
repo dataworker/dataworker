@@ -1767,6 +1767,260 @@ asyncTest('group (multi-field)', function () {
     }).finish();
 });
 
+asyncTest('apply filter operates on partitioned datasets as well', function () {
+    expect(4);
+
+    var dataset = [
+        [
+            { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
+            { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
+            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' }
+        ],
+
+        [ 'banana',      'piano',      'gum' ],
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',       'nothing',      'dog' ],
+        [ 'banana',   'eyedrops',      'tie' ],
+        [ 'apple',         'gum',   'wallet' ],
+        [ 'apple',         'gum',     'trix' ],
+        [ 'gum',           'gun',     'trix' ]
+    ];
+
+    var d = new JData(dataset).partition('column_a').apply_filter(/gum/);
+
+    var apple_partition, banana_partition, cat_partition, gum_partition;
+
+    d.render(function () {
+        deepEqual(
+            apple_partition.sort(function (a, b) {
+                if (a[2] === b[2]) return 0;
+                if (a[2] < b[2]) return -1;
+                if (a[2] > b[2]) return 1;
+            }),
+            [
+                [ 'apple',         'gum',     'trix' ],
+                [ 'apple',         'gum',   'wallet' ]
+            ]
+        );
+        deepEqual(
+            banana_partition,
+            [
+                [ 'banana',      'piano',      'gum' ],
+            ]
+        );
+        deepEqual(
+            cat_partition,
+            [ ]
+        );
+        deepEqual(
+            gum_partition,
+            [
+                [ 'gum',           'gun',     'trix' ]
+            ]
+        );
+
+        start();
+    });
+
+    d.get_partitioned(function (partition) {
+        apple_partition = partition;
+    }, 'apple');
+    d.get_partitioned(function (partition) {
+        banana_partition = partition;
+    }, 'banana');
+    d.get_partitioned(function (partition) {
+        cat_partition = partition;
+    }, 'cat');
+    d.get_partitioned(function (partition) {
+        gum_partition = partition;
+    }, 'gum');
+
+    (function wait() {
+        if (
+            typeof(apple_partition) === "object"
+            && typeof(banana_partition) === "object"
+            && typeof(cat_partition) === "object"
+            && typeof(gum_partition) === "object"
+        ) {
+            d.render().finish();
+        } else {
+            setTimeout(wait, 0);
+        }
+    })();
+});
+
+asyncTest('clear filter operates on partitioned datasets as well', function () {
+    expect(4);
+
+    var dataset = [
+        [
+            { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
+            { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
+            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' }
+        ],
+
+        [ 'banana',      'piano',      'gum' ],
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',       'nothing',      'dog' ],
+        [ 'banana',   'eyedrops',      'tie' ],
+        [ 'apple',         'gum',   'wallet' ],
+        [ 'apple',         'gum',     'trix' ],
+        [ 'gum',           'gun',     'trix' ]
+    ];
+
+    var d = new JData(dataset).partition('column_a').apply_filter(/gum/).clear_filters();
+
+    var apple_partition, banana_partition, cat_partition, gum_partition;
+
+    d.render(function () {
+        deepEqual(
+            apple_partition.sort(function (a, b) {
+                if (a[2] === b[2]) return 0;
+                if (a[2] < b[2]) return -1;
+                if (a[2] > b[2]) return 1;
+            }),
+            [
+                [ 'apple',      'violin',    'music' ],
+                [ 'apple',         'gum',     'trix' ],
+                [ 'apple',         'gum',   'wallet' ]
+            ]
+        );
+        deepEqual(
+            banana_partition,
+            [
+                [ 'banana',      'piano',      'gum' ],
+                [ 'banana',   'eyedrops',      'tie' ]
+            ]
+        );
+        deepEqual(
+            cat_partition,
+            [
+                [ 'cat',       'nothing',      'dog' ]
+            ]
+        );
+        deepEqual(
+            gum_partition,
+            [
+                [ 'gum',           'gun',     'trix' ]
+            ]
+        );
+
+        start();
+    });
+
+    d.get_partitioned(function (partition) {
+        apple_partition = partition;
+    }, 'apple');
+    d.get_partitioned(function (partition) {
+        banana_partition = partition;
+    }, 'banana');
+    d.get_partitioned(function (partition) {
+        cat_partition = partition;
+    }, 'cat');
+    d.get_partitioned(function (partition) {
+        gum_partition = partition;
+    }, 'gum');
+
+    (function wait() {
+        if (
+            typeof(apple_partition) === "object"
+            && typeof(banana_partition) === "object"
+            && typeof(cat_partition) === "object"
+            && typeof(gum_partition) === "object"
+        ) {
+            d.render().finish();
+        } else {
+            setTimeout(wait, 0);
+        }
+    })();
+});
+
+asyncTest('partitioned datasets obeys hidden columns', function () {
+    expect(4);
+
+    var dataset = [
+        [
+            { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
+            { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
+            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' }
+        ],
+
+        [ 'banana',      'piano',      'gum' ],
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',       'nothing',      'dog' ],
+        [ 'banana',   'eyedrops',      'tie' ],
+        [ 'apple',         'gum',   'wallet' ],
+        [ 'apple',         'gum',     'trix' ],
+        [ 'gum',           'gun',     'trix' ]
+    ];
+
+    var d = new JData(dataset).partition('column_a').hide_columns('column_a');
+
+    var apple_partition, banana_partition, cat_partition, gum_partition;
+
+    d.render(function () {
+        deepEqual(
+            apple_partition.sort(function (a, b) {
+                if (a[1] === b[1]) return 0;
+                if (a[1] < b[1]) return -1;
+                if (a[1] > b[1]) return 1;
+            }),
+            [
+                [ 'violin',    'music' ],
+                [    'gum',     'trix' ],
+                [    'gum',   'wallet' ]
+            ]
+        );
+        deepEqual(
+            banana_partition,
+            [
+                [    'piano',      'gum' ],
+                [ 'eyedrops',      'tie' ]
+            ]
+        );
+        deepEqual(
+            cat_partition,
+            [
+                [ 'nothing',      'dog' ]
+            ]
+        );
+        deepEqual(
+            gum_partition,
+            [
+                [ 'gun',     'trix' ]
+            ]
+        );
+
+        start();
+    });
+
+    d.get_partitioned(function (partition) {
+        apple_partition = partition;
+    }, 'apple');
+    d.get_partitioned(function (partition) {
+        banana_partition = partition;
+    }, 'banana');
+    d.get_partitioned(function (partition) {
+        cat_partition = partition;
+    }, 'cat');
+    d.get_partitioned(function (partition) {
+        gum_partition = partition;
+    }, 'gum');
+
+    (function wait() {
+        if (
+            typeof(apple_partition) === "object"
+            && typeof(banana_partition) === "object"
+            && typeof(cat_partition) === "object"
+            && typeof(gum_partition) === "object"
+        ) {
+            d.render().finish();
+        } else {
+            setTimeout(wait, 0);
+        }
+    })();
+});
+
 asyncTest('get partitioned (single field)', function () {
     expect(5);
 
@@ -1774,7 +2028,7 @@ asyncTest('get partitioned (single field)', function () {
         [
             { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
             { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
-            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' },
+            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' }
         ],
 
         [ 'apple',      'violin',    'music' ],
