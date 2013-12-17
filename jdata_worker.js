@@ -254,8 +254,9 @@ var _initialize_websocket_connection = function (data) {
             && expected_num_rows != rows.length
         ) {
             self.postMessage({
-                columns     : _get_visible_columns(),
-                ex_num_rows : expected_num_rows
+                columns_received : true,
+                columns          : _get_visible_columns(),
+                ex_num_rows      : expected_num_rows
             });
         }
 

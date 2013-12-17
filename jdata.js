@@ -139,11 +139,12 @@
                 if ("keys"          in e.data) self._keys = e.data.keys;
 
                 if ("num_rows"      in e.data) self._num_rows = e.data.num_rows;
-                if ("ex_num_rows"   in e.data) {
-                    self._expected_num_rows = e.data.ex_num_rows;
+                if ("ex_num_rows"   in e.data) self._expected_num_rows = e.data.ex_num_rows;
 
+                if ("columns_received" in e.data) {
                     self._on_receive_columns_tracker = true;
                     self._on_receive_columns(self._columns, self._expected_num_rows);
+                    return;
                 }
 
                 self._finish_action();
