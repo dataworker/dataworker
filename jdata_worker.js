@@ -223,7 +223,9 @@ var _initialize_websocket_connection = function (data) {
             columns = _prepare_columns(msg.columns);
         }
 
-        if (typeof(msg.expected_num_rows) !== "undefined") {
+        if (msg.expected_num_rows === "INFINITE") {
+            expected_num_rows = msg.expected_num_rows;
+        } else if (typeof(msg.expected_num_rows) !== "undefined") {
             if (typeof(expected_num_rows) === "undefined") {
                 expected_num_rows = parseInt(msg.expected_num_rows);
             } else {
@@ -241,7 +243,7 @@ var _initialize_websocket_connection = function (data) {
                 _insert_into_partitioned_rows(prepared_rows);
             }
 
-            if (rows.length == expected_num_rows) {
+            if (expected_num_rows !== "INFINITE" && rows.length == expected_num_rows) {
                 self.postMessage({ all_rows_received : true });
             } else {
                 self.postMessage({ rows_received : msg.rows.length });
