@@ -3163,3 +3163,153 @@ asyncTest('changes for "on_" functions can happen immediately with a flag', func
 
     d._finish_action();
 });
+
+asyncTest('add child rows', function () {
+    expect(2);
+
+    var parentDataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ], childRows = [
+        [ 'apple',    'fuji',          'red'      ],
+        [ 'apple',    'red delicious', 'red'      ],
+        [ 'apple',    'granny smith',  'green'    ],
+        [ 'apple',    'honey crisp',   'yellow'   ],
+
+        [ 'cat',      'siamese',       'tall'     ],
+        [ 'cat',      'sphynx',        'bald'     ],
+        [ 'cat',      'calico',        'rainbow'  ],
+
+        [ 'gummy',    'yummy',         'funny'    ]
+    ];
+
+    var d = new JData(parentDataset);
+
+    d.add_child_rows(childRows, 'column_a');
+
+    d.get_number_of_records(function (num) {
+        equal(num, 12);
+    });
+
+    d.get_dataset(function (rows) {
+        deepEqual(rows, [
+            [ 'apple',  'violin',        'music'   ],
+                [ 'apple',  'fuji',          'red'     ],
+                [ 'apple',  'red delicious', 'red'     ],
+                [ 'apple',  'granny smith',  'green'   ],
+                [ 'apple',  'honey crisp',   'yellow'  ],
+            [ 'cat',    'tissue',        'dog'     ],
+                [ 'cat',    'siamese',       'tall'    ],
+                [ 'cat',    'sphynx',        'bald'    ],
+                [ 'cat',    'calico',        'rainbow' ],
+            [ 'banana', 'piano',         'gum'     ],
+            [ 'gummy',  'power',         'star'    ],
+                [ 'gummy',  'yummy',         'funny'   ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest('add child rows using another JData object', function () {
+    expect(2);
+
+    var parentDataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ], childDataset = [
+        [ 'column_a', 'column_b',      'column_c' ],
+
+        [ 'apple',    'fuji',          'red'      ],
+        [ 'apple',    'red delicious', 'red'      ],
+        [ 'apple',    'granny smith',  'green'    ],
+        [ 'apple',    'honey crisp',   'yellow'   ],
+
+        [ 'cat',      'siamese',       'tall'     ],
+        [ 'cat',      'sphynx',        'bald'     ],
+        [ 'cat',      'calico',        'rainbow'  ],
+
+        [ 'gummy',    'yummy',         'funny'    ]
+    ];
+
+    var d = new JData(parentDataset);
+    var d2 = new JData(childDataset);
+
+    d.add_child_rows(d2, 'column_a');
+
+    d.get_number_of_records(function (num) {
+        equal(num, 12);
+    });
+
+    d.get_dataset(function (rows) {
+        deepEqual(rows, [
+            [ 'apple',  'violin',        'music'   ],
+                [ 'apple',  'fuji',          'red'     ],
+                [ 'apple',  'red delicious', 'red'     ],
+                [ 'apple',  'granny smith',  'green'   ],
+                [ 'apple',  'honey crisp',   'yellow'  ],
+            [ 'cat',    'tissue',        'dog'     ],
+                [ 'cat',    'siamese',       'tall'    ],
+                [ 'cat',    'sphynx',        'bald'    ],
+                [ 'cat',    'calico',        'rainbow' ],
+            [ 'banana', 'piano',         'gum'     ],
+            [ 'gummy',  'power',         'star'    ],
+                [ 'gummy',  'yummy',         'funny'   ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest('children of invisible parents default to invisible', function () {
+    expect(2);
+
+    var parentDataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ], childRows = [
+        [ 'apple',    'fuji',          'red'      ],
+        [ 'apple',    'red delicious', 'red'      ],
+        [ 'apple',    'granny smith',  'green'    ],
+        [ 'apple',    'honey crisp',   'yellow'   ],
+
+        [ 'cat',      'siamese',       'tall'     ],
+        [ 'cat',      'sphynx',        'bald'     ],
+        [ 'cat',      'calico',        'rainbow'  ],
+
+        [ 'gummy',    'yummy',         'funny'    ]
+    ];
+
+    var d = new JData(parentDataset);
+
+    d.apply_filter(/apple/)
+     .add_child_rows(childRows, 'column_a');
+
+    d.get_number_of_records(function (num) {
+        equal(num, 5);
+    });
+
+    d.get_dataset(function (rows) {
+        deepEqual(rows, [
+            [ 'apple',  'violin',        'music'   ],
+                [ 'apple',  'fuji',          'red'     ],
+                [ 'apple',  'red delicious', 'red'     ],
+                [ 'apple',  'granny smith',  'green'   ],
+                [ 'apple',  'honey crisp',   'yellow'  ]
+        ]);
+
+        start();
+    }).finish();
+});

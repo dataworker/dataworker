@@ -981,7 +981,7 @@
             self._worker.postMessage({ cmd : "show_all_columns" });
         });
 
-        return self
+        return self;
     };
 
     JData.prototype.get_all_columns = function (callback) {
@@ -992,6 +992,30 @@
         })._queue_next(function () {
             callback(self._columns);
             return self._finish_action();
+        });
+
+        return self;
+    };
+
+    JData.prototype.add_child_rows = function (data, join_column) {
+        var self = this;
+
+        self._queue_next(function () {
+            var callback = function (rows) {
+                self._worker.postMessage({
+                    cmd     : "add_child_rows",
+                    join_on : join_column,
+                    rows    : rows
+                });
+            };
+
+            if (data instanceof JData) {
+                data.get_dataset(function (rows) {
+                    callback(rows);
+                });
+            } else {
+                callback(data);
+            }
         });
 
         return self;

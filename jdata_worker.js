@@ -601,17 +601,18 @@ var _check_columns_for_append = function (new_columns) {
 };
 
 var _append = function (data) {
-    var new_columns = data.new_columns, new_rows = data.new_rows;
-    var reply = {};
-
-    var error = _check_columns_for_append(new_columns);
-    if (!error) {
-        rows = rows.concat(_prepare_rows(new_rows));
-    } else {
-        reply["error"] = error;
+    if (data.new_columns) {
+        var error = _check_columns_for_append(data.new_columns);
+        if (error) return { error: error };
     }
 
-    return reply;
+    rows.splice.apply(rows,
+        [ "index" in data ? data.index : rows.length, 0 ].concat(
+            data.prepared_rows || _prepare_rows(data.new_rows)
+        )
+    );
+
+    return {};
 };
 
 var _hash_rows_by_key_columns = function (key_columns, my_rows, hash, prepared_rows) {
@@ -971,6 +972,39 @@ var _finish = function () {
     }
 };
 
+var _add_child_rows = function (data) {
+    var new_rows = _prepare_rows(data.rows),
+        row_hash = _hash_rows_by_key_columns([ data.join_on ], new_rows, {}, true),
+        join_idx = columns[data.join_on].index,
+        rows_to_add = [];
+
+    rows.forEach(function (row, i) {
+        var row_values = row.row,
+            children   = row_hash[row_values[join_idx]];
+
+        if (children) {
+            row.has_children = true;
+            row.children = children;
+            children.forEach(function (child) {
+                child.parent_row = row;
+                child.is_visible = row.is_visible;
+            });
+            rows_to_add.push({ rows: children, index: i });
+        }
+    });
+
+    rows_to_add.reduce(function (index_offset, rows_data) {
+        _append({
+            prepared_rows : rows_data.rows,
+            index         : rows_data.index + index_offset
+        });
+
+        return index_offset + rows_data.rows.length;
+    }, 1);
+
+    return {};
+};
+
 self.addEventListener("message", function (e) {
     var data = e.data, reply = {};
 
@@ -1114,6 +1148,9 @@ self.addEventListener("message", function (e) {
                 break;
             case "finish":
                 _finish();
+                break;
+            case "add_child_rows":
+                reply = _add_child_rows(data);
                 break;
             default:
                 reply["error"] = "Unrecognized jdata_worker command: " + data.cmd;
