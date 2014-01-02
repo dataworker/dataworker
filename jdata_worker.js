@@ -320,7 +320,7 @@ var _num_sort = function (a, b) {
 var _sort = function (data) {
     var sort_on = data.sort_on;
 
-    rows.sort(function (a, b) {
+    function _compare_rows(a, b) {
         var i, sort_column, column_name, reverse, sort_type, sort_result, val_a, val_b;
 
         for (i = 0; i < sort_on.length; i++) {
@@ -353,6 +353,20 @@ var _sort = function (data) {
         }
 
         return 0;
+    }
+
+    rows.sort(function (a, b) {
+        if (a.parent_row || b.parent_row) {
+            if ((a.parent_row || a) !== (b.parent_row || b)) {
+                return _compare_rows(a.parent_row || a, b.parent_row || b);
+            } else if (a.parent_row === b) {
+                return 1;
+            } else if (b.parent_row === a) {
+                return -1;
+            }
+        }
+
+        return _compare_rows(a, b);
     });
 
     return {};

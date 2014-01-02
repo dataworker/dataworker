@@ -3313,3 +3313,54 @@ asyncTest('children of invisible parents default to invisible', function () {
         start();
     }).finish();
 });
+
+asyncTest('sorts children as subsets of parents, not as part of the whole dataset', function () {
+    expect(2);
+
+    var parentDataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ], childRows = [
+        [ 'apple',    'fuji',          'red'      ],
+        [ 'apple',    'red delicious', 'red'      ],
+        [ 'apple',    'granny smith',  'green'    ],
+        [ 'apple',    'honey crisp',   'yellow'   ],
+
+        [ 'cat',      'siamese',       'tall'     ],
+        [ 'cat',      'sphynx',        'bald'     ],
+        [ 'cat',      'calico',        'rainbow'  ],
+
+        [ 'gummy',    'yummy',         'funny'    ]
+    ];
+
+    var d = new JData(parentDataset);
+
+    d.add_child_rows(childRows, 'column_a');
+
+    d.get_number_of_records(function (num) {
+        equal(num, 12);
+    });
+
+    d.sort('column_b').get_dataset(function (rows) {
+        deepEqual(rows, [
+            [ 'banana', 'piano',         'gum'     ],
+            [ 'gummy',  'power',         'star'    ],
+                [ 'gummy',  'yummy',         'funny'   ],
+            [ 'cat',    'tissue',        'dog'     ],
+                [ 'cat',    'calico',        'rainbow' ],
+                [ 'cat',    'siamese',       'tall'    ],
+                [ 'cat',    'sphynx',        'bald'    ],
+            [ 'apple',  'violin',        'music'   ],
+                [ 'apple',  'fuji',          'red'     ],
+                [ 'apple',  'granny smith',  'green'   ],
+                [ 'apple',  'honey crisp',   'yellow'  ],
+                [ 'apple',  'red delicious', 'red'     ]
+        ]);
+
+        start();
+    }).finish();
+});

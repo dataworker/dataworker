@@ -24,6 +24,7 @@
                         <li><a href="#construct">Construct</a></li>
                         <li><a href="#stream">Streaming Data</a></li>
                         <li><a href="#clone">Clone</a></li>
+                        <li><a href="#child-rows">Child Rows</a></li>
                         <li class="nav-header">Manipulate the dataset!</li>
                         <li><a href="#alter_columns">Alter columns</a></li>
                         <li><a href="#append">Append</a></li>
@@ -34,6 +35,7 @@
                         <li><a href="#remove_columns">Remove columns</a></li>
                         <li><a href="#hide_columns">Hide columns</a></li>
                         <li><a href="#sort">Sort</a></li>
+                        <li><a href="#add-child-rows">Add Child Rows</a></li>
                         <li class="nav-header">Access the dataset!</li>
                         <li><a href="#get_dataset">Get dataset</a></li>
                         <li><a href="#get_columns">Get columns</a></li>
@@ -221,6 +223,14 @@
     });</pre>
                         <p>Note that any streaming datasources are not copied as part of the cloning process.</p>
                     </section>
+                    <section id="child-rows">
+                        <h3>Child Rows</h3>
+                        <p>JData has a concept of child rows. Child rows are rows that are a subset of another row, and may be used, for example, to provide more detail. The functionality is currently limited to a small subset of functions. Where use of child rows is not explicitly defined, they are treated as if they are distinct rows that have been added to the dataset. These are the currently supported functions:</p>
+                        <ul>
+                            <li><a href="#sort">Sort</a></li>
+                            <li><a href="#add-child-rows">Add Child Rows</a></li>
+                        </ul>
+                    </section>
                     <section id="alter_columns">
                         <h3>Alter columns</h3>
                         <p>Column properties can be altered after JData is instantiated.</p>
@@ -400,6 +410,53 @@
                         <p>Note that the following does the same thing:</p>
                         <pre>
     d.sort([ 'column_a', '-column_b' ]);</pre>
+                        <p>When child rows exist in the dataset, parents and children are kept together. The dataset will be sorted first by the parent, then by the children, using the same column. Using the example from <a href="#add-child-rows">Add Child Rows</a>, <code>d.sort('-numbers');</code> will produce the following dataset:</p>
+                        <pre>
+    [
+        [ 'xyz', 789 ],
+            [ 'xyz', 789 ],
+        [ 'abc', 123 ],
+            [ 'abc', 579 ],
+            [ 'abc', 456 ],
+        [ 'def', 0   ]
+    ]</pre>
+                    </section>
+                    <section id="add-child-rows">
+                        <h3>Add Child Rows</h3>
+                        Child rows can be added to the dataset by calling <code>add_child_rows</code>. The columns must be the same as the original dataset as in the following example:</p>
+                        <pre>
+    var dataset = [
+        [ 'letters', 'numbers' ],
+
+        [ 'abc',     579       ],
+        [ 'def',     0         ],
+        [ 'xyz',     789       ]
+    ], child_rows = [
+        [ 'abc',     123       ],
+        [ 'abc',     456       ],
+        [ 'xyz',     789       ]
+    ], d = JData(dataset);</pre>
+                        <p>The call to <code>add_child_rows</code> expects a column that will be used to determine to which row the children belong. It also expects a dataset of child rows.</p>
+                        <p>You may either pass in an array of rows:</p>
+                        <pre>
+    d.add_child_rows(child_rows, 'letters');</pre>
+                        <p><b>or</b> you may pass in another JData object:</p>
+                        <pre>
+    var d2 = JData([[ 'letters', 'numbers' ]].concat(child_rows), 'letters');
+
+    d.add_child_rows(d2);</pre>
+                        <p>In either case, the result passed into the callback for <code>get_dataset</code> will be the same:</p>
+                        <pre>
+    [
+        [ 'abc', 123 ],
+            [ 'abc', 456 ],
+            [ 'abc', 579 ],
+        [ 'def', 0   ],
+        [ 'xyz', 789 ],
+            [ 'xyz', 789 ]
+    ]</pre>
+                        <p>The default visibility for a child row depends on its parent. If the parent row was set to hidden then the child row will still be added to the parent, but will be hidden as well.</p>
+                        <p>If a parent row cannot be found for the children, those child rows will be ignored. If multiple parent rows exist for a given child row, the result is undefined.</p>
                     </section>
                     <section id="get_dataset">
                         <h3>Get dataset</h3>
