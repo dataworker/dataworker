@@ -6,7 +6,8 @@ var columns = {}, rows = [],
     ajax_datasource,
     rows_per_page = 10, current_page = 0,
     only_valid_for_numbers_regex = /[^0-9.\-]/g,
-    authentication;
+    authentication,
+    has_child_elements = false;
 
 var _prepare_columns = function (raw_columns) {
     var prepared_columns = {};
@@ -62,6 +63,18 @@ var _get_visible_rows = function (requested_columns, requested_rows) {
 
     if (!(requested_columns || []).length) requested_columns = undefined;
     requested_rows = requested_rows || rows;
+
+    if (has_child_elements) {
+        var rows_with_children = [];
+        requested_rows.forEach(function (row) {
+            rows_with_children.push(row);
+            if (row.has_children) {
+                rows_with_children.push.apply(rows_with_children, row.children);
+            }
+        });
+
+        requested_rows = rows_with_children;
+    }
 
     (requested_columns || Object.keys(columns)).forEach(function (column_name) {
         var column = columns[column_name];
@@ -170,8 +183,9 @@ var _ajax = function (request) {
             }
 
             self.postMessage({
-                columns     : _get_visible_columns(),
-                ex_num_rows : _get_visible_rows().length
+                columns_received : true,
+                columns          : _get_visible_columns(),
+                ex_num_rows      : _get_visible_rows().length
             });
 
             self.postMessage({ all_rows_received : true });
@@ -308,13 +322,12 @@ var _num_sort = function (a, b) {
     b = b.replace(only_valid_for_numbers_regex, '');
     b = parseFloat(b);
 
-    if (isNaN(a) || a < b) {
-        return -1;
-    } else if (isNaN(b) || a > b) {
-        return 1;
-    } else {
+    if (!isNaN(a) && !isNaN(b))
+        return a - b;
+    else if (isNaN(a) && isNaN(b))
         return 0;
-    }
+    else
+        return isNaN(a) ? -1 : 1;
 };
 
 var _sort = function (data) {
@@ -355,19 +368,15 @@ var _sort = function (data) {
         return 0;
     }
 
-    rows.sort(function (a, b) {
-        if (a.parent_row || b.parent_row) {
-            if ((a.parent_row || a) !== (b.parent_row || b)) {
-                return _compare_rows(a.parent_row || a, b.parent_row || b);
-            } else if (a.parent_row === b) {
-                return 1;
-            } else if (b.parent_row === a) {
-                return -1;
-            }
-        }
+    rows.sort(_compare_rows);
 
-        return _compare_rows(a, b);
-    });
+    if (has_child_elements) {
+        rows.forEach(function (row) {
+            if (row.has_children) {
+                row.children.sort(_compare_rows);
+            }
+        });
+    }
 
     return {};
 };
@@ -989,32 +998,22 @@ var _finish = function () {
 var _add_child_rows = function (data) {
     var new_rows = _prepare_rows(data.rows),
         row_hash = _hash_rows_by_key_columns([ data.join_on ], new_rows, {}, true),
-        join_idx = columns[data.join_on].index,
-        rows_to_add = [];
+        join_idx = columns[data.join_on].index;
 
     rows.forEach(function (row, i) {
         var row_values = row.row,
             children   = row_hash[row_values[join_idx]];
 
         if (children) {
+            has_child_elements = true;
             row.has_children = true;
             row.children = children;
             children.forEach(function (child) {
                 child.parent_row = row;
                 child.is_visible = row.is_visible;
             });
-            rows_to_add.push({ rows: children, index: i });
         }
     });
-
-    rows_to_add.reduce(function (index_offset, rows_data) {
-        _append({
-            prepared_rows : rows_data.rows,
-            index         : rows_data.index + index_offset
-        });
-
-        return index_offset + rows_data.rows.length;
-    }, 1);
 
     return {};
 };

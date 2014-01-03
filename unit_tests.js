@@ -3364,3 +3364,80 @@ asyncTest('sorts children as subsets of parents, not as part of the whole datase
         start();
     }).finish();
 });
+
+asyncTest('sorts children within parents when parents have ties', function () {
+    expect(2);
+
+    var parentDataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',    'parent',   'music'    ],
+        [ 'cat',      'parent',   'dog'      ],
+        [ 'banana',   'parent',   'gum'      ],
+        [ 'gummy',    'parent',   'star'     ]
+    ], childRows = [
+        [ 'apple',    'fuji',          'red'      ],
+        [ 'apple',    'red delicious', 'red'      ],
+        [ 'apple',    'granny smith',  'green'    ],
+        [ 'apple',    'honey crisp',   'yellow'   ],
+
+        [ 'cat',      'siamese',       'tall'     ],
+        [ 'cat',      'sphynx',        'bald'     ],
+        [ 'cat',      'calico',        'rainbow'  ],
+
+        [ 'gummy',    'yummy',         'funny'    ]
+    ];
+
+    var d = new JData(parentDataset);
+
+    d.add_child_rows(childRows, 'column_a');
+
+    d.get_number_of_records(function (num) {
+        equal(num, 12);
+    });
+
+    d.sort('column_b').get_dataset(function (rows) {
+        deepEqual(rows, [
+            [ 'apple',  'parent',        'music'   ],
+                [ 'apple',  'fuji',          'red'     ],
+                [ 'apple',  'granny smith',  'green'   ],
+                [ 'apple',  'honey crisp',   'yellow'  ],
+                [ 'apple',  'red delicious', 'red'     ],
+            [ 'cat',    'parent',        'dog'     ],
+                [ 'cat',    'calico',        'rainbow' ],
+                [ 'cat',    'siamese',       'tall'    ],
+                [ 'cat',    'sphynx',        'bald'    ],
+            [ 'banana', 'parent',        'gum'     ],
+            [ 'gummy',  'parent',        'star'    ],
+                [ 'gummy',  'yummy',         'funny'   ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest('multiple column sort with nulls in number columns', function () {
+    expect(1);
+
+    var d = new JData([
+        [ 'numeric_column', 'alpha_column' ],
+
+        [ null,             'xyz'          ],
+        [ null,             'abc'          ],
+        [ null,             'lmnop'        ],
+        [ null,             'def'          ]
+    ]);
+
+    d.alter_column_sort_type('numeric_column', 'num');
+
+    d.sort('numeric_column', 'alpha_column').get_dataset(function (rows) {
+        deepEqual(rows, [
+            [ null, 'abc'   ],
+            [ null, 'def'   ],
+            [ null, 'lmnop' ],
+            [ null, 'xyz'   ]
+        ]);
+
+        start();
+    }).finish();
+});
