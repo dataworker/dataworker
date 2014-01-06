@@ -86,11 +86,13 @@ var _get_visible_rows = function (requested_columns, requested_rows) {
 
     requested_rows.forEach(function (row) {
         if (row["is_visible"]) {
-            visible_rows.push(
-                visible_column_idxs.map(function (idx) {
-                    return row["row"][idx];
-                })
-            );
+            var new_row = visible_column_idxs.map(function (idx) {
+                return row["row"][idx];
+            });
+
+            new_row.parent_row = row.parent_row;
+
+            visible_rows.push(new_row);
         }
     });
 
@@ -825,7 +827,7 @@ var _get_distinct_consecutive_rows = function (data) {
         current_value;
 
     visible_rows.forEach(function (row, i) {
-        if (!i || (current_value != row[0])) {
+        if (!i || (!row.parent_row && (current_value != row[0]))) {
             if (distinct_consecutive_rows.length) {
                 distinct_consecutive_rows[current_row++][2] = i - 1;
             }

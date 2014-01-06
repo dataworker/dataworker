@@ -3441,3 +3441,77 @@ asyncTest('multiple column sort with nulls in number columns', function () {
         start();
     }).finish();
 });
+
+asyncTest('get_distinct_consecutive_rows with child rows just looks at parent data', function () {
+    expect(5);
+
+    var dataset = [
+        [ 'rank', 'name',  'side', 'amount' ],
+
+        [ 1,      'One',   null,        500 ],
+        [ 2,      'Two',   null,        500 ],
+        [ 2,      'Three', null,        100 ],
+        [ 4,      'Four',  null,        300 ]
+    ], child_rows = [
+        [ null, 'One',   'Left',   400 ],
+        [ null, 'One',   'Right',   50 ],
+        [ null, 'One',   'Top',     50 ],
+
+        [ null, 'Two',   'Top',    500 ],
+
+        [ null, 'Three', 'Left',    25 ],
+        [ null, 'Three', 'Bottom',  75 ],
+
+        [ null, 'Four',  'Middle', 150 ],
+        [ null, 'Four',  'Top',    100 ],
+        [ null, 'Four',  'Left',    25 ],
+        [ null, 'Four',  'Right',   25 ]
+    ];
+
+    var d = new JData(dataset);
+    d.add_child_rows(child_rows, 'name');
+
+    d.get_number_of_records(function (num) {
+        equal(num, 14);
+    });
+
+    d.alter_column_sort_type('rank', 'num')
+     .alter_column_sort_type('amount', 'num')
+     .sort('-amount', 'rank', 'side')
+     .get_dataset(function (rows) {
+        deepEqual(rows, [
+            [ 1,    'One',   null,     500 ],
+                [ null, 'One',   'Left',   400 ],
+                [ null, 'One',   'Right',   50 ],
+                [ null, 'One',   'Top',     50 ],
+            [ 2,    'Two',   null,     500 ],
+                [ null, 'Two',   'Top',    500 ],
+            [ 4,    'Four',  null,     300 ],
+                [ null, 'Four',  'Middle', 150 ],
+                [ null, 'Four',  'Top',    100 ],
+                [ null, 'Four',  'Left',    25 ],
+                [ null, 'Four',  'Right',   25 ],
+            [ 2,    'Three', null,     100 ],
+                [ null, 'Three', 'Bottom',  75 ],
+                [ null, 'Three', 'Left',    25 ],
+        ]);
+     }).get_distinct_consecutive_rows(function (rows) {
+        deepEqual(rows, [
+            [ 'One',    0,  3 ],
+            [ 'Two',    4,  5 ],
+            [ 'Four',   6, 10 ],
+            [ 'Three', 11, 13 ]
+        ]);
+     }, 'name').get_distinct_consecutive_rows(function (rows) {
+        deepEqual(rows, [
+            [ null, 0, 13 ]
+        ]);
+     }, 'side').get_distinct_consecutive_rows(function (rows) {
+        deepEqual(rows, [
+            [ 500,  0,  5 ],
+            [ 300,  6, 10 ],
+            [ 100, 11, 13 ]
+        ]);
+        start();
+     }, 'amount').finish();
+});
