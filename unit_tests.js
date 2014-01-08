@@ -3515,3 +3515,27 @@ asyncTest('get_distinct_consecutive_rows with child rows just looks at parent da
         start();
      }, 'amount').finish();
 });
+
+asyncTest('JData works without Web Worker support (older browsers)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    Worker = undefined;
+    var d = new JData(dataset);
+    delete Worker;
+
+    d.apply_filter(/apple/, 'column_a').get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'apple', 'violin', 'music' ],
+        ]);
+        start();
+    }).finish();
+});

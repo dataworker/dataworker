@@ -113,7 +113,10 @@
         self._queue_next(function () {
             var this_action_queue = this;
 
-            self._worker = new Worker(srcPath + "jdata_worker.js");
+            self._worker = ( typeof Worker === "undefined" )
+                ? ( new JDataWorker() )
+                : ( new Worker(srcPath + "jdata_worker.js") );
+
             self._worker.onmessage = function (e) {
                 if ("rows_received" in e.data) {
                     self._on_receive_rows(e.data.rows_received);

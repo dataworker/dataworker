@@ -1,4 +1,49 @@
+(function () {
 "use strict";
+
+var handle_message;
+
+if (typeof window === "undefined") {
+    run_jdata_worker(self);
+    self.addEventListener("message", handle_message, false);
+} else {
+    var JDataWorker = window.JDataWorker = function JDataWorker () {
+        var self = this instanceof JDataWorker ? this : Object.create(JDataWorker.prototype);
+
+        try {
+            run_jdata_worker(self);
+        } catch (error) {
+            self.onerror(error);
+        }
+
+        return self;
+    };
+
+    JDataWorker.prototype.postMessage = function (message, transferList) {
+        var self = this;
+
+        setTimeout(function () {
+            try {
+                handle_message({ data : message });
+            } catch (error) {
+                self.onerror(error);
+            }
+        }, 0);
+
+        return self;
+    };
+
+    JDataWorker.prototype.onmessage = function (e) { return this; };
+
+    JDataWorker.prototype.onerror = function (e) {
+        if (typeof console !== "undefined") console.error(e);
+        return this;
+    };
+
+    JDataWorker.prototype.terminate = function () { delete this; };
+}
+
+function run_jdata_worker(self) {
 
 var columns = {}, rows = [],
     partitioned_by = [], partitioned_rows = {},
@@ -7,7 +52,16 @@ var columns = {}, rows = [],
     rows_per_page = 10, current_page = 0,
     only_valid_for_numbers_regex = /[^0-9.\-]/g,
     authentication,
-    has_child_elements = false;
+    has_child_elements = false,
+    postMessage;
+
+if (typeof window === "undefined") {
+    postMessage = function () { return self.postMessage.apply(self, arguments); };
+} else {
+    postMessage = function (message) {
+        return self.onmessage({ data: message });
+    };
+}
 
 var _prepare_columns = function (raw_columns) {
     var prepared_columns = {};
@@ -119,7 +173,7 @@ var _initialize = function (data, use_backup) {
         } else if (data.datasource.match(/^wss?:\/\//)) {
             wait_to_connect = _initialize_websocket_connection(data);
         } else {
-            self.postMessage({
+            postMessage({
                 error: "Error: Could not initialize JData; unrecognized datasource."
             });
         }
@@ -130,7 +184,7 @@ var _initialize = function (data, use_backup) {
 
             wait_to_connect = _initialize(data);
         } else {
-            self.postMessage({
+            postMessage({
                 error : "Error: " + error
             });
         }
@@ -173,7 +227,7 @@ var _ajax = function (request) {
             var msg = JSON.parse(xml_http.responseText);
 
             if (msg.error) {
-                self.postMessage({ error : msg.error });    
+                postMessage({ error : msg.error });
             }
 
             if (msg.columns) {
@@ -184,13 +238,13 @@ var _ajax = function (request) {
                 rows = rows.concat(_prepare_rows(msg.rows));
             }
 
-            self.postMessage({
+            postMessage({
                 columns_received : true,
                 columns          : _get_visible_columns(),
                 ex_num_rows      : _get_visible_rows().length
             });
 
-            self.postMessage({ all_rows_received : true });
+            postMessage({ all_rows_received : true });
         }
     };
 
@@ -221,7 +275,7 @@ var _initialize_websocket_connection = function (data) {
 
             _initialize(data, true);
         } else {
-            self.postMessage({
+            postMessage({
                 error : "Error: Problem with connection to datasource."
             });
         }
@@ -231,7 +285,7 @@ var _initialize_websocket_connection = function (data) {
         msg = JSON.parse(msg.data);
 
         if (msg.error) {
-            self.postMessage({ error : msg.error });
+            postMessage({ error : msg.error });
             return;
         }
 
@@ -260,25 +314,25 @@ var _initialize_websocket_connection = function (data) {
             }
 
             if (expected_num_rows !== "INFINITE" && rows.length == expected_num_rows) {
-                self.postMessage({ all_rows_received : true });
+                postMessage({ all_rows_received : true });
             } else {
-                self.postMessage({ rows_received : msg.rows.length });
+                postMessage({ rows_received : msg.rows.length });
             }
         } else if (
             typeof(columns) !== "undefined"
             && typeof(msg.expected_num_rows) !== "undefined"
             && expected_num_rows != rows.length
         ) {
-            self.postMessage({
+            postMessage({
                 columns_received : true,
                 columns          : _get_visible_columns(),
                 ex_num_rows      : expected_num_rows
             });
         }
 
-        if (msg.expected_num_rows == 0) self.postMessage({ all_rows_received : true });
+        if (msg.expected_num_rows == 0) postMessage({ all_rows_received : true });
 
-        if (msg.trigger) self.postMessage({ trigger_msg : msg.msg });
+        if (msg.trigger) postMessage({ trigger_msg : msg.msg });
 
         on_socket_close = data.on_close;
     };
@@ -1020,7 +1074,7 @@ var _add_child_rows = function (data) {
     return {};
 };
 
-self.addEventListener("message", function (e) {
+handle_message = function (e) {
     var data = e.data, reply = {};
 
     if (typeof(data) === "undefined") {
@@ -1033,7 +1087,7 @@ self.addEventListener("message", function (e) {
         if (wait_to_connect) {
             var wait = function () {
                 if (is_ws_ready) {
-                    self.postMessage(reply);
+                    postMessage(reply);
                 } else {
                     setTimeout(wait, 500);
                 }
@@ -1172,5 +1226,9 @@ self.addEventListener("message", function (e) {
         }
     }
 
-    self.postMessage(reply);
-}, false);
+    postMessage(reply);
+};
+
+}
+
+})();
