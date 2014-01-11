@@ -953,7 +953,7 @@ asyncTest('paginate (next page)', function () {
             [ 'car', 'screen', 'phone' ],
             [ 'sign', 'bagel', 'chips' ]
         ]);
-        deepEqual(page4, []);
+        deepEqual(page4, page3);
 
         start();
     });
@@ -966,26 +966,11 @@ asyncTest('paginate (next page)', function () {
         page3 = result;
     }).get_next_page(function (result) {
         page4 = result;
-    });
-
-    var wait = function () {
-        if (
-            typeof(page1) !== "undefined" && page1.length > 0
-            && typeof(page2) !== "undefined" && page2.length > 0
-            && typeof(page3) !== "undefined" && page3.length > 0
-            && typeof(page4) !== "undefined"
-        ) {
-            d.render().finish();
-        } else {
-            setTimeout(wait, 0);
-        }
-    };
-
-    setTimeout(wait, 0);
+    }).render().finish();
 });
 
 asyncTest('paginate (previous page)', function () {
-    expect(4);
+    expect(6);
 
     var dataset = [
         [ 'column_a', 'column_b', 'column_c' ],
@@ -1000,51 +985,29 @@ asyncTest('paginate (previous page)', function () {
 
     var page3, page2, page1, page0;
 
-    var d = new JData(dataset).paginate(2).set_page(4).render(function () {
-        deepEqual(page3, [
-            [ 'car', 'screen', 'phone' ],
-            [ 'sign', 'bagel', 'chips' ]
-        ]);
-        deepEqual(page2, [
+    var d = new JData(dataset).paginate(2).set_page(3);
+
+    d.get_previous_page(function (rows, page_num) {
+        deepEqual(rows, [
             [ 'banana', 'piano',   'gum' ],
             [ 'gummy',  'power', 'apple' ]
         ]);
-        deepEqual(page1, [
+        equal(page_num, 2);
+    }).get_previous_page(function (rows, page_num) {
+        deepEqual(rows, [
             [ 'apple', 'violin', 'music' ],
             [ 'cat',   'tissue',   'dog' ]
         ]);
-        deepEqual(page0, [
+        equal(page_num, 1);
+    }).get_previous_page(function (rows, page_num) {
+        deepEqual(rows, [
             [ 'apple', 'violin', 'music' ],
             [ 'cat',   'tissue',   'dog' ]
         ]);
+        equal(page_num, 1);
 
         start();
-    });
-
-    d.get_previous_page(function (result) {
-        page3 = result;
-    }).get_previous_page(function (result) {
-        page2 = result;
-    }).get_previous_page(function (result) {
-        page1 = result;
-    }).get_previous_page(function (result) {
-        page0 = result;
-    })
-
-    var wait = function () {
-        if (
-            typeof(page0) !== "undefined" && page0.length > 0
-            && typeof(page1) !== "undefined" && page1.length > 0
-            && typeof(page2) !== "undefined" && page2.length > 0
-            && typeof(page3) !== "undefined" && page3.length > 0
-        ) {
-            d.render().finish();
-        } else {
-            setTimeout(wait, 0);
-        }
-    };
-
-    setTimeout(wait, 0);
+    }).finish();
 });
 
 asyncTest('paginate (get current page)', function () {
@@ -1093,6 +1056,151 @@ asyncTest('paginate (get specific page)', function () {
         ]);
         start();
     }, 2).finish();
+});
+
+asyncTest('paginate (get_page passes rows and current page number to callback)', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2);
+    var page = d.get_page(function (page, page_num) {
+        deepEqual(page, [
+            [ 'banana', 'piano',   'gum' ],
+            [ 'gummy',  'power', 'apple' ],
+        ]);
+
+        equal(page_num, 2);
+        start();
+    }, 2).finish();
+});
+
+asyncTest('paginate (request after last page returns last page)', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2);
+    var page = d.get_page(function (page, page_num) {
+        deepEqual(page, [
+            [ 'car',  'screen', 'phone' ],
+            [ 'sign', 'bagel',  'chips' ]
+        ]);
+
+        equal(page_num, 3);
+        start();
+    }, 7).finish();
+});
+
+asyncTest('paginate (only returns visible rows)', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2);
+    var page = d.apply_filter(/a/, 'column_a').get_page(function (page, page_num) {
+        deepEqual(page, [
+            [ 'banana', 'piano',  'gum'   ],
+            [ 'car',    'screen', 'phone' ],
+        ]);
+
+        equal(page_num, 2);
+        start();
+    }, 2).finish();
+});
+
+asyncTest('paginate (next page when already on last page keeps dataset on last page', function () {
+    expect(8);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2);
+
+    d.get_next_page(function (rows, page_num) {
+        deepEqual(rows, [
+            [ 'apple', 'violin', 'music' ],
+            [ 'cat',   'tissue',   'dog' ]
+        ]);
+        equal(page_num, 1);
+    }).get_next_page(function (rows, page_num) {
+        deepEqual(rows, [
+            [ 'banana', 'piano',   'gum' ],
+            [ 'gummy',  'power', 'apple' ]
+        ]);
+        equal(page_num, 2);
+    }).get_next_page(function (rows, page_num) {
+        deepEqual(rows, [
+            [ 'car', 'screen', 'phone' ],
+            [ 'sign', 'bagel', 'chips' ]
+        ]);
+        equal(page_num, 3);
+    }).get_next_page(function (rows, page_num) {
+        deepEqual(rows, [
+            [ 'car', 'screen', 'phone' ],
+            [ 'sign', 'bagel', 'chips' ]
+        ]);
+        equal(page_num, 3);
+
+        start();
+    }).finish();
+});
+
+asyncTest('paginate (get number of pages)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ],
+        [ 'car',        'screen',    'phone' ],
+        [ 'sign',        'bagel',    'chips' ]
+    ];
+
+    var d = new JData(dataset).paginate(2);
+
+    d.get_number_of_pages(function (num_pages) {
+        equal(num_pages, 3);
+        start();
+    }).finish();
 });
 
 asyncTest('append', function () {
@@ -3536,6 +3644,32 @@ asyncTest('JData works without Web Worker support (older browsers)', function ()
         deepEqual(result, [
             [ 'apple', 'violin', 'music' ],
         ]);
+        start();
+    }).finish();
+});
+
+asyncTest('then() function lets you utilize JData\'s action queue', function ()
+{
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var x = 10;
+
+    var d = new JData(dataset);
+
+    d.get_number_of_records(function (num_rows) {
+        equal(x, 10);
+        x = num_rows;
+    }).then(function () {
+        equal(x, 4);
         start();
     }).finish();
 });

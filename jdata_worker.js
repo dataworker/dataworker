@@ -49,7 +49,7 @@ var columns = {}, rows = [],
     partitioned_by = [], partitioned_rows = {},
     socket, on_socket_close, is_ws_ready, expected_num_rows,
     ajax_datasource,
-    rows_per_page = 10, current_page = 0,
+    rows_per_page = 10, current_page = undefined,
     only_valid_for_numbers_regex = /[^0-9.\-]/g,
     authentication,
     has_child_elements = false,
@@ -904,37 +904,59 @@ var _get_number_of_records = function (data) {
 
 var _paginate = function (data) {
     rows_per_page = data.rows_per_page;
-    current_page = 0;
 
     return {};
 };
 
+var _get_last_page = function () {
+    var visible_rows = _get_visible_rows();
+
+    return {
+        visible_rows: visible_rows,
+        last_page: (Math.ceil(visible_rows.length / rows_per_page) - 1)
+    };
+};
+
 var _get_page = function (data) {
-    var page_num = data.page_num,
-        post_increment_page = data.post_increment_page,
-        pre_decrement_page = data.pre_decrement_page;
-    var start, end;
+    var row_data = _get_last_page(),
+        start, end;
 
-    if (pre_decrement_page) page_num = current_page;
+    data.last_page = row_data.last_page;
 
-    current_page = typeof(page_num) !== "undefined" ? (page_num - 1)
-                                                    : current_page;
-    if (current_page < 0) current_page = 0;
+    _set_page(data);
 
     start = rows_per_page * current_page;
     end = start + rows_per_page;
 
-    if (post_increment_page) current_page++;
-
-    return { rows : _strip_row_metadata(rows.slice(start, end)) };
+    return { rows : row_data.visible_rows.slice(start, end), current_page : current_page + 1 };
 };
 
 var _set_page = function (data) {
-    var page_num = data.page_num;
 
-    current_page = page_num > 0 ? (page_num - 1) : 0;
+    if (!("last_page" in data)) {
+        data.last_page = _get_last_page().last_page;
+    }
 
-    return {};
+    if (typeof(data.page_num) !== "undefined") {
+        current_page = data.page_num - 1;
+    } else if (typeof(current_page) === "undefined") {
+        current_page = 0;
+    } else if (data.increment_page) {
+        current_page++;
+    } else if (data.decrement_page) {
+        current_page--;
+    }
+
+    if (current_page < 0) current_page = 0;
+    if (current_page > data.last_page) current_page = data.last_page;
+
+    return { current_page: current_page + 1 };
+};
+
+var _get_number_of_pages = function () {
+    var row_data = _get_last_page();
+
+    return { number_of_pages: row_data.last_page + 1 };
 };
 
 var _hide_columns = function (data) {
@@ -1200,6 +1222,9 @@ handle_message = function (e) {
                 break;
             case "get_expected_num_rows":
                 reply = _get_expected_num_rows(data);
+                break;
+            case "get_number_of_pages":
+                reply = _get_number_of_pages(data);
                 break;
             case "request_dataset":
                 reply = _request_dataset(data);

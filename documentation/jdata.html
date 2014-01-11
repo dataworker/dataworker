@@ -18,13 +18,14 @@
             </div>
             <div class="row">
                 <div class="span3">
-                    <ul class="nav nav-tabs nav-stacked affix">
+                    <ul class="nav nav-tabs nav-stacked">
                         <li><a href="#top">JData</a></li>
                         <li class="nav-header">Get started!</li>
                         <li><a href="#construct">Construct</a></li>
                         <li><a href="#stream">Streaming Data</a></li>
                         <li><a href="#clone">Clone</a></li>
                         <li><a href="#child-rows">Child Rows</a></li>
+                        <li><a href="#promises">Promises</a></li>
                         <li class="nav-header">Manipulate the dataset!</li>
                         <li><a href="#alter_columns">Alter columns</a></li>
                         <li><a href="#append">Append</a></li>
@@ -42,7 +43,7 @@
                         <li><a href="#get_columns_and_records">Get columns and records</a></li>
                         <li><a href="#get_number_of_records">Get number of records</a></li>
                         <li><a href="#get_distinct">Get distinct</a></li>
-                        <li><a href="#paginate">Paginate</a></li>
+                        <li><a href="#pagination">Pagination</a></li>
                         <li><a href="#partition">Partition</a></li>
                         <li><a href="#render">Render</a></li>
                     </ul>
@@ -230,6 +231,15 @@
                             <li><a href="#sort">Sort</a></li>
                             <li><a href="#add-child-rows">Add Child Rows</a></li>
                         </ul>
+                    </section>
+                    <section id="promises">
+                        <h3>Promises</h3>
+                        <p>JData uses a queue system to make sure operations are executed in the correct order. It's possible to utilize this queue with the <code>then</code> function. This is loosely equivalent to the concept of <a href="http://www.html5rocks.com/en/tutorials/es6/promises/">Promises</a> in javascript, however it is simplified and does not follow any set of standards at the moment.</p>
+                        <pre>
+    d.render().then(function () {
+        alert('Done Rendering!');
+    });</pre>
+                        <p>The callback will not be executed until after previous operations are completed. In this case, it will trigger the render function, then alert the user that it has finished rendering.</p>
                     </section>
                     <section id="alter_columns">
                         <h3>Alter columns</h3>
@@ -578,7 +588,7 @@
     ]</pre>
                         <p>The number of records returned will always be equal to or less than the number of records in the original dataset.</p>
                     </section>
-                    <section id="paginate">
+                    <section id="pagination">
                         <h3>Pagination</h3>
                         <p>Pagination eases incremental of the records. The following sets JData to display 10 rows per page</p>
                         <pre>
@@ -586,28 +596,46 @@
                         <h5>Get next page</h5>
                         <p>Now you may grab the next 10 rows using the <code>get_next_page</code> method:</p>
                         <pre>
-    var next_10_rows;
+    var next_10_rows, current_page;
     
-    d.get_next_page(function (result) { next_10_rows = result; });</pre>
-                        <p>Grabbing the next page when you're on the last page will return an empty page.</p>
+    d.get_next_page(function (result, page_number) {
+        next_10_rows = result;
+        current_page = page_number;
+    });</pre>
+                        <p>The callback will provide the requested rows as well as the current page number.</p>
+                        <p>The pagination system will not let you change to a page outside of the dataset. Grabbing the next page when you're on the last page will still return the last page.</p>
                         <h5>Get previous page</h5>
                         <p>The previous 10 rows can be grabbed using the <code>get_previous_page</code> method:</p>
                         <pre>
-    var previous_10_rows;
+    var previous_10_rows, current_page;
     
-    d.get_previous_page(function (result) { previous_10_rows = result; });</pre>
+    d.get_previous_page(function (result, page_number) {
+        previous_10_rows = result;
+        current_page = page_number;
+    });</pre>
                         <p>Grabbing a previous page from the 1st page will simply return the 1st page again.</p>
                         <h5>Get page</h5>
                         <p>You may jump to a specific page using the <code>get_page</code> method. The following grabs page 4:</p>
                         <pre>
-    var page;
+    var page, current_page;
     
-    d.get_page(function (result) { page = result; }, 4);</pre>
+    d.get_page(function (result, page_number) {
+        page = result;
+        current_page = page_number; // page_number == 4
+    }, 4);</pre>
                         <p>Note that this also sets your current page to the page you grab.</p>
                         <h5>Set page</h5>
-                        <p>Use the <code>set_page</code> method to set a new current page. Attempting to set the page to 0 or a negative number will set the page to page 1. Setting to a page past the max number of current pages is allowed. The following sets your current page to page 4:</p>
+                        <p>Use the <code>set_page</code> method to set a new current page. Attempting to set the page to 0 or a negative number will set the page to page 1. Setting to a page past the max number of current pages will set the page to the last page. The following sets your current page to page 4:</p>
                         <pre>
     d.set_page(4);</pre>
+                        <h5>Get number of pages</h5>
+                        <p>Use the <code>get_number_of_pages</code> method to get the total number of pages in the dataset with the current pagination. Note that this is also the same as the last page in the dataset.</p>
+                        <pre>
+    var last_page;
+
+    d.get_number_of_pages(function (total_number_of_pages) {
+        last_page = total_number_of_pages;
+    });</pre>
                     </section>
                     <section id="partition">
                         <h3>Partition</h3>

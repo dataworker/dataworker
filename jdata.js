@@ -23,6 +23,8 @@
 
         self._num_rows = 0;
         self._expected_num_rows = 0;
+        self._current_page = undefined;
+        self._number_of_pages = undefined;
 
         self._partitioned_datasets = {};
 
@@ -130,6 +132,14 @@
                     self._on_all_rows_received_tracker = true;
                     self._on_all_rows_received();
                     return;
+                }
+
+                if ("current_page" in e.data) {
+                    self._current_page = e.data.current_page;
+                }
+
+                if ("number_of_pages" in e.data) {
+                    self._number_of_pages = e.data.number_of_pages;
                 }
 
                 if ("error"         in e.data) self._on_error(e.data.error);
@@ -394,7 +404,7 @@
         var self = this;
 
         self._get_page(undefined, true, false)._queue_next(function() {
-            callback(self._rows);
+            callback(self._rows, self._current_page);
             return self._finish_action();
         });
 
@@ -405,22 +415,37 @@
         var self = this;
 
         self._get_page(undefined, false, true)._queue_next(function () {
-            callback(self._rows);
+            callback(self._rows, self._current_page);
             return self._finish_action();
         });
 
         return self;
     };
 
-    JData.prototype._get_page = function (page_num, post_increment_page, pre_decrement_page) {
+    JData.prototype.get_number_of_pages = function (callback) {
         var self = this;
 
         self._queue_next(function () {
             self._worker.postMessage({
-                cmd                 : "get_page",
-                page_num            : page_num,
-                post_increment_page : post_increment_page,
-                pre_decrement_page  : pre_decrement_page
+                cmd : "get_number_of_pages"
+            });
+        })._queue_next(function () {
+            callback(self._number_of_pages);
+            return self._finish_action();
+        });
+
+        return self;
+    };
+
+    JData.prototype._get_page = function (page_num, increment_page, decrement_page) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd            : "get_page",
+                page_num       : page_num,
+                increment_page : increment_page,
+                decrement_page : decrement_page
             });
         });
 
@@ -431,7 +456,7 @@
         var self = this;
 
         self._get_page(page_num)._queue_next(function () {
-            callback(self._rows);
+            callback(self._rows, self._current_page);
             self._finish_action();
         });
 
@@ -1019,6 +1044,17 @@
             } else {
                 callback(data);
             }
+        });
+
+        return self;
+    };
+
+    JData.prototype.then = function (callback) {
+        var self = this;
+
+        self._queue_next(function () {
+            callback();
+            return self._finish_action();
         });
 
         return self;
