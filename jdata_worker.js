@@ -457,6 +457,8 @@ var _apply_filter = function (data) {
             });
 
         rows.forEach(function (row) {
+            if (!row["is_visible"]) return;
+
             row["is_visible"] = false;
 
             for (i = 0; i < row["row"].length; i++) {
@@ -473,6 +475,8 @@ var _apply_filter = function (data) {
         });
     } else {
         rows.forEach(function (row) {
+            if (!row["is_visible"]) return;
+
             row["is_visible"] = true;
 
             for (i = 0; i < filters.length; i++) {

@@ -305,7 +305,7 @@
 
         [ 'apple',      'violin',    'music' ],
         [ 'cat',        'tissue',      'dog' ],
-        [ 'banana',      'piano',      'gum' ],
+        [ 'banana',      'piano',      'gum' ]
     ];
     var dataset2 = [
         [ 'column_a', 'column_b', 'column_c' ],
@@ -324,16 +324,71 @@
                         <h3>Filter</h3>
                         <p>The <code>apply_filter</code> method is used to filter out rows that do not contain the specified regex. The following filters out any row that does not contain the word 'apple':</p>
                         <pre>
-    d.apply_filter(/\bapple\b/)</pre>
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c'         ],
+
+        [ 'apple',    'red',      'fuji'             ],
+        [ 'apple',    'green',    'granny smith'     ],
+        [ 'apple',    'yellow',   'golden delicious' ],
+
+        [ 'banana',   'green',    'unripe'           ],
+        [ 'banana',   'yellow',   'ripe'             ],
+        [ 'banana',   'brown',    'beyond ripe'      ],
+        [ 'banana',   'black',    'rotten/frozen'    ]
+    ], d = new JData(dataset);
+
+    d.apply_filter(/\bapple\b/)
+
+    /* This results in the following rows:
+        [ 'apple', 'red',    'fuji'             ],
+        [ 'apple', 'green',  'granny smith'     ],
+        [ 'apple', 'yellow', 'golden delicious' ]
+    */</pre>
                         <p>You may also filter only on certain columns:</p>
                         <pre>
     d.apply_filter(/\bapple\b/, 'column_a', 'column_b');</pre>
                         <p>Note that the following also works (and results in the exact same dataset):</p>
                         <pre>
     d.apply_filter(/\bapple\b/, [ 'column_a', 'column_b' ]);</pre>
+                        <p>You may also use the complex syntax:</p>
+                        <pre>
+    d.apply_filter(
+        {
+            column : 'column_a',
+            regex  : /\bapple\b/
+        },
+        {
+            column : 'column_b',
+            regex  : 'yellow'
+        }
+    );
+
+    /* This results in the single row:
+        [ 'apple', 'yellow', 'golden delicious' ]
+    */</pre>
                         <p>The filter can be cleared by calling the <code>clear_filters</code> method:</p>
                         <pre>
     d.clear_filters();</pre>
+                        <p>Filters stack on top of each other:</p>
+                        <pre>
+    d.apply_filter(/banana/);
+    /* This results in the following rows:
+        [ 'banana', 'green',  'unripe'        ],
+        [ 'banana', 'yellow', 'ripe'          ],
+        [ 'banana', 'brown',  'beyond ripe'   ],
+        [ 'banana', 'black',  'rotten/frozen' ]
+    */
+
+    d.apply_filter(/yellow/);
+    /* The results are further filtered down to one row:
+        [ 'banana', 'yellow', 'ripe' ],
+    */
+
+    d.clear_filters().apply_filter(/yellow/);
+    /* Old filters are cleared and a new one is applied:
+        [ 'apple',  'yellow', 'golden delicious' ],
+        [ 'banana', 'yellow', 'ripe'             ],
+    /*</pre>
                         <p>To permanently remove rows from a dataset with a filter, use the <code>filter</code> method:</p>
                         <pre>
     d.filter(/\bapple\b/)</pre>

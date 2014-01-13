@@ -440,6 +440,142 @@ asyncTest('apply filter (complex, ignores column not found)', function () {
     }).finish();
 });
 
+asyncTest('apply filter (simple, multiple filters)', function () {
+    expect(2);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.apply_filter(/m/).get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'apple',  'violin', 'music' ],
+            [ 'banana', 'piano',  'gum'   ],
+            [ 'gummy',  'power',  'star'  ]
+        ]);
+    }).apply_filter(/e/).get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'apple', 'violin', 'music' ],
+            [ 'gummy', 'power',  'star'  ]
+        ]);
+        start();
+    }).finish();
+});
+
+asyncTest('apply filter (complex, multiple filters)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'cat',         'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ]
+    ];
+
+    var d = new JData(dataset);
+    d.apply_filter(
+        {
+            column : 'column_a',
+            regex  : '^cat$'
+        },
+        {
+            column : 'column_c',
+            regex  : '^dog|gum$'
+        },
+        {
+            column : 'column_d',
+            regex  : '^nothing$'
+        }
+    ).apply_filter(
+        {
+            column : 'column_b',
+            regex  : 'e',
+        }
+    ).get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'cat', 'tissue', 'dog' ],
+        ]);
+        start();
+    }).finish();
+});
+
+asyncTest('apply filter (complex then simple, multiple filters)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'cat',         'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ]
+    ];
+
+    var d = new JData(dataset);
+    d.apply_filter(
+        {
+            column : 'column_a',
+            regex  : '^cat$'
+        },
+        {
+            column : 'column_c',
+            regex  : '^dog|gum$'
+        },
+        {
+            column : 'column_d',
+            regex  : '^nothing$'
+        }
+    ).apply_filter(/e/).get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'cat', 'tissue', 'dog' ],
+        ]);
+        start();
+    }).finish();
+});
+
+asyncTest('apply filter (simple then complex, multiple filters)', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'cat',         'piano',      'gum' ],
+        [ 'gummy',       'power',    'apple' ]
+    ];
+
+    var d = new JData(dataset);
+    d.apply_filter(/e/).apply_filter(
+        {
+            column : 'column_a',
+            regex  : '^cat$'
+        },
+        {
+            column : 'column_c',
+            regex  : '^dog|gum$'
+        },
+        {
+            column : 'column_d',
+            regex  : '^nothing$'
+        }
+    ).get_dataset(function (result) {
+        deepEqual(result, [
+            [ 'cat', 'tissue', 'dog' ],
+        ]);
+        start();
+    }).finish();
+});
+
 asyncTest('clear filter', function () {
     expect(1);
 
