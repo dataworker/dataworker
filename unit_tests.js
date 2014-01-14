@@ -3159,6 +3159,26 @@ asyncTest('hide columns (regex, w/ flags)', function () {
     }).finish();
 });
 
+asyncTest('get_columns respects hidden columns', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.hide_columns('column_b').get_columns(function (columns) {
+        deepEqual(Object.keys(columns), [ 'column_a', 'column_c' ]);
+        start();
+    }).finish();
+});
+
 asyncTest('show columns', function () {
     expect(2);
 
