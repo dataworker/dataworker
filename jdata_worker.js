@@ -1042,6 +1042,7 @@ var _request_dataset = function (data) {
 
     columns           = {};
     rows              = [];
+    partitioned_rows  = {};
     expected_num_rows = undefined;
 
     if (typeof(socket) !== "undefined") {
