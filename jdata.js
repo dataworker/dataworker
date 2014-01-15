@@ -164,14 +164,13 @@
             };
 
             self._worker.postMessage({
-                cmd               : "initialize",
-                columns           : columns,
-                rows              : rows,
-                datasource        : datasource,
-                backup_datasource : dataset.backup_datasource,
-                authenticate      : authenticate,
-                request           : request,
-                on_close          : dataset.on_close
+                cmd          : "initialize",
+                columns      : columns,
+                rows         : rows,
+                datasource   : datasource,
+                authenticate : authenticate,
+                request      : request,
+                on_close     : dataset.on_close
             });
         });
 

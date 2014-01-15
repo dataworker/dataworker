@@ -48,7 +48,7 @@ function run_jdata_worker(self) {
 var columns = {}, rows = [],
     partitioned_by = [], partitioned_rows = {},
     socket, on_socket_close, is_ws_ready, expected_num_rows,
-    ajax_datasource,
+    ajax_datasource, ws_datasource, datasources,
     rows_per_page = 10, current_page = undefined,
     only_valid_for_numbers_regex = /[^0-9.\-]/g,
     authentication,
@@ -154,23 +154,33 @@ var _get_visible_rows = function (requested_columns, requested_rows) {
 };
 
 var _initialize = function (data, use_backup) {
-    var wait_to_connect = false;
+    var wait_to_connect = false,
+        datasource;
 
     authentication = data.authenticate;
+    if (typeof(datasources) === "undefined") {
+        datasources = (data.datasource instanceof Array) ? data.datasource : [ data.datasource ];
+    }
+
+    ajax_datasource = ws_datasource = socket = undefined;
 
     try {
         if (use_backup) throw new Error();
 
-        if (typeof(data.datasource) === "undefined") {
+        datasource = datasources.shift();
+
+        if (typeof(datasource) === "undefined") {
             columns = _prepare_columns(data.columns);
             rows    = _prepare_rows(data.rows);
-        } else if (data.datasource.match(/^https?:\/\//)) {
-            ajax_datasource = data.datasource;
+        } else if (datasource.match(/^https?:\/\//)) {
+            ajax_datasource = datasource;
 
             if (typeof(data.request) !== "undefined") {
                 _request_dataset(data);
             }
-        } else if (data.datasource.match(/^wss?:\/\//)) {
+        } else if (datasource.match(/^wss?:\/\//)) {
+            ws_datasource = datasource;
+
             wait_to_connect = _initialize_websocket_connection(data);
         } else {
             postMessage({
@@ -178,10 +188,7 @@ var _initialize = function (data, use_backup) {
             });
         }
     } catch (error) {
-        if (data.backup_datasource) {
-            data.datasource = data.backup_datasource;
-            delete data.backup_datasource;
-
+        if (datasources.length) {
             wait_to_connect = _initialize(data);
         } else {
             postMessage({
@@ -253,7 +260,7 @@ var _ajax = function (request) {
 };
 
 var _initialize_websocket_connection = function (data) {
-    socket = new WebSocket(data.datasource);
+    socket = new WebSocket(ws_datasource);
     is_ws_ready = false;
 
     socket.onopen  = function () {
