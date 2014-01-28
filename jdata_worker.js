@@ -1108,6 +1108,14 @@ var _add_child_rows = function (data) {
     return {};
 };
 
+var _post_message = function (data) {
+    if (socket.readyState !== 0 && socket.readyState !== 3) {
+        socket.send(data.message);
+    }
+
+    return {};
+};
+
 handle_message = function (e) {
     var data = e.data, reply = {};
 
@@ -1257,6 +1265,9 @@ handle_message = function (e) {
                 break;
             case "add_child_rows":
                 reply = _add_child_rows(data);
+                break;
+            case "post_message":
+                reply = _post_message(data);
                 break;
             default:
                 reply["error"] = "Unrecognized jdata_worker command: " + data.cmd;

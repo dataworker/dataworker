@@ -1058,4 +1058,17 @@
 
         return self;
     };
+
+    JData.prototype.post_message = function (message) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({
+                cmd     : "post_message",
+                message : message
+            });
+        });
+
+        return self;
+    };
 })();
