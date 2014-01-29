@@ -256,6 +256,8 @@ var _ajax = function (request) {
             });
 
             postMessage({ all_rows_received : true });
+
+            if (msg.trigger) postMessage({ trigger_msg: msg.msg });
         }
     };
 
