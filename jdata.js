@@ -18,6 +18,7 @@
 
         self._columns       = {};
         self._rows          = [];
+        self._summary_rows  = [];
         self._distinct_rows = [];
         self._hash          = {};
 
@@ -146,6 +147,7 @@
 
                 if ("columns"       in e.data) self._columns = e.data.columns;
                 if ("rows"          in e.data) self._rows = e.data.rows;
+                if ("summary_rows"  in e.data) self._summary_rows = e.data.summary_rows;
                 if ("distinct_rows" in e.data) self._distinct_rows = e.data.distinct_rows;
 
                 if ("hash"          in e.data) self._hash = e.data.hash;
@@ -1067,6 +1069,19 @@
                 cmd     : "post_message",
                 message : message
             });
+        });
+
+        return self;
+    };
+
+    JData.prototype.get_summary_rows = function (callback) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "get_summary_rows" });
+        })._queue_next(function () {
+            callback(self._summary_rows);
+            return self._finish_action();
         });
 
         return self;

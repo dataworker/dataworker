@@ -45,7 +45,7 @@ if (typeof window === "undefined") {
 
 function run_jdata_worker(self) {
 
-var columns = {}, rows = [],
+var columns = {}, rows = [], summary_rows = [],
     partitioned_by = [], partitioned_rows = {},
     socket, on_socket_close, is_ws_ready, expected_num_rows,
     ajax_datasource, ws_datasource, datasources,
@@ -244,6 +244,10 @@ var _ajax = function (request) {
                 if (typeof(rows) === "undefined") rows = [];
                 rows = rows.concat(_prepare_rows(msg.rows));
             }
+            if (msg.summary_rows) {
+                if (typeof(summary_rows) === "undefined") summary_rows = [];
+                summary_rows = summary_rows.concat(_prepare_rows(msg.summary_rows));
+            }
 
             postMessage({
                 columns_received : true,
@@ -335,6 +339,11 @@ var _initialize_websocket_connection = function (data) {
                 columns          : _get_visible_columns(),
                 ex_num_rows      : expected_num_rows
             });
+        }
+
+        if (msg.summary_rows) {
+            if (typeof(summary_rows) === "undefined") summary_rows = [];
+            summary_rows = summary_rows.concat(_prepare_rows(msg.summary_rows));
         }
 
         if (msg.expected_num_rows == 0) postMessage({ all_rows_received : true });
@@ -1040,28 +1049,22 @@ var _get_rows = function (data) {
     return { rows : _get_dataset(data).rows.slice(start, end) };
 };
 
+var _get_summary_rows = function (data) {
+    return { summary_rows : _get_visible_rows(data.column_names, summary_rows) };
+};
+
 var _get_expected_num_rows = function (data) {
     return { ex_num_rows : expected_num_rows };
 };
 
 var _request_dataset = function (data) {
-    var request_made = false;
-
     columns           = {};
     rows              = [];
+    summary_rows      = [];
     partitioned_rows  = {};
     expected_num_rows = undefined;
 
-    if (typeof(socket) !== "undefined") {
-        socket.send(data.request);
-        request_made = true;
-    }
-    if (typeof(ajax_datasource) !== "undefined") {
-        _ajax(data.request);
-        request_made = true;
-    }
-
-    return request_made ? {} : { error: "Could not request dataset; no datasource defined." };
+    return _request_dataset_for_append(data);
 };
 
 var _request_dataset_for_append = function (data) {
@@ -1230,6 +1233,9 @@ handle_message = function (e) {
                 break;
             case "get_rows":
                 reply = _get_rows(data);
+                break;
+            case "get_summary_rows":
+                reply = _get_summary_rows(data);
                 break;
             case "get_dataset":
                 reply = _get_dataset(data);
