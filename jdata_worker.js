@@ -1043,7 +1043,7 @@ var _get_rows = function (data) {
     var start = data.start, end = data.end;
 
     if (typeof(end) !== "undefined") {
-        end += 1;
+        end = parseInt(end) + 1;
     }
 
     return { rows : _get_dataset(data).rows.slice(start, end) };
