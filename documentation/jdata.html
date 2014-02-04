@@ -35,6 +35,7 @@
                         <li><a href="#limit">Limit</a></li>
                         <li><a href="#remove_columns">Remove columns</a></li>
                         <li><a href="#hide_columns">Hide columns</a></li>
+                        <li><a href="#clear_dataset">Clear Dataset</a></li>
                         <li><a href="#sort">Sort</a></li>
                         <li><a href="#add-child-rows">Add Child Rows</a></li>
                         <li class="nav-header">Access the dataset!</li>
@@ -471,6 +472,12 @@
     d.get_all_columns(function (columns) {
         all_columns = columns; 
     });</pre>
+                    </section>
+                    <section id="clear_dataset">
+                        <h3>Clear Dataset</h3>
+                        <p>If you want to completely clear the dataset so that you can add new data while leaving any custom handlers intact, you may call <code>clear_dataset</code>.</p>
+                        <pre>   d.clear_dataset();</pre>
+                        <p>This will remove references to all columns and rows. The function takes no parameters.</p>
                     </section>
                     <section id="sort">
                         <h3>Sort</h3>

@@ -1086,4 +1086,14 @@
 
         return self;
     };
+
+    JData.prototype.clear_dataset = function (callback) {
+        var self = this;
+
+        self._queue_next(function () {
+            self._worker.postMessage({ cmd : "clear_dataset" });
+        });
+
+        return self;
+    };
 })();

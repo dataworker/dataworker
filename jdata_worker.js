@@ -1059,12 +1059,18 @@ var _get_expected_num_rows = function (data) {
     return { ex_num_rows : expected_num_rows };
 };
 
-var _request_dataset = function (data) {
+var _clear_dataset = function () {
     columns           = {};
     rows              = [];
     summary_rows      = [];
     partitioned_rows  = {};
     expected_num_rows = undefined;
+
+    return {};
+};
+
+var _request_dataset = function (data) {
+    _clear_dataset();
 
     return _request_dataset_for_append(data);
 };
@@ -1253,6 +1259,9 @@ handle_message = function (e) {
                 break;
             case "get_number_of_pages":
                 reply = _get_number_of_pages(data);
+                break;
+            case "clear_dataset":
+                reply = _clear_dataset();
                 break;
             case "request_dataset":
                 reply = _request_dataset(data);

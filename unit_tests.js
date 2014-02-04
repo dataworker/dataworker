@@ -3804,8 +3804,7 @@ asyncTest('JData works without Web Worker support (older browsers)', function ()
     }).finish();
 });
 
-asyncTest('then() function lets you utilize JData\'s action queue', function ()
-{
+asyncTest('then() function lets you utilize JData\'s action queue', function () {
     expect(2);
 
     var dataset = [
@@ -3826,6 +3825,35 @@ asyncTest('then() function lets you utilize JData\'s action queue', function ()
         x = num_rows;
     }).then(function () {
         equal(x, 4);
+        start();
+    }).finish();
+});
+
+asyncTest('then() function lets you utilize JData\'s action queue', function () {
+    expect(3);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData(dataset);
+
+    d.get_dataset(function(result) {
+        deepEqual(result, [
+            [ 'apple',  'violin', 'music' ],
+            [ 'cat',    'tissue', 'dog'   ],
+            [ 'banana', 'piano',  'gum'   ],
+            [ 'gummy',  'power',  'star'  ]
+        ]);
+    }).clear_dataset().get_columns(function (result) {
+        deepEqual(result, []);
+    }).get_dataset(function (result) {
+        deepEqual(result, []);
         start();
     }).finish();
 });
