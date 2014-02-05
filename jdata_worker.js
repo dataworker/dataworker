@@ -238,7 +238,8 @@ var _ajax = function (request) {
             }
 
             if (msg.columns) {
-                columns = _prepare_columns(msg.columns);
+                var error = _check_columns_for_append(msg.columns);
+                if (error) return postMessage({ error: error });
             }
             if (msg.rows) {
                 if (typeof(rows) === "undefined") rows = [];
@@ -303,7 +304,8 @@ var _initialize_websocket_connection = function (data) {
         }
 
         if (msg.columns) {
-            columns = _prepare_columns(msg.columns);
+            var error = _check_columns_for_append(msg.columns);
+            if (error) return postMessage({ error: error });
         }
 
         if (msg.expected_num_rows === "INFINITE") {
@@ -674,6 +676,11 @@ var _check_columns_for_append = function (new_columns) {
 
     if (new_columns instanceof Array) {
         new_columns = _prepare_columns(new_columns);
+    }
+
+    if (Object.keys(columns).length === 0) {
+        columns = new_columns;
+        return;
     }
 
     error_msg = function () {

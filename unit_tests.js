@@ -3829,7 +3829,7 @@ asyncTest('then() function lets you utilize JData\'s action queue', function () 
     }).finish();
 });
 
-asyncTest('then() function lets you utilize JData\'s action queue', function () {
+asyncTest('clear_dataset', function () {
     expect(3);
 
     var dataset = [
@@ -3851,9 +3851,34 @@ asyncTest('then() function lets you utilize JData\'s action queue', function () 
             [ 'gummy',  'power',  'star'  ]
         ]);
     }).clear_dataset().get_columns(function (result) {
-        deepEqual(result, []);
+        deepEqual(result, {});
     }).get_dataset(function (result) {
         deepEqual(result, []);
+        start();
+    }).finish();
+});
+
+asyncTest('appending to empty dataset takes in new columns', function () {
+    expect(1);
+
+    var dataset = [
+        [ 'column_a', 'column_b', 'column_c' ],
+
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ]
+    ];
+
+    var d = new JData([ [] ]).append(dataset);
+
+    d.get_dataset(function(result) {
+        deepEqual(result, [
+            [ 'apple',  'violin', 'music' ],
+            [ 'cat',    'tissue', 'dog'   ],
+            [ 'banana', 'piano',  'gum'   ],
+            [ 'gummy',  'power',  'star'  ]
+        ]);
         start();
     }).finish();
 });
