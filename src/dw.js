@@ -496,6 +496,27 @@
         return self;
     };
 
+    DataWorker.prototype.getHashedRows = function (callback, start, end) {
+        var self         = this,
+            columnNames = arguments[3] instanceof Array
+                        ? arguments[3]
+                        : Array.prototype.slice.call(arguments, 3);
+
+        self._queueNext(function () {
+            self._worker.postMessage({
+                cmd         : "getHashedRows",
+                start       : start,
+                end         : end,
+                columnNames : columnNames
+            });
+        })._queueNext(function () {
+            callback(self._rows);
+            self._finishAction();
+        });
+
+        return self;
+    };
+
     DataWorker.prototype.getColumnsAndRecords = function (callback) {
         var self = this;
 

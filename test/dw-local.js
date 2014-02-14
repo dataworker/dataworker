@@ -3763,3 +3763,44 @@ asyncTest("appending to empty dataset takes in new columns", function () {
         start();
     }).finish();
 });
+
+asyncTest("getHashedRows base case", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.getHashedRows(function (result) {
+        deepEqual(result, [
+            {
+                "column_a": "apple",
+                "column_b": "violin",
+                "column_c": "music"
+            },
+            {
+                "column_a": "cat",
+                "column_b": "tissue",
+                "column_c": "dog"
+            },
+            {
+                "column_a": "banana",
+                "column_b": "piano",
+                "column_c": "gum"
+            },
+            {
+                "column_a": "gummy",
+                "column_b": "power",
+                "column_c": "star"
+            }
+        ]);
+        start();
+    }).finish();
+});

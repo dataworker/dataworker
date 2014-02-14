@@ -1062,6 +1062,27 @@
             return { rows : _getDataset(data).rows.slice(start, end) };
         };
 
+        var _getHashedRows = function (data) {
+            var columns = data.columnNames,
+                rows    = _getRows(data).rows;
+
+            if (!columns.length) {
+                columns = _getColumns().columns;
+                columns = Object.keys(columns).sort(function (a, b) {
+                    return columns[a].index - columns[b].index;
+                });
+            }
+
+            return {
+                rows: rows.map(function (row) {
+                    return columns.reduce(function (hash, name, index) {
+                        hash[name] = row[index];
+                        return hash;
+                    }, {});
+                })
+            };
+        };
+
         var _getSummaryRows = function (data) {
             return { summaryRows : _getVisibleRows(data.columnNames, summaryRows) };
         };
@@ -1252,6 +1273,9 @@
                         break;
                     case "getRows":
                         reply = _getRows(data);
+                        break;
+                    case "getHashedRows":
+                        reply = _getHashedRows(data);
                         break;
                     case "getSummaryRows":
                         reply = _getSummaryRows(data);

@@ -40,6 +40,8 @@
                         <li><a href="#add-child-rows">Add Child Rows</a></li>
                         <li class="nav-header">Access the dataset!</li>
                         <li><a href="#get-dataset">Get dataset</a></li>
+                        <li><a href="#get-rows">Get rows</a></li>
+                        <li><a href="#get-hashed-rows">Get hashed rows</a></li>
                         <li><a href="#get-columns">Get columns</a></li>
                         <li><a href="#get-columns-and-records">Get columns and records</a></li>
                         <li><a href="#get-number-of-records">Get number of records</a></li>
@@ -569,7 +571,7 @@
     ]</pre>
                         <p>The <code>getDataset</code> method can also grab only specified rows:</p>
                         <pre>
-    g.getDataset(function (result) { records = result; }, "column_a", "column_b");</pre>
+    dw.getDataset(function (result) { records = result; }, "column_a", "column_b");</pre>
                         <p>The following would be the contents of <code>records</code>:</p>
                         <pre>
     [
@@ -580,10 +582,68 @@
     ]</pre>
                         <p>Note that the following does the same thing as the preceding sample:</p>
                         <pre>
-    g.getDataset(
+    dw.getDataset(
         function (result) { records = result; },
         [ "column_a", "column_b" ]
     );</pre>
+                    </section>
+                    <section id="get-rows">
+                        <h3>Get rows</h3>
+                        <p>Another function to fetch rows is <code>getRows</code>. This function works the same as <code>getDataset</code> except that it allows for a range of rows</p>
+                        <p>If called with just the callback function, <code>getRows</code> will get all rows. The next two arguments are the start and end of the range. If unspecified, they are the start and end of the dataset. These arguments are 0-based, so a dataset with 15 rows will have rows 0 - 14. If a number larger than the last row is used DataWorker will simply return anything in the range <i>up to</i> (and including) the last row.</p>
+                        <p>Like <code>getDataset</code>, <code>getRows</code> may also specify the columns. All of the following calls to getRows are valid examples:</p>
+                        <pre>
+    var callback = function (rows) { /* Do something */ };
+
+    dw.getRows(callback);
+    dw.getRows(callback, 5);
+    dw.getRows(callback, undefined, 10);
+    dw.getRows(callback, 5, 10);
+    dw.getRows(callback, 5, 10, "column_a", "column_b");
+    dw.getRows(callback, 5, 10, [ "column_a", "column_b" ]);
+    dw.getRows(callback, undefined, undefined, [ "column_a", "column_b" ]);</pre>
+                    </section>
+                    <section id="get-hashed-rows">
+                        <h3>Get hashed rows</h3>
+                        <p>The <code>getHashedRows</code> function makes it possible to get records as a hash with the column names instead of as a simple array. It works exactly the same as <code>getRows</code> but returns the data in a different format. In the following example</p>
+                        <pre>
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
+    ];
+
+    var dw = new DataWorker(dataset);
+    var records;
+
+    dw.getHashedRows(function (result) { records = result; });</pre>
+                        <p>the contents of <code>records</code> will be:</p>
+                        <pre>
+    [
+        {
+            "column_a": "apple",
+            "column_b": "violin",
+            "column_c": "music"
+        },
+        {
+            "column_a": "cat",
+            "column_b": "tissue",
+            "column_c": "dog"
+        },
+        {
+            "column_a": "banana",
+            "column_b": "piano",
+            "column_c": "gum"
+        },
+        {
+            "column_a": "gummy",
+            "column_b": "power",
+            "column_c": "star"
+        }
+    ]</pre>
                     </section>
                     <section id="get-columns">
                         <h3>Get columns</h3>
