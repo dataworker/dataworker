@@ -941,8 +941,8 @@
             return {};
         };
 
-        var _getLastPage = function () {
-            var visibleRows = _getVisibleRows();
+        var _getLastPage = function (data) {
+            var visibleRows = _getVisibleRows(data.columnNames);
 
             return {
                 visibleRows: visibleRows,
@@ -951,7 +951,7 @@
         };
 
         var _getPage = function (data) {
-            var rowData = _getLastPage(),
+            var rowData = _getLastPage(data),
                 start, end;
 
             data.lastPage = rowData.lastPage;
@@ -967,7 +967,7 @@
         var _setPage = function (data) {
 
             if (!("lastPage" in data)) {
-                data.lastPage = _getLastPage().lastPage;
+                data.lastPage = _getLastPage(data).lastPage;
             }
 
             if (typeof(data.pageNum) !== "undefined") {
@@ -986,8 +986,8 @@
             return { currentPage: currentPage + 1 };
         };
 
-        var _getNumberOfPages = function () {
-            var rowData = _getLastPage();
+        var _getNumberOfPages = function (data) {
+            var rowData = _getLastPage(data);
 
             return { numberOfPages: rowData.lastPage + 1 };
         };

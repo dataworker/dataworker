@@ -3804,3 +3804,40 @@ asyncTest("getHashedRows base case", function () {
         start();
     }).finish();
 });
+
+asyncTest("getPage can ask for specific columns", function () {
+    expect(6);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.paginate(3).getPage(function (page, pageNum) {
+        deepEqual(page, [
+            [ "apple",  "violin" ],
+            [ "cat",    "tissue" ],
+            [ "banana", "piano"  ]
+        ]);
+        equal(pageNum, 1);
+    }, undefined, "column_a", "column_b").getPage(function (page, pageNum) {
+        deepEqual(page, [
+            [ "gummy",  "star" ]
+        ]);
+        equal(pageNum, 2);
+    }, 2, [ "column_a", "column_c" ]).getPage(function (page, pageNum) {
+        deepEqual(page, [
+            [ "violin" ],
+            [ "tissue" ],
+            [ "piano"  ]
+        ]);
+        equal(pageNum, 1);
+        start();
+    }, 1, "column_b").finish();
+});

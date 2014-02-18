@@ -233,9 +233,7 @@
     DataWorker.prototype.getDataset = function () {
         var self = this,
             callback = arguments[0],
-            columnNames = arguments[1] instanceof Array
-                        ? arguments[1]
-                        : Array.prototype.slice.call(arguments, 1);
+            columnNames = _getArray(arguments, 1);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -270,9 +268,7 @@
 
     DataWorker.prototype.applyFilter = function () {
         var self = this,
-            filters = arguments[0] instanceof Array
-                    ? arguments[0]
-                    : Array.prototype.slice.call(arguments);
+            filters = _getArray(arguments);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -299,9 +295,7 @@
     DataWorker.prototype.filter = function () {
         var self = this,
             regex = arguments[0],
-            relevantColumns = arguments[1] instanceof Array
-                            ? arguments[1]
-                            : Array.prototype.slice.call(arguments, 1);
+            relevantColumns = _getArray(arguments, 1);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -341,9 +335,7 @@
     };
 
     DataWorker.prototype.sort = function () {
-        var self = this, sortColumns = arguments[0] instanceof Array
-                                     ? arguments[0]
-                                     : Array.prototype.slice.call(arguments);
+        var self = this, sortColumns = _getArray(arguments);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -372,9 +364,7 @@
 
     DataWorker.prototype.removeColumns = function () {
         var self = this,
-            columnsToRemove = arguments[0] instanceof Array
-                            ? arguments[0]
-                            : Array.prototype.slice.call(arguments);
+            columnsToRemove = _getArray(arguments);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -400,9 +390,10 @@
     };
 
     DataWorker.prototype.getNextPage = function (callback) {
-        var self = this;
+        var self        = this,
+            columnNames = _getArray(arguments, 1);
 
-        self._getPage(undefined, true, false)._queueNext(function() {
+        self._getPage(undefined, true, false, columnNames)._queueNext(function() {
             callback(self._rows, self._currentPage);
             return self._finishAction();
         });
@@ -411,9 +402,10 @@
     };
 
     DataWorker.prototype.getPreviousPage = function (callback) {
-        var self = this;
+        var self        = this,
+            columnNames = _getArray(arguments, 1);
 
-        self._getPage(undefined, false, true)._queueNext(function () {
+        self._getPage(undefined, false, true, columnNames)._queueNext(function () {
             callback(self._rows, self._currentPage);
             return self._finishAction();
         });
@@ -436,13 +428,14 @@
         return self;
     };
 
-    DataWorker.prototype._getPage = function (pageNum, incrementPage, decrementPage) {
+    DataWorker.prototype._getPage = function (pageNum, incrementPage, decrementPage, columnNames) {
         var self = this;
 
         self._queueNext(function () {
             self._worker.postMessage({
                 cmd           : "getPage",
                 pageNum       : pageNum,
+                columnNames   : columnNames,
                 incrementPage : incrementPage,
                 decrementPage : decrementPage
             });
@@ -452,9 +445,10 @@
     };
 
     DataWorker.prototype.getPage = function (callback, pageNum) {
-        var self = this;
+        var self        = this,
+            columnNames = _getArray(arguments, 2);
 
-        self._getPage(pageNum)._queueNext(function () {
+        self._getPage(pageNum, undefined, undefined, columnNames)._queueNext(function () {
             callback(self._rows, self._currentPage);
             self._finishAction();
         });
@@ -476,10 +470,8 @@
     };
 
     DataWorker.prototype.getRows = function (callback, start, end) {
-        var self         = this,
-            columnNames = arguments[3] instanceof Array
-                        ? arguments[3]
-                        : Array.prototype.slice.call(arguments, 3);
+        var self        = this,
+            columnNames = _getArray(arguments, 3);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -497,10 +489,8 @@
     };
 
     DataWorker.prototype.getHashedRows = function (callback, start, end) {
-        var self         = this,
-            columnNames = arguments[3] instanceof Array
-                        ? arguments[3]
-                        : Array.prototype.slice.call(arguments, 3);
+        var self        = this,
+            columnNames = _getArray(arguments, 3);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -704,9 +694,7 @@
 
     DataWorker.prototype.group = function () {
         var self = this,
-            groupBy = arguments[0] instanceof Array
-                    ? arguments[0]
-                    : Array.prototype.slice.call(arguments);
+            groupBy = _getArray(arguments);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -720,9 +708,7 @@
 
     DataWorker.prototype.partition = function () {
         var self = this,
-            partitionBy = arguments[0] instanceof Array
-                        ? arguments[0]
-                        : Array.prototype.slice.call(arguments);
+            partitionBy = _getArray(arguments);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -750,9 +736,7 @@
     DataWorker.prototype.getPartitioned = function () {
         var self = this,
             callback = arguments[0],
-            keys = arguments[1] instanceof Array
-                 ? arguments[1]
-                 : Array.prototype.slice.call(arguments, 1);
+            keys = _getArray(arguments, 1);
 
         self._queueNext(function () {
             self._worker.postMessage({
@@ -976,9 +960,7 @@
 
     DataWorker.prototype.hideColumns = function () {
         var self = this, msg = { cmd : "hideColumns" },
-            columnNames = arguments[0] instanceof Array
-                        ? arguments[0]
-                        : Array.prototype.slice.call(arguments);
+            columnNames = _getArray(arguments);
 
         if (columnNames[0] instanceof RegExp) {
             msg["columnNameRegex"] = columnNames[0];
@@ -995,9 +977,7 @@
 
     DataWorker.prototype.showColumns = function () {
         var self = this, msg = { cmd : "showColumns" },
-            columnNames = arguments[0] instanceof Array
-                        ? arguments[0]
-                        : Array.prototype.slice.call(arguments);
+            columnNames = _getArray(arguments);
 
         if (columnNames[0] instanceof RegExp) {
             msg["columnNameRegex"] = columnNames[0];
@@ -1115,4 +1095,13 @@
 
         return self;
     };
+
+    function _getArray(args, offset) {
+        var idx  = offset || 0,
+            arr  = args[idx] instanceof Array
+                 ? args[idx]
+                 : Array.prototype.slice.call(args, idx);
+
+        return arr;
+    }
 })();

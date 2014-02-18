@@ -758,6 +758,13 @@
         currentPage = pageNumber; // pageNumber == 4
     }, 4);</pre>
                         <p>Note that this also sets your current page to the page you grab.</p>
+                        <h5>Ask for specific columns</h5>
+                        <p>The previous three functions (<code>getNextPage</code>, <code>getPreviousPage</code>, and <code>getPage</code>) can all take extra arguments defining which columns to return. This will allow you to get a reduced dataset or specify columns that would normally be hidden. The columns can be defined as additional names, or as an array of names. The following are both valid:</p>
+                        <pre>
+    var callback = function (result, pageNumber) { /* Do something */ };
+
+    dw.getNextPage(callback, "column_a", "column_b");
+    dw.getNextPage(callback, [ "column_b", "column_c" ]);</pre>
                         <h5>Set page</h5>
                         <p>Use the <code>setPage</code> method to set a new current page. Attempting to set the page to 0 or a negative number will set the page to page 1. Setting to a page past the max number of current pages will set the page to the last page. The following sets your current page to page 4:</p>
                         <pre>
