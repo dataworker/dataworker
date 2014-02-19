@@ -300,7 +300,11 @@
             };
 
             socket.onmessage = function (msg) {
-                msg = JSON.parse(msg.data);
+                try {
+                    msg = JSON.parse(msg.data);
+                } catch (error) {
+                    postMessage({ "error": error.message + ": " + msg.data });
+                }
 
                 if (msg.error) {
                     postMessage({ error : msg.error });
