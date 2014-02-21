@@ -210,26 +210,6 @@
         return self;
     };
 
-    DataWorker.prototype._refresh = function () {
-        var self = this;
-
-        self._queueNext(function () {
-            self._worker.postMessage({ cmd : "refresh" });
-        });
-
-        return self;
-    };
-
-    DataWorker.prototype._refreshAll = function () {
-        var self = this;
-
-        self._queueNext(function () {
-            self._worker.postMessage({ cmd : "refreshAll" });
-        });
-
-        return self;
-    };
-
     DataWorker.prototype.getDataset = function () {
         var self = this,
             callback = arguments[0],
@@ -240,9 +220,11 @@
                 cmd         : "getDataset",
                 columnNames : columnNames
             });
-        })._queueNext(function () {
-            callback(self._rows);
-            return self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._rows);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -258,9 +240,11 @@
                 cmd        : "getDistinctConsecutiveRows",
                 columnName : columnName
             });
-        })._queueNext(function () {
-            callback(self._distinctRows);
-            return self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._distinctRows);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -393,9 +377,13 @@
         var self        = this,
             columnNames = _getArray(arguments, 1);
 
-        self._getPage(undefined, true, false, columnNames)._queueNext(function() {
-            callback(self._rows, self._currentPage);
-            return self._finishAction();
+        self._queueNext(function () {
+            self._getPage(undefined, true, false, columnNames);
+
+            self._queueNext(function() {
+                callback(self._rows, self._currentPage);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -405,9 +393,13 @@
         var self        = this,
             columnNames = _getArray(arguments, 1);
 
-        self._getPage(undefined, false, true, columnNames)._queueNext(function () {
-            callback(self._rows, self._currentPage);
-            return self._finishAction();
+        self._queueNext(function () {
+            self._getPage(undefined, false, true, columnNames);
+
+            self._queueNext(function () {
+                callback(self._rows, self._currentPage);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -420,9 +412,11 @@
             self._worker.postMessage({
                 cmd : "getNumberOfPages"
             });
-        })._queueNext(function () {
-            callback(self._numberOfPages);
-            return self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._numberOfPages);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -431,14 +425,12 @@
     DataWorker.prototype._getPage = function (pageNum, incrementPage, decrementPage, columnNames) {
         var self = this;
 
-        self._queueNext(function () {
-            self._worker.postMessage({
-                cmd           : "getPage",
-                pageNum       : pageNum,
-                columnNames   : columnNames,
-                incrementPage : incrementPage,
-                decrementPage : decrementPage
-            });
+        self._worker.postMessage({
+            cmd           : "getPage",
+            pageNum       : pageNum,
+            columnNames   : columnNames,
+            incrementPage : incrementPage,
+            decrementPage : decrementPage
         });
 
         return self;
@@ -448,9 +440,13 @@
         var self        = this,
             columnNames = _getArray(arguments, 2);
 
-        self._getPage(pageNum, undefined, undefined, columnNames)._queueNext(function () {
-            callback(self._rows, self._currentPage);
-            self._finishAction();
+        self._queueNext(function () {
+            self._getPage(pageNum, undefined, undefined, columnNames);
+
+            self._queueNext(function () {
+                callback(self._rows, self._currentPage);
+                self._finishAction();
+            });
         });
 
         return self;
@@ -461,8 +457,8 @@
 
         self._queueNext(function () {
             self._worker.postMessage({
-                    cmd     : "setPage",
-                    pageNum : pageNum
+                cmd     : "setPage",
+                pageNum : pageNum
             });
         });
 
@@ -480,9 +476,11 @@
                 end         : end,
                 columnNames : columnNames
             });
-        })._queueNext(function () {
-            callback(self._rows);
-            self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._rows);
+                self._finishAction();
+            });
         });
 
         return self;
@@ -499,9 +497,11 @@
                 end         : end,
                 columnNames : columnNames
             });
-        })._queueNext(function () {
-            callback(self._rows);
-            self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._rows);
+                self._finishAction();
+            });
         });
 
         return self;
@@ -510,9 +510,13 @@
     DataWorker.prototype.getColumnsAndRecords = function (callback) {
         var self = this;
 
-        self._refresh()._queueNext(function () {
-            callback(self._columns, self._rows);
-            return self._finishAction();
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "refresh" });
+
+            self._queueNext(function () {
+                callback(self._columns, self._rows);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -521,9 +525,13 @@
     DataWorker.prototype.getAllColumnsAndAllRecords = function (callback) {
         var self = this;
 
-        self._refreshAll()._queueNext(function () {
-            callback(self._columns, self._rows);
-            return self._finishAction();
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "refreshAll" });
+
+            self._queueNext(function () {
+                callback(self._columns, self._rows);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -571,37 +579,43 @@
                 self._onError("Unknown join type.");
             }
 
-            return self._finishAction();
-        });
+            self._queueNext(function () {
+                self._worker.postMessage({ cmd : "getAllColumns" });
 
+                self._queueNext(function () {
+                    fdata.getAllColumns(function (columns) {
+                        Object.keys(columns).forEach(function (columnName) {
+                            if (columnName in self._columns) {
+                                self._onError("Column names overlap.");
+                            }
+                        });
 
-        self._queueNext(function () {
-            self._worker.postMessage({ cmd : "getAllColumns" });
-        })._queueNext(function () {
-            fdata.getAllColumns(function (columns) {
-                Object.keys(columns).forEach(function (columnName) {
-                    if (columnName in self._columns) {
-                        self._onError("Column names overlap.");
-                    }
+                        fColumns = columns;
+
+                        self._queueNext(function () {
+                            fdata.getHashOfDatasetByKeyColumns.call(fdata, function (hash) {
+                                fHash = hash;
+
+                                self._queueNext(function () {
+                                    self._worker.postMessage({
+                                        cmd        : "join",
+                                        keyColumns : pk,
+                                        rHash      : fHash,
+                                        joinType   : joinType,
+                                        fColumns   : fColumns
+                                    });
+                                });
+
+                                return self._finishAction();
+                            }, fk);
+                        });
+
+                        return self._finishAction();
+                    });
                 });
-
-                fColumns = columns;
-
-                return self._finishAction();
             });
-        })._queueNext(function () {
-            fdata.getHashOfDatasetByKeyColumns.call(fdata, function (hash) {
-                fHash = hash;
-                return self._finishAction();
-            }, fk);
-        })._queueNext(function () {
-            self._worker.postMessage({
-                cmd        : "join",
-                keyColumns : pk,
-                rHash      : fHash,
-                joinType   : joinType,
-                fColumns   : fColumns
-            });
+
+            return self._finishAction();
         });
 
         return self;
@@ -615,9 +629,11 @@
                 cmd        : "hash",
                 keyColumns : keyColumns
             });
-        })._queueNext(function () {
-            callback(self._hash);
-            return self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._hash);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -698,8 +714,8 @@
 
         self._queueNext(function () {
             self._worker.postMessage({
-                cmd            : "group",
-                keyColumns    : groupBy
+                cmd        : "group",
+                keyColumns : groupBy
             });
         });
 
@@ -725,9 +741,11 @@
 
         self._queueNext(function () {
             self._worker.postMessage({ cmd : "getPartitionKeys" });
-        })._queueNext(function () {
-            callback(self._keys);
-            self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._keys);
+                self._finishAction();
+            });
         });
 
         return self;
@@ -743,9 +761,11 @@
                 cmd : "getPartitioned",
                 key : keys.join("|")
             });
-        })._queueNext(function () {
-            callback(self._rows);
-            return self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._rows);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -886,9 +906,11 @@
 
         self._queueNext(function () {
             self._worker.postMessage({ cmd : "getNumRows" });
-        })._queueNext(function () {
-            callback(self._numRows);
-            return self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._numRows);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -917,9 +939,11 @@
 
         self._queueNext(function () {
             self._worker.postMessage({ cmd : "getExpectedNumRows" });
-        })._queueNext(function () {
-            callback(self._expectedNumRows);
-            return self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._expectedNumRows);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -1017,9 +1041,11 @@
 
         self._queueNext(function () {
             self._worker.postMessage({ cmd : "getAllColumns" });
-        })._queueNext(function () {
-            callback(self._columns);
-            return self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._columns);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -1078,9 +1104,11 @@
 
         self._queueNext(function () {
             self._worker.postMessage({ cmd : "getSummaryRows" });
-        })._queueNext(function () {
-            callback(self._summaryRows);
-            return self._finishAction();
+
+            self._queueNext(function () {
+                callback(self._summaryRows);
+                return self._finishAction();
+            });
         });
 
         return self;
