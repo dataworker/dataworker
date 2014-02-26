@@ -117,7 +117,9 @@
         var _getVisibleRows = function (requestedColumns, requestedRows) {
             var visibleColumnIdxs = [], visibleRows = [];
 
-            if (!(requestedColumns || []).length) requestedColumns = undefined;
+            if (!(requestedColumns || []).length) {
+                requestedColumns = undefined;
+            }
             requestedRows = requestedRows || rows;
 
             if (hasChildElements) {
@@ -1091,6 +1093,12 @@
             return { summaryRows : _getVisibleRows(data.columnNames, summaryRows) };
         };
 
+        var _setSummaryRows = function (data) {
+            debugger;
+            summaryRows = _prepareRows(data.summaryRows);
+            return {};
+        };
+
         var _getExpectedNumRows = function (data) {
             return { exNumRows : expectedNumRows };
         };
@@ -1283,6 +1291,9 @@
                         break;
                     case "getSummaryRows":
                         reply = _getSummaryRows(data);
+                        break;
+                    case "setSummaryRows":
+                        reply = _setSummaryRows(data);
                         break;
                     case "getDataset":
                         reply = _getDataset(data);

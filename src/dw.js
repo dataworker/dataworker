@@ -189,22 +189,16 @@
         return self;
     };
 
-    DataWorker.prototype._getColumns = function () {
+    DataWorker.prototype.getColumns = function (callback) {
         var self = this;
 
         self._queueNext(function () {
             self._worker.postMessage({ cmd : "getColumns" });
-        });
 
-        return self;
-    };
-
-    DataWorker.prototype.getColumns = function (callback) {
-        var self = this;
-
-        self._getColumns()._queueNext(function () {
-            callback(self._columns);
-            return self._finishAction();
+            self._queueNext(function () {
+                callback(self._columns);
+                return self._finishAction();
+            });
         });
 
         return self;
@@ -1100,10 +1094,14 @@
     };
 
     DataWorker.prototype.getSummaryRows = function (callback) {
-        var self = this;
+        var self = this,
+            columnNames = _getArray(arguments, 1);
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "getSummaryRows" });
+            self._worker.postMessage({
+                cmd         : "getSummaryRows",
+                columnNames : columnNames
+            });
 
             self._queueNext(function () {
                 callback(self._summaryRows);
@@ -1112,6 +1110,20 @@
         });
 
         return self;
+    };
+
+    DataWorker.prototype.setSummaryRows = function () {
+        var self = this,
+            rows = arguments.length === 1
+                 ? arguments[0]
+                 : Array.prototype.slice.call(arguments);
+
+        self._queueNext(function () {
+            self._worker.postMessage({
+                cmd         : "setSummaryRows",
+                summaryRows : rows
+            });
+        });
     };
 
     DataWorker.prototype.clearDataset = function (callback) {

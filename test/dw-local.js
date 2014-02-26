@@ -3841,3 +3841,88 @@ asyncTest("getPage can ask for specific columns", function () {
         start();
     }, 1, "column_b").finish();
 });
+
+asyncTest("get/set summary rows", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.setSummaryRows(
+        [ "things", "stuffs", "foothings" ],
+        [ "things", "stuffs", "foostuffs" ]
+    );
+
+    d.getSummaryRows(function (rows) {
+        deepEqual(rows, [
+            [ "things", "stuffs", "foothings" ],
+            [ "things", "stuffs", "foostuffs" ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest("get/set summary rows (set with an array of summary rows)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.setSummaryRows([
+        [ "things", "stuffs", "foothings" ],
+        [ "things", "stuffs", "foostuffs" ]
+    ]);
+
+    d.getSummaryRows(function (rows) {
+        deepEqual(rows, [
+            [ "things", "stuffs", "foothings" ],
+            [ "things", "stuffs", "foostuffs" ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest("get summary rows (specify columns)", function () {
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.setSummaryRows(
+        [ "things", "stuffs", "foothings" ],
+        [ "things", "stuffs", "foostuffs" ]
+    );
+
+    d.getSummaryRows(function (rows) {
+        deepEqual(rows, [
+            [ "foothings", "things" ],
+            [ "foostuffs", "things" ]
+        ]);
+
+        start();
+    }, "column_c", "column_a").finish();
+});
