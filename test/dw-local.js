@@ -3926,3 +3926,27 @@ asyncTest("get summary rows (specify columns)", function () {
         start();
     }, "column_c", "column_a").finish();
 });
+
+asyncTest("apply filter (simple, column-restricted, multi-column, found, using array for column names)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",    "apple" ]
+    ];
+
+    var d = new DataWorker(dataset);
+    d.applyFilter(/apple/, [ "column_a", "column_c" ])
+     .sort("column_a")
+     .getDataset(function (result) {
+        deepEqual(result, [
+            [ "apple", "violin", "music" ],
+            [ "gummy", "power", "apple"  ]
+        ]);
+        start();
+     }).finish();
+});
