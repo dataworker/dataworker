@@ -35,7 +35,7 @@
         self._initializeWebWorker(dataset);
 
         window.addEventListener("beforeunload", function () {
-            self._worker.postMessage({ cmd : "finish" });
+            self._postMessage({ cmd : "finish" });
         });
 
         return self;
@@ -49,10 +49,23 @@
         return self;
     };
 
-    DataWorker.prototype._finishAction = function () {
+    DataWorker.prototype._finishAction = function (finishAsynchronous) {
         var self = this;
 
+        if (finishAsynchronous) {
+            self._actionQueue.finishAsynchronous();
+        }
+
         self._actionQueue.finishAction();
+
+        return self;
+    };
+
+    DataWorker.prototype._postMessage = function (message) {
+        var self = this;
+
+        self._actionQueue.beginAsynchronous();
+        self._worker.postMessage(message);
 
         return self;
     };
@@ -160,10 +173,10 @@
                     return;
                 }
 
-                self._finishAction();
+                self._finishAction(true);
             };
 
-            self._worker.postMessage({
+            self._postMessage({
                 cmd          : "initialize",
                 columns      : columns,
                 rows         : rows,
@@ -181,7 +194,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "finish" });
+            self._postMessage({ cmd : "finish" });
         })._queueNext(function () {
             self._worker.terminate();
         });
@@ -193,12 +206,10 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "getColumns" });
-
-            self._queueNext(function () {
-                callback(self._columns);
-                return self._finishAction();
-            });
+            self._postMessage({ cmd : "getColumns" });
+        })._queueNext(function () {
+            callback(self._columns);
+            return self._finishAction();
         });
 
         return self;
@@ -210,15 +221,13 @@
             columnNames = _getArray(arguments, 1);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd         : "getDataset",
                 columnNames : columnNames
             });
-
-            self._queueNext(function () {
-                callback(self._rows);
-                return self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._rows);
+            return self._finishAction();
         });
 
         return self;
@@ -230,15 +239,13 @@
             columnName = arguments[1];
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd        : "getDistinctConsecutiveRows",
                 columnName : columnName
             });
-
-            self._queueNext(function () {
-                callback(self._distinctRows);
-                return self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._distinctRows);
+            return self._finishAction();
         });
 
         return self;
@@ -249,7 +256,7 @@
             filters = _getArray(arguments);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "applyFilter",
                 filters : filters
             });
@@ -262,7 +269,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd : "clearFilters"
             });
         });
@@ -276,7 +283,7 @@
             relevantColumns = _getArray(arguments, 1);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd             : "filter",
                 regex           : regex,
                 relevantColumns : relevantColumns
@@ -290,7 +297,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "applyLimit",
                 numRows : numRows
             });
@@ -303,7 +310,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "limit",
                 numRows : numRows
             });
@@ -316,7 +323,7 @@
         var self = this, sortColumns = _getArray(arguments);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "sort",
                 sortOn  : sortColumns,
                 columns : self._columns,
@@ -331,7 +338,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd                  : "setDecimalMarkCharacter",
                 decimalMarkCharacter : decimalMarkCharacter
             });
@@ -345,7 +352,7 @@
             columnsToRemove = _getArray(arguments);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd             : "removeColumns",
                 columnsToRemove : columnsToRemove
             });
@@ -358,7 +365,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd         : "paginate",
                 rowsPerPage : rowsPerPage
             });
@@ -373,11 +380,9 @@
 
         self._queueNext(function () {
             self._getPage(undefined, true, false, columnNames);
-
-            self._queueNext(function() {
-                callback(self._rows, self._currentPage);
-                return self._finishAction();
-            });
+        })._queueNext(function() {
+            callback(self._rows, self._currentPage);
+            return self._finishAction();
         });
 
         return self;
@@ -389,11 +394,9 @@
 
         self._queueNext(function () {
             self._getPage(undefined, false, true, columnNames);
-
-            self._queueNext(function () {
-                callback(self._rows, self._currentPage);
-                return self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._rows, self._currentPage);
+            return self._finishAction();
         });
 
         return self;
@@ -403,14 +406,12 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd : "getNumberOfPages"
             });
-
-            self._queueNext(function () {
-                callback(self._numberOfPages);
-                return self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._numberOfPages);
+            return self._finishAction();
         });
 
         return self;
@@ -419,7 +420,7 @@
     DataWorker.prototype._getPage = function (pageNum, incrementPage, decrementPage, columnNames) {
         var self = this;
 
-        self._worker.postMessage({
+        self._postMessage({
             cmd           : "getPage",
             pageNum       : pageNum,
             columnNames   : columnNames,
@@ -436,11 +437,9 @@
 
         self._queueNext(function () {
             self._getPage(pageNum, undefined, undefined, columnNames);
-
-            self._queueNext(function () {
-                callback(self._rows, self._currentPage);
-                self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._rows, self._currentPage);
+            self._finishAction();
         });
 
         return self;
@@ -450,7 +449,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "setPage",
                 pageNum : pageNum
             });
@@ -464,17 +463,15 @@
             columnNames = _getArray(arguments, 3);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd         : "getRows",
                 start       : start,
                 end         : end,
                 columnNames : columnNames
             });
-
-            self._queueNext(function () {
-                callback(self._rows);
-                self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._rows);
+            self._finishAction();
         });
 
         return self;
@@ -485,17 +482,15 @@
             columnNames = _getArray(arguments, 3);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd         : "getHashedRows",
                 start       : start,
                 end         : end,
                 columnNames : columnNames
             });
-
-            self._queueNext(function () {
-                callback(self._rows);
-                self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._rows);
+            self._finishAction();
         });
 
         return self;
@@ -505,12 +500,10 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "refresh" });
-
-            self._queueNext(function () {
-                callback(self._columns, self._rows);
-                return self._finishAction();
-            });
+            self._postMessage({ cmd : "refresh" });
+        })._queueNext(function () {
+            callback(self._columns, self._rows);
+            return self._finishAction();
         });
 
         return self;
@@ -520,12 +513,10 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "refreshAll" });
-
-            self._queueNext(function () {
-                callback(self._columns, self._rows);
-                return self._finishAction();
-            });
+            self._postMessage({ cmd : "refreshAll" });
+        })._queueNext(function () {
+            callback(self._columns, self._rows);
+            return self._finishAction();
         });
 
         return self;
@@ -537,14 +528,14 @@
         self._queueNext(function () {
             if (data instanceof DataWorker) {
                 data.getAllColumnsAndAllRecords(function (newColumns, newRows) {
-                    self._worker.postMessage({
+                    self._postMessage({
                         cmd        : "append",
                         newColumns : newColumns,
                         newRows    : newRows
                     });
                 });
             } else {
-                self._worker.postMessage({
+                self._postMessage({
                     cmd         : "append",
                     newColumns : data.slice(0, 1)[0],
                     newRows    : data.slice(1)
@@ -573,43 +564,35 @@
                 self._onError("Unknown join type.");
             }
 
-            self._queueNext(function () {
-                self._worker.postMessage({ cmd : "getAllColumns" });
-
-                self._queueNext(function () {
-                    fdata.getAllColumns(function (columns) {
-                        Object.keys(columns).forEach(function (columnName) {
-                            if (columnName in self._columns) {
-                                self._onError("Column names overlap.");
-                            }
-                        });
-
-                        fColumns = columns;
-
-                        self._queueNext(function () {
-                            fdata.getHashOfDatasetByKeyColumns.call(fdata, function (hash) {
-                                fHash = hash;
-
-                                self._queueNext(function () {
-                                    self._worker.postMessage({
-                                        cmd        : "join",
-                                        keyColumns : pk,
-                                        rHash      : fHash,
-                                        joinType   : joinType,
-                                        fColumns   : fColumns
-                                    });
-                                });
-
-                                return self._finishAction();
-                            }, fk);
-                        });
-
-                        return self._finishAction();
-                    });
-                });
-            });
-
             return self._finishAction();
+        });
+
+        self._queueNext(function () {
+            self._postMessage({ cmd : "getAllColumns" });
+        })._queueNext(function () {
+            fdata.getAllColumns(function (columns) {
+                Object.keys(columns).forEach(function (columnName) {
+                    if (columnName in self._columns) {
+                        self._onError("Column names overlap.");
+                    }
+                });
+
+                fColumns = columns;
+                return self._finishAction();
+            });
+        })._queueNext(function () {
+            fdata.getHashOfDatasetByKeyColumns.call(fdata, function (hash) {
+                fHash = hash;
+                return self._finishAction();
+            }, fk);
+        })._queueNext(function () {
+            self._postMessage({
+                cmd        : "join",
+                keyColumns : pk,
+                rHash      : fHash,
+                joinType   : joinType,
+                fColumns   : fColumns
+            });
         });
 
         return self;
@@ -619,15 +602,13 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd        : "hash",
                 keyColumns : keyColumns
             });
-
-            self._queueNext(function () {
-                callback(self._hash);
-                return self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._hash);
+            return self._finishAction();
         });
 
         return self;
@@ -637,7 +618,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "prependColumnNames",
                 prepend : prepend
             });
@@ -650,7 +631,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "alterColumnName",
                 oldName : oldName,
                 newName : newName
@@ -664,7 +645,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd      : "alterColumnSortType",
                 column   : column,
                 sortType : sortType
@@ -678,7 +659,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "alterColumnAggType",
                 column  : column,
                 aggType : aggType
@@ -692,7 +673,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd    : "alterColumnTitle",
                 column : column,
                 title  : title
@@ -707,7 +688,7 @@
             groupBy = _getArray(arguments);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd        : "group",
                 keyColumns : groupBy
             });
@@ -721,7 +702,7 @@
             partitionBy = _getArray(arguments);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd        : "partition",
                 keyColumns : partitionBy
             });
@@ -734,12 +715,10 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "getPartitionKeys" });
-
-            self._queueNext(function () {
-                callback(self._keys);
-                self._finishAction();
-            });
+            self._postMessage({ cmd : "getPartitionKeys" });
+        })._queueNext(function () {
+            callback(self._keys);
+            self._finishAction();
         });
 
         return self;
@@ -751,15 +730,13 @@
             keys = _getArray(arguments, 1);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd : "getPartitioned",
                 key : keys.join("|")
             });
-
-            self._queueNext(function () {
-                callback(self._rows);
-                return self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._rows);
+            return self._finishAction();
         });
 
         return self;
@@ -899,12 +876,10 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "getNumRows" });
-
-            self._queueNext(function () {
-                callback(self._numRows);
-                return self._finishAction();
-            });
+            self._postMessage({ cmd : "getNumRows" });
+        })._queueNext(function () {
+            callback(self._numRows);
+            return self._finishAction();
         });
 
         return self;
@@ -932,12 +907,10 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "getExpectedNumRows" });
-
-            self._queueNext(function () {
-                callback(self._expectedNumRows);
-                return self._finishAction();
-            });
+            self._postMessage({ cmd : "getExpectedNumRows" });
+        })._queueNext(function () {
+            callback(self._expectedNumRows);
+            return self._finishAction();
         });
 
         return self;
@@ -950,7 +923,7 @@
             self._onAllRowsReceivedTracker = false;
             self._onReceiveColumnsTracker = false;
 
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "requestDataset",
                 request : request
             });
@@ -967,7 +940,7 @@
             self._onAllRowsReceivedTracker = false;
             self._onReceiveColumnsTracker = false;
 
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "requestDatasetForAppend",
                 request : request
             });
@@ -987,7 +960,7 @@
         }
 
         self._queueNext(function () {
-            self._worker.postMessage(msg);
+            self._postMessage(msg);
         });
 
         return self;
@@ -1004,7 +977,7 @@
         }
 
         self._queueNext(function () {
-            self._worker.postMessage(msg);
+            self._postMessage(msg);
         });
 
         return self;
@@ -1014,7 +987,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "hideAllColumns" });
+            self._postMessage({ cmd : "hideAllColumns" });
         });
 
         return self;
@@ -1024,7 +997,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "showAllColumns" });
+            self._postMessage({ cmd : "showAllColumns" });
         });
 
         return self;
@@ -1034,12 +1007,10 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "getAllColumns" });
-
-            self._queueNext(function () {
-                callback(self._columns);
-                return self._finishAction();
-            });
+            self._postMessage({ cmd : "getAllColumns" });
+        })._queueNext(function () {
+            callback(self._columns);
+            return self._finishAction();
         });
 
         return self;
@@ -1050,7 +1021,7 @@
 
         self._queueNext(function () {
             var callback = function (rows) {
-                self._worker.postMessage({
+                self._postMessage({
                     cmd    : "addChildRows",
                     joinOn : joinColumn,
                     rows   : rows
@@ -1084,7 +1055,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd     : "postMessage",
                 message : message
             });
@@ -1098,15 +1069,13 @@
             columnNames = _getArray(arguments, 1);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd         : "getSummaryRows",
                 columnNames : columnNames
             });
-
-            self._queueNext(function () {
-                callback(self._summaryRows);
-                return self._finishAction();
-            });
+        })._queueNext(function () {
+            callback(self._summaryRows);
+            return self._finishAction();
         });
 
         return self;
@@ -1119,7 +1088,7 @@
                  : Array.prototype.slice.call(arguments);
 
         self._queueNext(function () {
-            self._worker.postMessage({
+            self._postMessage({
                 cmd         : "setSummaryRows",
                 summaryRows : rows
             });
@@ -1130,7 +1099,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._worker.postMessage({ cmd : "clearDataset" });
+            self._postMessage({ cmd : "clearDataset" });
         });
 
         return self;

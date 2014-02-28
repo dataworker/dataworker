@@ -3248,7 +3248,7 @@ asyncTest("show all columns", function () {
 });
 
 asyncTest("changes for \"on_\" functions are added to the queue by default", function () {
-    expect(4);
+    expect(3);
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3270,9 +3270,8 @@ asyncTest("changes for \"on_\" functions are added to the queue by default", fun
         start();
     });
 
-    equal(d._actionQueue._queueStack.length, 2);
-    ok(typeof(d._actionQueue._queueStack[0]) === "undefined")
-    equal(d._actionQueue._queueStack[1].length, 1);
+    equal(d._actionQueue._queueStack.length, 1);
+    equal(d._actionQueue._queueStack[0].length, 1);
 
     d.alterColumnName("column_a", "column_b");
 

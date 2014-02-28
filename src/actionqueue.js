@@ -7,7 +7,8 @@
         self._queueStack     = [];
         self._stackIndex     = 0;
 
-        self._isInAction     = false;
+        self._isInAction      = false;
+        self._isOffEventQueue = false;
 
         self._previousAction = undefined;
 
@@ -15,13 +16,14 @@
     };
 
     ActionQueue.prototype.queueNext = function () {
-        var self = this, args = Array.prototype.slice.call(arguments);
+        var self = this, args = Array.prototype.slice.call(arguments),
+            stackIndex = self._isOffEventQueue ? self._stackIndex - 1 : self._stackIndex;
 
-        if (typeof(self._queueStack[self._stackIndex]) === "undefined") {
-            self._queueStack[self._stackIndex] = [];
+        if (typeof(self._queueStack[stackIndex]) === "undefined") {
+            self._queueStack[stackIndex] = [];
         }
 
-        self._queueStack[self._stackIndex].push(args);
+        self._queueStack[stackIndex].push(args);
         self._nextAction();
 
         return self;
@@ -60,6 +62,22 @@
     };
 
     ActionQueue.prototype._callAction = function (func) { func(); };
+
+    ActionQueue.prototype.beginAsynchronous = function () {
+        var self =  this;
+
+        self._isOffEventQueue = true;
+
+        return self;
+    };
+
+    ActionQueue.prototype.finishAsynchronous = function () {
+        var self =  this;
+
+        self._isOffEventQueue = false;
+
+        return self;
+    };
 
     ActionQueue.prototype.finishAction = function () {
         var self = this;

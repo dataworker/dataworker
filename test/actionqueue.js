@@ -96,6 +96,52 @@ asyncTest("queue action (within queued action)", function () {
     q.finishAction();
 });
 
+asyncTest(
+    "queue an action while an executing action is waiting for async response",
+    function () {
+        expect(7);
+
+        var q = new ActionQueue(), steps = 0;
+
+        q.queueNext(function () {
+            equal(steps++, 0, "first step");
+
+            q.beginAsynchronous();
+            setTimeout(function () {
+                equal(steps++, 1, "second step");
+
+                q.finishAsynchronous();
+                q.finishAction();
+            }, 100);
+        });
+
+        setTimeout(function () {
+            equal(steps++, 3, "fourth step");
+
+            q.queueNext(function () {
+                equal(steps++, 6, "seventh step");
+                q.finishAction();
+                start();
+            });
+        }, 200);
+
+        q.queueNext(function () {
+            equal(steps++, 2, "third step");
+
+            q.beginAsynchronous();
+            setTimeout(function () {
+                equal(steps++, 4, "fifth step");
+
+                q.finishAsynchronous();
+                q.finishAction();
+            }, 400);
+        }).queueNext(function () {
+            equal(steps++, 5, "sixth step");
+            q.finishAction();
+        });
+    }
+);
+
 test("finish action", function () {
     var q = new ActionQueue(),
         action1Done = false, action2Done = false;
