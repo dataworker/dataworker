@@ -3949,3 +3949,203 @@ asyncTest("apply filter (simple, column-restricted, multi-column, found, using a
         start();
      }).finish();
 });
+
+asyncTest("search (simple)", function () {
+    expect(2);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset);
+    d.search(function (result) {
+        deepEqual(result, [
+            [ "apple", "violin", "music" ],
+            [ "gummy", "power", "apple"  ]
+        ]);
+    }, /APPLE/i).getDataset(function (result) {
+        deepEqual(result, [
+            [ "apple",  "violin", "music" ],
+            [ "cat",    "tissue", "dog"   ],
+            [ "banana", "piano",  "gum"   ],
+            [ "gummy",  "power",  "apple" ]
+        ]);
+        start();
+    }).finish();
+});
+
+asyncTest("search (simple, only searches visible rows)", function () {
+    expect(2);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset);
+    d.applyFilter(/i/).getDataset(function (result) {
+        deepEqual(result, [
+            [ "apple",  "violin", "music" ],
+            [ "cat",    "tissue", "dog"   ],
+            [ "banana", "piano",  "gum"   ]
+        ]);
+    }).search(function (result) {
+        deepEqual(result, [
+            [ "apple", "violin", "music" ]
+        ]);
+        start();
+    }, "apple").finish();
+});
+
+asyncTest("search (specify columns)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.search(function (result) {
+        deepEqual(result, [
+            [ "apple", "violin" ]
+        ]);
+        start();
+    }, /apple/, { columns: [ "column_a", "column_b" ] }).finish();
+});
+
+asyncTest("search (specify columns, single column without array)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.search(function (result) {
+        deepEqual(result, [
+            [ "music" ],
+            [ "gum"   ]
+        ]);
+        start();
+    }, /u/, { columns: "column_c" }).finish();
+});
+
+asyncTest("search (specify sort order)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.search(function (result) {
+        deepEqual(result, [
+            [ "cat",    "tissue", "dog"   ],
+            [ "banana", "piano",  "gum"   ],
+            [ "apple",  "violin", "music" ]
+        ]);
+        start();
+    }, /i/, { sortOn: [ "-column_a" ] }).finish();
+});
+
+asyncTest("search (specify sort order, single column without array)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.search(function (result) {
+        deepEqual(result, [
+            [ "cat",    "tissue", "dog"   ],
+            [ "banana", "piano",  "gum"   ],
+            [ "apple",  "violin", "music" ]
+        ]);
+        start();
+    }, /i/, { sortOn: "-column_a" }).finish();
+});
+
+asyncTest("search (limit number of results)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.search(function (result) {
+        deepEqual(result, [
+            [ "apple", "violin", "music" ],
+            [ "cat",   "tissue", "dog"   ]
+        ]);
+        start();
+    }, /o/, { limit: 2 }).finish();
+});
+
+asyncTest("search (sort on columns that aren't being fetched)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset),
+        searchOptions = {
+            sortOn: "column_b",
+            columns: [ "column_a", "column_c" ]
+        };
+
+    d.search(function (result) {
+        deepEqual(result, [
+            [ "banana", "gum"   ],
+            [ "gummy",  "apple" ],
+            [ "apple",  "music" ]
+        ]);
+        start();
+    }, /[mu]{2}/, searchOptions).finish();
+});

@@ -178,13 +178,13 @@
                 if (typeof(datasource) === "undefined") {
                     columns = _prepareColumns(data.columns);
                     rows    = _prepareRows(data.rows);
-                } else if (datasource.match(/^https?:\/\//)) {
+                } else if (/^https?:\/\//.test(datasource)) {
                     ajaxDatasource = datasource;
 
                     if (typeof(data.request) !== "undefined") {
                         _requestDataset(data);
                     }
-                } else if (datasource.match(/^wss?:\/\//)) {
+                } else if (/^wss?:\/\//.test(datasource)) {
                     wsDatasource = datasource;
 
                     waitToConnect = _initializeWebsocketConnection(data);
@@ -230,7 +230,7 @@
 
         var _ajax = function (request) {
             var xmlHttp = new XMLHttpRequest(),
-                url = ajaxDatasource + (request.match(/^\?/) ? "" : "?");
+                url = ajaxDatasource + (/^\?/.test(request) ? "" : "?");
 
             url += _getRequestParams(request);
             url += _getRequestParams(authentication);
@@ -417,7 +417,8 @@
         };
 
         var _sort = function (data) {
-            var sortOn = data.sortOn;
+            var sortOn = data.sortOn,
+                rowsToSort = data.rows || rows;
 
             function _compareRows(a, b) {
                 var i, sortColumn, columnName, reverse, sortType, sortResult, valA, valB;
@@ -454,10 +455,10 @@
                 return 0;
             }
 
-            rows.sort(_compareRows);
+            rowsToSort.sort(_compareRows);
 
             if (hasChildElements) {
-                rows.forEach(function (row) {
+                rowsToSort.forEach(function (row) {
                     if (row.hasChildren) {
                         row.children.sort(_compareRows);
                     }
@@ -475,12 +476,38 @@
             return {};
         };
 
+        var _search = function (data) {
+            var results = _scanRows({
+                setVisibility: false,
+                filters: [ data.term, data.columns ].filter(function (term) { return !!term })
+            });
+
+            if (typeof data.sortOn  === "string") data.sortOn  = [ data.sortOn  ];
+            if (typeof data.columns === "string") data.columns = [ data.columns ];
+
+            if (data.sortOn) _sort({ rows: results, sortOn: data.sortOn });
+
+            results = _getVisibleRows(data.columns, results);
+
+            if (data.limit > 0) results = results.slice(0, data.limit);
+
+            return { rows : results };
+        };
+
         var _applyFilter = function (data) {
+            data.setVisibility = true;
+            _scanRows(data);
+
+            return {};
+        };
+
+        var _scanRows = function (data) {
             var filters = data.filters, i = 0, column,
-                isSimpleFilter = !("column" in filters[0]);
+                isSimpleFilter = typeof filters[0] === "string" || filters[0] instanceof RegExp,
+                results = [];
 
             if (isSimpleFilter) {
-                var regex = filters[0],
+                var regex = RegExp(filters[0]),
                     relevantColumns = filters[1] instanceof Array ? filters[1] : filters.slice(1),
                     relevantIndexes = relevantColumns.map(function (column) {
                         return columns[column]["index"];
@@ -489,16 +516,22 @@
                 rows.forEach(function (row) {
                     if (!row["isVisible"]) return;
 
-                    row["isVisible"] = false;
+                    if (data.setVisibility) {
+                        row["isVisible"] = false;
+                    }
 
                     for (i = 0; i < row["row"].length; i++) {
                         column = row["row"][i];
 
                         if (
                             (relevantIndexes.length === 0 || relevantIndexes.indexOf(i) !== -1)
-                            && column && (""+column).match(regex)
+                            && column && regex.test(column)
                         ) {
-                            row["isVisible"] = true;
+                            if (data.setVisibility) {
+                                row["isVisible"] = true;
+                            } else {
+                                results.push(row);
+                            }
                             break;
                         }
                     }
@@ -507,7 +540,9 @@
                 rows.forEach(function (row) {
                     if (!row["isVisible"]) return;
 
-                    row["isVisible"] = true;
+                    if (data.setVisibility) {
+                        row["isVisible"] = true;
+                    }
 
                     for (i = 0; i < filters.length; i++) {
                         var filter = filters[i], columnIndex, column;
@@ -516,10 +551,16 @@
                             columnIndex = columns[filter.column]["index"],
                             column = row["row"][columnIndex];
 
-                            if (column && column.match(filter.regex)) {
-                                row["isVisible"] = true;
+                            if (column && filter.regex.test(column)) {
+                                if (data.setVisibility) {
+                                    row["isVisible"] = true;
+                                } else {
+                                    results.push(row);
+                                }
                             } else {
-                                row["isVisible"] = false;
+                                if (data.setVisibility) {
+                                    row["isVisible"] = false;
+                                }
                                 break;
                             }
                         } else {
@@ -529,7 +570,7 @@
                 });
             }
 
-            return {};
+            return results;
         };
 
         var _clearFilters = function () {
@@ -541,7 +582,7 @@
         };
 
         var _filter = function (data) {
-            var regex = data.regex, relevantColumns = data.relevantColumns;
+            var regex = RegExp(data.regex), relevantColumns = data.relevantColumns;
             var i, column, filteredDataset = [],
                 relevantIndexes = relevantColumns.map(function (column) {
                     return columns[column]["index"];
@@ -553,7 +594,7 @@
 
                     if (
                         (relevantIndexes.length === 0 || relevantIndexes.indexOf(i) !== -1)
-                        && column !== null && column.match(regex)
+                        && column !== null && regex.test(column)
                     ) {
                         filteredDataset.push(row);
                         break;
@@ -1007,7 +1048,7 @@
                 });
             } else if ("columnNameRegex" in data) {
                 Object.keys(columns).forEach(function (column) {
-                    if (column.match(data.columnNameRegex)) {
+                    if (RegExp(data.columnNameRegex).test(column)) {
                         columns[column]["isVisible"] = false;
                     }
                 });
@@ -1025,7 +1066,7 @@
                 });
             } else if ("columnNameRegex" in data) {
                 Object.keys(columns).forEach(function (column) {
-                    if (column.match(data.columnNameRegex)) {
+                    if (RegExp(data.columnNameRegex).test(column)) {
                         columns[column]["isVisible"] = true;
                     }
                 });
@@ -1210,6 +1251,9 @@
                         break;
                     case "filter":
                         reply = _filter(data);
+                        break;
+                    case "search":
+                        reply = _search(data);
                         break;
                     case "applyLimit":
                         reply = _applyLimit(data);

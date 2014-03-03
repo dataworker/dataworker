@@ -25,11 +25,11 @@
                         <li><a href="#stream">Streaming Data</a></li>
                         <li><a href="#clone">Clone</a></li>
                         <li><a href="#child-rows">Child Rows</a></li>
-                        <li><a href="#promises">Promises</a></li>
                         <li class="nav-header">Manipulate the dataset!</li>
                         <li><a href="#alter-columns">Alter columns</a></li>
                         <li><a href="#append">Append</a></li>
                         <li><a href="#filter">Filter</a></li>
+                        <li><a href="#search">Search</a></li>
                         <li><a href="#group">Group</a></li>
                         <li><a href="#join">Join</a></li>
                         <li><a href="#limit">Limit</a></li>
@@ -247,15 +247,6 @@
                             <li><a href="#add-child-rows">Add Child Rows</a></li>
                         </ul>
                     </section>
-                    <section id="promises">
-                        <h3>Promises</h3>
-                        <p>DataWorker uses a queue system to make sure operations are executed in the correct order. It's possible to utilize this queue with the <code>then</code> function. This is loosely equivalent to the concept of <a href="http://www.html5rocks.com/en/tutorials/es6/promises/">Promises</a> in javascript, however it is simplified and does not follow any set of standards at the moment.</p>
-                        <pre>
-    dw.render().then(function () {
-        alert("Done Rendering!");
-    });</pre>
-                        <p>The callback will not be executed until after previous operations are completed. In this case, it will trigger the render function, then alert the user that it has finished rendering.</p>
-                    </section>
                     <section id="alter-columns">
                         <h3>Alter columns</h3>
                         <p>Column properties can be altered after DataWorker is instantiated.</p>
@@ -407,6 +398,25 @@
                         <p>To permanently remove rows from a dataset with a filter, use the <code>filter</code> method:</p>
                         <pre>
     dw.filter(/\bapple\b/)</pre>
+                    </section>
+                    <section id="search">
+                        <h3>Search</h3>
+                        <p>Similar to filters, the <code>search</code> method filters the currently visible dataset. The difference is that this will not modify the dataset. The simple form takes a callback and a search term, which can be either a regular expression or a string.</p>
+                        <pre>
+    dw.search(function (results) { console.log(results); }, /apple/);</pre>
+                        <p>It's also possible to pass in extra, optional arguments as an object. The valid options are:</p>
+                        <ul>
+                            <li><code>columns</code> <i>(array of strings or single string)</i>: Columns to be searched and returned</li>
+                            <li><code>sortOn</code> <i>(array of strings or single string)</i>: Rows will be sorted on this/these columns, which can be invisible columns</li>
+                            <li><code>limit</code> <i>(integer)</i>: Maximum number of rows to return. Data will be sorted before limiting results</li>
+                        </ul>
+                        <p>For example:</p>
+                        <pre>
+    dw.search(function (results) { console.log(results); }, /a.*le/i, {
+        columns: [ "column_a", "column_c" ],
+        sortOn: "-column_b",
+        limit: 3
+    });</pre>
                     </section>
                     <section id="group">
                         <h3>Group</h3>

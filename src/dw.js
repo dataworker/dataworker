@@ -253,7 +253,11 @@
 
     DataWorker.prototype.applyFilter = function () {
         var self = this,
-            filters = _getArray(arguments);
+            filters = _getArray(arguments).map(function (filter) {
+                filter.regex = RegExp(filter.regex);
+
+                return filter;
+            });;
 
         self._queueNext(function () {
             self._postMessage({
@@ -325,9 +329,7 @@
         self._queueNext(function () {
             self._postMessage({
                 cmd     : "sort",
-                sortOn  : sortColumns,
-                columns : self._columns,
-                rows    : self._rows
+                sortOn  : sortColumns
             });
         });
 
@@ -1100,6 +1102,29 @@
 
         self._queueNext(function () {
             self._postMessage({ cmd : "clearDataset" });
+        });
+
+        return self;
+    };
+
+    DataWorker.prototype.search = function (callback, term, options) {
+        var self = this;
+
+        if (typeof options === "undefined") {
+            options = {};
+        }
+
+        self._queueNext(function () {
+            self._postMessage({
+                cmd     : "search",
+                term    : term,
+                columns : options.columns,
+                sortOn  : options.sortOn,
+                limit   : options.limit
+            });
+        })._queueNext(function () {
+            callback(self._rows);
+            self._finishAction();
         });
 
         return self;
