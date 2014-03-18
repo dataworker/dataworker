@@ -1116,11 +1116,13 @@
 
         self._queueNext(function () {
             self._postMessage({
-                cmd     : "search",
-                term    : term,
-                columns : options.columns,
-                sortOn  : options.sortOn,
-                limit   : options.limit
+                cmd           : "search",
+                term          : term,
+                columns       : options.columns,
+                sortOn        : options.sortOn,
+                searchOn      : options.searchOn,
+                returnColumns : options.returnColumns,
+                limit         : options.limit
             });
         })._queueNext(function () {
             callback(self._rows);

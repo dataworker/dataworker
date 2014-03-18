@@ -477,17 +477,21 @@
         };
 
         var _search = function (data) {
-            var results = _scanRows({
+            var results  = _scanRows({
                 setVisibility: false,
-                filters: [ data.term, data.columns ].filter(function (term) { return !!term })
+                filters: [
+                    data.term,
+                    data.searchOn || data.columns
+                ].filter(function (term) { return !!term })
             });
 
-            if (typeof data.sortOn  === "string") data.sortOn  = [ data.sortOn  ];
-            if (typeof data.columns === "string") data.columns = [ data.columns ];
+            if (typeof data.sortOn        === "string") data.sortOn        = [ data.sortOn        ];
+            if (typeof data.columns       === "string") data.columns       = [ data.columns       ];
+            if (typeof data.returnColumns === "string") data.returnColumns = [ data.returnColumns ];
 
             if (data.sortOn) _sort({ rows: results, sortOn: data.sortOn });
 
-            results = _getVisibleRows(data.columns, results);
+            results = _getVisibleRows(data.returnColumns || data.columns, results);
 
             if (data.limit > 0) results = results.slice(0, data.limit);
 

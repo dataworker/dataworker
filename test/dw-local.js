@@ -4149,3 +4149,58 @@ asyncTest("search (sort on columns that aren't being fetched)", function () {
         start();
     }, /[mu]{2}/, searchOptions).finish();
 });
+
+asyncTest("search (search different columns than those being returned)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset),
+        searchOptions = {
+            searchOn: [ "column_a", "column_c" ],
+            columns: "column_b"
+        };
+
+    d.search(function (result) {
+        deepEqual(result, [
+            [ "violin" ],
+            [ "piano"  ],
+            [ "power"  ]
+        ]);
+        start();
+    }, /(?:apple|gum)/, searchOptions).finish();
+});
+
+asyncTest("search (return different columns than those being searched)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "tissue",   "dog"      ],
+        [ "banana",   "piano",    "gum"      ],
+        [ "gummy",    "power",    "apple"    ]
+    ];
+
+    var d = new DataWorker(dataset),
+        searchOptions = {
+            returnColumns: [ "column_a", "column_c" ]
+        };
+
+    d.search(function (result) {
+        deepEqual(result, [
+            [ "apple",  "music" ],
+            [ "banana", "gum"   ],
+            [ "gummy",  "apple" ]
+        ]);
+        start();
+    }, /p/, searchOptions).finish();
+});

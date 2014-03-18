@@ -406,7 +406,9 @@
     dw.search(function (results) { console.log(results); }, /apple/);</pre>
                         <p>It's also possible to pass in extra, optional arguments as an object. The valid options are:</p>
                         <ul>
-                            <li><code>columns</code> <i>(array of strings or single string)</i>: Columns to be searched and returned</li>
+                            <li><code>columns</code> <i>(array of strings or single string)</i>: Columns to be searched and returned (defaults to all columns)</li>
+                            <li><code>searchOn</code> <i>(array of strings or single string)</i>: Columns to be searched (defaults to <code>columns</code>, which defaults to all columns)</li>
+                            <li><code>returnColumns</code> <i>(array of strings or single string)</i>: Columns to be returned (defaults to <code>columns</code>, which defaults to all columns)</li>
                             <li><code>sortOn</code> <i>(array of strings or single string)</i>: Rows will be sorted on this/these columns, which can be invisible columns</li>
                             <li><code>limit</code> <i>(integer)</i>: Maximum number of rows to return. Data will be sorted before limiting results</li>
                         </ul>
