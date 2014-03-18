@@ -1176,7 +1176,11 @@
         };
 
         var _finish = function () {
-            if (typeof(onSocketClose) !== "undefined" && socket.readyState !== 0 && socket.readyState !== 3) {
+            if (
+                typeof(onSocketClose) !== "undefined"
+                && socket.readyState !== 0
+                && socket.readyState !== 3
+            ) {
                 socket.send(onSocketClose);
             }
         };
@@ -1205,7 +1209,11 @@
         };
 
         var _postMessage = function (data) {
-            if (socket.readyState !== 0 && socket.readyState !== 3) {
+            if (
+                typeof(socket) !== "undefined"
+                && socket.readyState !== 0
+                && socket.readyState !== 3
+            ) {
                 socket.send(data.message);
             }
 
