@@ -164,7 +164,7 @@
             authentication = data.authenticate;
             if (typeof(datasources) === "undefined") {
                 datasources = (data.datasource instanceof Array)
-                            ?   data.datasource
+                            ?   data.datasource.slice(0)
                             : [ data.datasource ];
             }
 
