@@ -54,6 +54,56 @@ asyncTest("construct (simple columns)", function () {
     }).finish();
 });
 
+asyncTest("construct (force single-threaded execution)", function () {
+    expect(2);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
+    ];
+
+    dataset.forceSingleThread = true;
+
+    var d = new DataWorker(dataset);
+
+    ok(d instanceof DataWorker);
+
+    d.getColumns(function (columns) {
+        deepEqual(columns, {
+            column_a: {
+                sortType  : "alpha",
+                aggType   : "max",
+                title     : "column_a",
+                name      : "column_a",
+                isVisible : true,
+                index     : 0
+            },
+            column_b: {
+                sortType  : "alpha",
+                aggType   : "max",
+                title     : "column_b",
+                name      : "column_b",
+                isVisible : true,
+                index     : 1
+            },
+            column_c: {
+                sortType  : "alpha",
+                aggType   : "max",
+                title     : "column_c",
+                name      : "column_c",
+                isVisible : true,
+                index     : 2
+            }
+        });
+
+        start();
+    }).finish();
+});
+
 asyncTest("construct (complex columns)", function () {
     expect(2);
 
