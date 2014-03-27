@@ -127,7 +127,7 @@
         self._queueNext(function () {
             var thisActionQueue = this;
 
-            self._worker = ( typeof Worker === "undefined" )
+            self._worker = ( (typeof Worker === "undefined") || dataset.forceSingleThread )
                 ? ( new DataWorkerHelper() )
                 : ( new Worker(srcPath + "dw-helper.js") );
 
