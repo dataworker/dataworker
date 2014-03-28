@@ -86,4 +86,37 @@
 
         return self;
     };
+
+    ActionQueue.prototype.printToConsole = function () {
+        var self = this, h1 = "color: #D48919; font-weight: bold;", h2 = "color: #D48919;";
+
+        console.group("Action Queue [" + (self._isInAction ? "IN ACTION" : "RESTING") + "]");
+
+        if (typeof(self._previousAction) !== "undefined") {
+            console.groupCollapsed(
+                "%c" + (self._isInAction ? "Current action:" : "Previous action:"),
+                h1
+            );
+            console.log("" + self._previousAction.toString());
+            console.groupEnd();
+        }
+
+        console.groupCollapsed("%cQueue stack [" + self._queueStack.length + "]:", h1);
+
+        self._queueStack.forEach(function (queue, queueNum) {
+            console.groupCollapsed("%cQueue " + queueNum + " [" + queue.length + "]:", h2);
+
+            queue.forEach(function (action, actionNum) {
+                if (typeof(action) !== "undefined") {
+                    console.log(actionNum + ": " + action.toString());
+                }
+            });
+
+            console.groupEnd();
+        });
+
+        console.groupEnd();
+
+        return self;
+    };
 })();
