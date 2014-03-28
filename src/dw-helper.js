@@ -1,11 +1,9 @@
 (function () {
     "use strict";
 
-    var handleMessage;
-
     if (typeof window === "undefined") {
         runWorker(self);
-        self.addEventListener("message", handleMessage, false);
+        self.addEventListener("message", self.handleMessage, false);
     } else {
         var DataWorkerHelper = window.DataWorkerHelper = function DataWorkerHelper () {
             var self = this instanceof DataWorkerHelper
@@ -26,7 +24,7 @@
 
             setTimeout(function () {
                 try {
-                    handleMessage({ data : message });
+                    self.handleMessage({ data : message });
                 } catch (error) {
                     self.onerror(error);
                 }
@@ -1224,7 +1222,7 @@
             return {};
         };
 
-        handleMessage = function (e) {
+        self.handleMessage = function (e) {
             var data = e.data, reply = {};
 
             if (typeof(data) === "undefined") {

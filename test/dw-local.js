@@ -4254,3 +4254,52 @@ asyncTest("search (return different columns than those being searched)", functio
         start();
     }, /p/, searchOptions).finish();
 });
+
+asyncTest("two single-threaded dataworkers", function () {
+    expect(2);
+
+    var dataset1 = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+    var dataset2 = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "gummy",       "power",    "apple" ],
+        [ "car",        "screen",    "phone" ],
+        [ "sign",        "bagel",    "chips" ]
+    ];
+
+    dataset1.forceSingleThread = 1;
+    dataset2.forceSingleThread = 1;
+
+    var d1 = new DataWorker(dataset1);
+    var d2 = new DataWorker(dataset2);
+
+    d1.sort("column_a");
+    d2.sort("column_c");
+
+    d1.getRows(function (rows1) {
+        deepEqual(rows1, [
+            [ "apple",      "violin",    "music" ],
+            [ "banana",      "piano",      "gum" ],
+            [ "cat",        "tissue",      "dog" ],
+        ]);
+
+        d2.getRows(function (rows2) {
+            deepEqual(rows2, [
+                [ "gummy",       "power",    "apple" ],
+                [ "sign",        "bagel",    "chips" ],
+                [ "car",        "screen",    "phone" ]
+            ]);
+
+            d1.finish();
+            d2.finish();
+        });
+
+        start();
+    });
+});
