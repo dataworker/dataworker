@@ -17,7 +17,7 @@
 
     ActionQueue.prototype.queueNext = function () {
         var self = this, args = Array.prototype.slice.call(arguments),
-            stackIndex = self._isOffEventQueue ? self._stackIndex - 1 : self._stackIndex;
+            stackIndex = self._isOffEventQueue ? 0 : self._stackIndex;
 
         if (typeof(self._queueStack[stackIndex]) === "undefined") {
             self._queueStack[stackIndex] = [];

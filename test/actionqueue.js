@@ -142,6 +142,65 @@ asyncTest(
     }
 );
 
+
+asyncTest(
+    "queue an action while executing action awaits async reponse works on stack index > 1",
+    function () {
+        expect(9);
+
+        var q = new ActionQueue(), steps = 1;
+
+        function one(step) {
+            q.queueNext(function () {
+                equal(steps++, step, "step " + step);
+
+                q.beginAsynchronous();
+                setTimeout(function () {
+                    q.finishAsynchronous();
+                    q.finishAction();
+                }, 100);
+            });
+        }
+
+        function two(step) {
+            q.queueNext(function () {
+                equal(steps++, step, "step " + step);
+
+                if (step == 2) three();
+                q.finishAction();
+
+                if (step == 9) start();
+            });
+        }
+
+        function three() {
+            q.queueNext(function () {
+                equal(steps++, 3, "step 3");
+
+                q.beginAsynchronous();
+                setTimeout(function () {
+                    equal(steps++, 5, "step 5");
+
+                    q.finishAsynchronous();
+                    q.finishAction();
+                }, 300);
+            });
+        }
+
+        one(1);
+        two(2);
+        one(6);
+        two(7);
+
+        setTimeout(function () {
+            equal(steps++, 4, "step 4");
+
+            one(8);
+            two(9);
+        }, 200);
+    }
+);
+
 test("finish action", function () {
     var q = new ActionQueue(),
         action1Done = false, action2Done = false;
