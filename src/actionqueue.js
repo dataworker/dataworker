@@ -116,6 +116,7 @@
         });
 
         console.groupEnd();
+        console.groupEnd();
 
         return self;
     };
