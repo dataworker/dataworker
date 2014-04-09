@@ -511,9 +511,12 @@
             if (isSimpleFilter) {
                 var regex = RegExp(filters[0]),
                     relevantColumns = filters[1] instanceof Array ? filters[1] : filters.slice(1),
-                    relevantIndexes = relevantColumns.map(function (column) {
-                        return columns[column]["index"];
-                    });
+                    relevantIndexes = relevantColumns.reduce(function (indices, columnName) {
+                        var column = columns[columnName];
+                        if (column) indices.push(column["index"]);
+
+                        return indices;
+                    }, []);
 
                 rows.forEach(function (row) {
                     if (!row["isVisible"]) return;

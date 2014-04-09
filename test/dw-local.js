@@ -4303,3 +4303,31 @@ asyncTest("two single-threaded dataworkers", function () {
         start();
     });
 });
+
+asyncTest("applying filters to non-existant columns does not break dataworker", function () {
+    expect(3);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.applyFilter(/violin/, [ "column_b", "column_x" ]).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple", "violin", "music" ]
+        ]);
+    }).clearDataset().applyFilter(/violin/, "column_b").getRows(function (rows) {
+        deepEqual(rows, []);
+    }).append(dataset).applyFilter(/violin/, "column_b").getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple", "violin", "music" ]
+        ]);
+
+        start();
+    }, /violin/);
+});
