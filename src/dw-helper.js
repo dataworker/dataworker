@@ -73,7 +73,7 @@
 
                 column.sortType  = column.sortType || "alpha";
                 column.aggType   = column.aggType  || "max";
-                column.title     = column.title    || column.name;
+                column.title     = ("title" in column) ? column.title : column.name;
                 column.index     = i;
                 column.isVisible = ("isVisible" in column) ? column.isVisible : true;
 

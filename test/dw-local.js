@@ -4301,7 +4301,7 @@ asyncTest("two single-threaded dataworkers", function () {
         });
 
         start();
-    });
+    }).finish();
 });
 
 asyncTest("applying filters to non-existant columns does not break dataworker", function () {
@@ -4329,7 +4329,7 @@ asyncTest("applying filters to non-existant columns does not break dataworker", 
         ]);
 
         start();
-    }, /violin/);
+    }, /violin/).finish();
 });
 
 asyncTest("searching non-existant columns does not break dataworker", function () {
@@ -4365,5 +4365,24 @@ asyncTest("searching non-existant columns does not break dataworker", function (
         ]);
 
         start();
-    }, /v/, { columns: "column_b" });
+    }, /v/, { columns: "column_b" }).finish();
+});
+
+asyncTest("allow for blank column titles", function () {
+    expect(2);
+
+    var dataset = [
+        [ { name: "abc", title: "" }, { name: "123" } ],
+
+        [ "Alphabetic", "Numeric" ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.getColumns(function (columns) {
+        equal(columns["abc"]["title"], "");
+        equal(columns["123"]["title"], "123");
+
+        start();
+    }).finish();
 });
