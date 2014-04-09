@@ -4331,3 +4331,39 @@ asyncTest("applying filters to non-existant columns does not break dataworker", 
         start();
     }, /violin/);
 });
+
+asyncTest("searching non-existant columns does not break dataworker", function () {
+    expect(4);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.search(function (rows) {
+        deepEqual(rows, [
+            [ "violin" ]
+        ]);
+    }, /v/, { columns: [ "column_b", "column_x" ] });
+
+    dw.clearDataset().search(function (rows) {
+        deepEqual(rows, []);
+    }, /v/, { columns: "column_b" });
+
+    dw.search(function (rows) {
+        deepEqual(rows, []);
+    }, /v/);
+
+    dw.append(dataset).search(function (rows) {
+        deepEqual(rows, [
+            [ "violin" ]
+        ]);
+
+        start();
+    }, /v/, { columns: "column_b" });
+});

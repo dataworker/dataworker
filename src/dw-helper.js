@@ -135,7 +135,7 @@
             (requestedColumns || Object.keys(columns)).forEach(function (columnName) {
                 var column = columns[columnName];
 
-                if (requestedColumns || column.isVisible) {
+                if (column && (requestedColumns || column["isVisible"])) {
                     visibleColumnIdxs.push(column.index);
                 }
             });
