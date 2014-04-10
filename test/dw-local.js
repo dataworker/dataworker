@@ -507,6 +507,33 @@ asyncTest("apply filter (simple then complex, multiple filters)", function () {
     }).finish();
 });
 
+asyncTest("apply filter (complex, single filter, multiple columns)", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",    "apple" ]
+    ];
+
+    var d = new DataWorker(dataset);
+    d.applyFilter(
+        {
+            columns : [ "column_a", "column_c" ],
+            regex   : "^apple$"
+        }
+    ).getDataset(function (result) {
+        deepEqual(result, [
+            [ "apple", "violin", "music" ],
+            [ "gummy", "power",  "apple" ]
+        ]);
+        start();
+    }).finish();
+});
+
 asyncTest("clear filter", function () {
     expect(1);
 

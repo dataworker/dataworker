@@ -504,78 +504,57 @@
         };
 
         var _scanRows = function (data) {
-            var filters = data.filters, i = 0, column,
-                isSimpleFilter = typeof filters[0] === "string" || filters[0] instanceof RegExp,
-                results = [];
+            var filters = data.filters,
+                allIndices = [];
 
-            if (isSimpleFilter) {
-                var regex = RegExp(filters[0]),
-                    relevantColumns = filters[1] instanceof Array ? filters[1] : filters.slice(1),
-                    relevantIndexes = relevantColumns.reduce(function (indices, columnName) {
+            Object.keys(columns).forEach(function (name) {
+                allIndices.push(columns[name].index);
+            });
+
+            if (typeof filters[0] === "string" || filters[0] instanceof RegExp) {
+                filters = [ {
+                    columns: filters[1] instanceof Array ? filters[1] : filters.slice(1),
+                    regex: RegExp(filters[0])
+                } ];
+            }
+
+            filters = filters.map(function (filter) {
+                if (filter.column) filter.columns = [ filter.column ];
+                if (!filter.columns.length) {
+                    filter.indices = allIndices;
+                } else {
+                    filter.indices = filter.columns.reduce(function (indices, columnName) {
                         var column = columns[columnName];
                         if (column) indices.push(column["index"]);
 
                         return indices;
                     }, []);
+                }
 
-                rows.forEach(function (row) {
-                    if (!row["isVisible"]) return;
+                return filter;
+            }).filter(function (filter) { return filter.indices.length; });
 
-                    if (data.setVisibility) {
-                        row["isVisible"] = false;
-                    }
+            return rows.reduce(function (results, row) {
+                if (!row["isVisible"]) return results;
 
-                    for (i = 0; i < row["row"].length; i++) {
-                        column = row["row"][i];
-
-                        if (
-                            (relevantIndexes.length === 0 || relevantIndexes.indexOf(i) !== -1)
-                            && column && regex.test(column)
-                        ) {
-                            if (data.setVisibility) {
-                                row["isVisible"] = true;
-                            } else {
-                                results.push(row);
-                            }
-                            break;
-                        }
-                    }
+                var validRow = filters.every(function (filter) {
+                    return filter.indices.some(function (index) {
+                        return filter.regex.test(row["row"][index]);
+                    });
                 });
-            } else {
-                rows.forEach(function (row) {
-                    if (!row["isVisible"]) return;
 
+                if (validRow) {
                     if (data.setVisibility) {
                         row["isVisible"] = true;
+                    } else {
+                        results.push(row);
                     }
+                } else if (data.setVisibility) {
+                    row["isVisible"] = false;
+                }
 
-                    for (i = 0; i < filters.length; i++) {
-                        var filter = filters[i], columnIndex, column;
-
-                        if (filter.column in columns) {
-                            columnIndex = columns[filter.column]["index"],
-                            column = row["row"][columnIndex];
-
-                            if (column && filter.regex.test(column)) {
-                                if (data.setVisibility) {
-                                    row["isVisible"] = true;
-                                } else {
-                                    results.push(row);
-                                }
-                            } else {
-                                if (data.setVisibility) {
-                                    row["isVisible"] = false;
-                                }
-                                break;
-                            }
-                        } else {
-                            break;
-                        }
-                    };
-                });
-            }
-
-            return results;
+                return results;
+            }, []);
         };
 
         var _clearFilters = function () {
@@ -1140,7 +1119,6 @@
         };
 
         var _setSummaryRows = function (data) {
-            debugger;
             summaryRows = _prepareRows(data.summaryRows);
             return {};
         };
