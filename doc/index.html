@@ -429,12 +429,14 @@
                             <li><code>returnColumns</code> <i>(array of strings or single string)</i>: Columns to be returned (defaults to <code>columns</code>, which defaults to all columns)</li>
                             <li><code>sortOn</code> <i>(array of strings or single string)</i>: Rows will be sorted on this/these columns, which can be invisible columns</li>
                             <li><code>limit</code> <i>(integer)</i>: Maximum number of rows to return. Data will be sorted before limiting results</li>
+                            <li><code>fromRow</code> <i>(integer)</i>: Indicates the zero-based row number of the result set to start returning. This can be used, for example, in conjunction with <code>limit</code> to get paged results.</li>
                         </ul>
                         <p>For example:</p>
                         <pre>
     dw.search(function (results) { console.log(results); }, /a.*le/i, {
         columns: [ "column_a", "column_c" ],
         sortOn: "-column_b",
+        fromRow: 6,
         limit: 3
     });</pre>
                     </section>

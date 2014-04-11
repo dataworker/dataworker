@@ -485,7 +485,7 @@
 
             results = _getVisibleRows(data.returnColumns || data.columns, results);
 
-            if (data.limit > 0) results = results.slice(0, data.limit);
+            if (data.limit > 0) results = results.slice(data.fromRow, data.fromRow + data.limit);
 
             return { rows : results };
         };

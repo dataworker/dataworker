@@ -1135,6 +1135,7 @@
                 sortOn        : options.sortOn,
                 searchOn      : options.searchOn,
                 returnColumns : options.returnColumns,
+                fromRow       : options.fromRow || 0,
                 limit         : options.limit
             });
         })._queueNext(function () {

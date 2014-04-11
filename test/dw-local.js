@@ -4582,3 +4582,31 @@ asyncTest("search (apply complex filters)", function () {
         { regex: /at/ }
     ], { returnColumns: "column_c" }).finish();
 });
+
+asyncTest("search (fromRow)", function () {
+    expect(2);
+
+    var numbers = { name: "numbers", sortType: "num" };
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.search(function (rows) {
+        deepEqual(rows, [
+            [ "banana", "piano", "gum" ],
+        ]);
+    }, /p/, { fromRow: 1, limit: 1 }).search(function (rows) {
+        deepEqual(rows, [
+            [ "apple", "violin", "music" ],
+        ]);
+
+        start();
+    }, /p/, { limit: 1 }).finish();
+});
