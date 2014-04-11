@@ -505,10 +505,12 @@
 
         var _scanRows = function (data) {
             var filters = data.filters,
+                numberCols = [],
                 allIndices = [];
 
             Object.keys(columns).forEach(function (name) {
                 allIndices.push(columns[name].index);
+                numberCols[columns[name].index] = columns[name]["sortType"] === "num";
             });
 
             if (typeof filters[0] === "string" || filters[0] instanceof RegExp) {
@@ -520,16 +522,20 @@
 
             filters = filters.map(function (filter) {
                 if (filter.column) filter.columns = [ filter.column ];
-                if (!filter.columns.length) {
-                    filter.indices = allIndices;
-                } else {
+                if (typeof filter.columns === "string") filter.columns = [ filter.columns ];
+                if (filter.columns && filter.columns.length) {
                     filter.indices = filter.columns.reduce(function (indices, columnName) {
                         var column = columns[columnName];
                         if (column) indices.push(column["index"]);
 
                         return indices;
                     }, []);
+                } else {
+                    filter.indices = allIndices;
                 }
+
+                filter.tests = [ "eq", "ne", "gte", "gt", "lte", "lt", "regex"]
+                    .filter(function (name) { return name in filter });
 
                 return filter;
             }).filter(function (filter) { return filter.indices.length; });
@@ -538,8 +544,10 @@
                 if (!row["isVisible"]) return results;
 
                 var validRow = filters.every(function (filter) {
-                    return filter.indices.some(function (index) {
-                        return filter.regex.test(row["row"][index]);
+                    return filter.indices[filter.matchAll ? "every" : "some"](function (index) {
+                        return filter.tests.every(function (test) {
+                            return _testCell(row["row"][index], filter, numberCols[index], test);
+                        });
                     });
                 });
 
@@ -555,6 +563,20 @@
 
                 return results;
             }, []);
+        };
+
+        var _testCell = function (cell, filter, isNum, testName) {
+            if (isNum) cell = parseFloat(cell);
+
+            switch (testName) {
+                case "regex": return filter.regex.test(cell);
+                case "eq":    return cell == filter.eq;
+                case "ne":    return cell != filter.ne;
+                case "gte":   return cell >= filter.gte;
+                case "gt":    return cell >  filter.gt;
+                case "lte":   return cell <= filter.lte;
+                case "lt":    return cell <  filter.lt;
+            }
         };
 
         var _clearFilters = function () {

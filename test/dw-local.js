@@ -4413,3 +4413,148 @@ asyncTest("allow for blank column titles", function () {
         start();
     }).finish();
 });
+
+asyncTest("apply filter (complex, gt/e, lt/e, eq, ne)", function () {
+    expect(3);
+
+    var numbers = { name: "numbers", sortType: "num" };
+
+    var dataset = [
+        [ numbers, "letters",      "category"  ],
+
+        [ 1,       "apple",        "vegetable" ],
+        [ "2",     "banana",       "vegetable" ],
+        [ 3,       "cat",          "animal"    ],
+        [ "10",    "dog",          "animal"    ],
+        [ "20",    "calendar",     "mineral"   ],
+        [ "30",    "ananas",       "vegetable" ],
+        [ 100,     "bandersnatch", "animal"    ],
+        [ "200",   "gorilla",      "animal"    ],
+        [ 300,     "rock",         "mineral"   ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.applyFilter([
+        { column: "numbers", gte: 10, lt: "30" }
+    ]).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "10", "dog",      "animal"  ],
+            [ "20", "calendar", "mineral" ]
+        ]);
+    }).clearFilters().applyFilter([
+        { column: "category", ne: "mineral" },
+        { column: "letters", gt: "b", lte: "dog" }
+    ]).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "2",  "banana",       "vegetable" ],
+            [ 3,    "cat",          "animal"    ],
+            [ "10", "dog",          "animal"    ],
+            [ 100,  "bandersnatch", "animal"    ]
+        ]);
+    }).clearFilters().applyFilter([
+        { column: "numbers", regex: /1/ },
+        { column: "category", eq: "animal" }
+    ]).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "10", "dog",          "animal" ],
+            [  100, "bandersnatch", "animal" ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest("apply filter (complex, matchAll)", function () {
+    expect(2);
+
+    var numbers = { name: "numbers", sortType: "num" };
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.applyFilter([
+        { columns: [ "column_b", "column_c" ], gte: "gum" }
+    ]).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple",  "violin", "music" ],
+            [ "cat",    "tissue", "dog"   ],
+            [ "banana", "piano",  "gum"   ],
+        ]);
+    }).clearFilters().applyFilter([
+        { columns: [ "column_b", "column_c" ], gte: "gum", matchAll: true }
+    ]).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple",  "violin", "music" ],
+            [ "banana", "piano",  "gum"   ],
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest("apply filter (complex, empty filter does nothing)", function () {
+    expect(1);
+
+    var numbers = { name: "numbers", sortType: "num" };
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.applyFilter([ { } ]).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple",  "violin", "music" ],
+            [ "cat",    "tissue", "dog"   ],
+            [ "banana", "piano",  "gum"   ],
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest("apply filter (complex, columns can be string or array)", function () {
+    expect(2);
+
+    var numbers = { name: "numbers", sortType: "num" };
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.applyFilter([
+        { columns: [ "column_a", "column_b" ], regex: /p/ }
+    ]).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple",  "violin", "music" ],
+            [ "banana", "piano",  "gum"   ],
+        ]);
+    }).clearFilters().applyFilter([
+        { columns: "column_a", regex: /p/ }
+    ]).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple", "violin", "music" ],
+        ]);
+
+        start();
+    }).finish();
+});
