@@ -4558,3 +4558,27 @@ asyncTest("apply filter (complex, columns can be string or array)", function () 
         start();
     }).finish();
 });
+
+asyncTest("search (apply complex filters)", function () {
+    expect(1);
+
+    var numbers = { name: "numbers", sortType: "num" };
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.search(function (rows) {
+        deepEqual(rows, [ [ "dog" ] ]);
+        start();
+    }, [
+        { columns: [ "column_b", "column_c" ], regex: /s/ },
+        { regex: /at/ }
+    ], { returnColumns: "column_c" }).finish();
+});

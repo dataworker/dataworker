@@ -475,13 +475,7 @@
         };
 
         var _search = function (data) {
-            var results  = _scanRows({
-                setVisibility: false,
-                filters: [
-                    data.term,
-                    data.searchOn || data.columns
-                ].filter(function (term) { return !!term })
-            });
+            var results = _scanRows({ setVisibility: false, filters: data.filters });
 
             if (typeof data.sortOn        === "string") data.sortOn        = [ data.sortOn        ];
             if (typeof data.columns       === "string") data.columns       = [ data.columns       ];

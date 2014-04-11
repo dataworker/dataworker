@@ -1114,17 +1114,23 @@
         return self;
     };
 
-    DataWorker.prototype.search = function (callback, term, options) {
+    DataWorker.prototype.search = function (callback, filters, options) {
         var self = this;
 
         if (typeof options === "undefined") {
             options = {};
         }
 
+        if (typeof filters === "string" || filters instanceof RegExp) {
+            filters = [ filters, options.searchOn || options.columns ]
+                .filter(function (term) { return !!term })
+        }
+
+
         self._queueNext(function () {
             self._postMessage({
                 cmd           : "search",
-                term          : term,
+                filters       : filters,
                 columns       : options.columns,
                 sortOn        : options.sortOn,
                 searchOn      : options.searchOn,
