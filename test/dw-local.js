@@ -4430,7 +4430,7 @@ asyncTest("apply filter (complex, gt/e, lt/e, eq, ne)", function () {
         [ "30",    "ananas",       "vegetable" ],
         [ 100,     "bandersnatch", "animal"    ],
         [ "200",   "gorilla",      "animal"    ],
-        [ 300,     "rock",         "mineral"   ],
+        [ 300,     "rock",         "mineral"   ]
     ];
 
     var dw = new DataWorker(dataset);
@@ -4609,4 +4609,77 @@ asyncTest("search (fromRow)", function () {
 
         start();
     }, /p/, { limit: 1 }).finish();
+});
+
+asyncTest("search (allRows)", function () {
+    expect(3);
+
+    var numbers = { name: "numbers", sortType: "num" };
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.applyFilter(/asdf/).getRows(function (rows) {
+        deepEqual(rows, [ ]);
+    }).search(function (rows) {
+        deepEqual(rows, [ ]);
+    }, /p/).search(function (rows) {
+        deepEqual(rows, [
+            [ "apple",  "violin", "music" ],
+            [ "banana", "piano",  "gum"   ],
+        ]);
+
+        start();
+    }, /p/, { allRows: true }).finish();
+});
+
+asyncTest("search (getDistinct)", function () {
+    expect(2);
+
+    var numbers = { name: "numbers", sortType: "num" };
+
+    var dataset = [
+        [ numbers, "letters",      "category"  ],
+
+        [ 1,       "apple",        "vegetable" ],
+        [ "2",     "banana",       "vegetable" ],
+        [ 3,       "cat",          "animal"    ],
+        [ "10",    "dog",          "animal"    ],
+        [ "20",    "calendar",     "mineral"   ],
+        [ "30",    "ananas",       "vegetable" ],
+        [ 100,     "bandersnatch", "animal"    ],
+        [ "200",   "gorilla",      "animal"    ],
+        [ 300,     "rock",         "mineral"   ]
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.search(function (rows) {
+        deepEqual(rows, [
+            [ 1,       "apple",        "vegetable" ],
+            [ "2",     "banana",       "vegetable" ],
+            [ 3,       "cat",          "animal"    ],
+            [ "10",    "dog",          "animal"    ],
+            [ "20",    "calendar",     "mineral"   ],
+            [ "30",    "ananas",       "vegetable" ],
+            [ 100,     "bandersnatch", "animal"    ],
+            [ "200",   "gorilla",      "animal"    ],
+            [ 300,     "rock",         "mineral"   ]
+        ]);
+    }, /a/, { getDistinct: true }).search(function (rows) {
+        deepEqual(rows, [
+            [ "vegetable" ],
+            [ "animal"    ],
+            [ "mineral"   ]
+        ]);
+
+        start();
+    }, /a/, { getDistinct: true, columns: "category" }).finish();
 });

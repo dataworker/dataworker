@@ -430,6 +430,8 @@
                             <li><code>sortOn</code> <i>(array of strings or single string)</i>: Rows will be sorted on this/these columns, which can be invisible columns</li>
                             <li><code>limit</code> <i>(integer)</i>: Maximum number of rows to return. Data will be sorted before limiting results</li>
                             <li><code>fromRow</code> <i>(integer)</i>: Indicates the zero-based row number of the result set to start returning. This can be used, for example, in conjunction with <code>limit</code> to get paged results.</li>
+                            <li><code>allRows</code> <i>(boolean)</i>: Allows the search to include hidden rows. Defaults to <code>false</code>.</li>
+                            <li><code>getDistinct</code> <i>(boolean)</i>: Only returns rows that are unique from each other. Defaults to <code>false</code>.</li>
                         </ul>
                         <p>For example:</p>
                         <pre>

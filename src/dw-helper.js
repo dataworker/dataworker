@@ -112,8 +112,8 @@
             return visibleColumns;
         };
 
-        var _getVisibleRows = function (requestedColumns, requestedRows) {
-            var visibleColumnIdxs = [], visibleRows = [];
+        var _getVisibleRows = function (requestedColumns, requestedRows, allRows, getDistinct) {
+            var visibleColumnIdxs = [], visibleRows = [], distinctHash = {};
 
             if (!(requestedColumns || []).length) {
                 requestedColumns = undefined;
@@ -141,12 +141,26 @@
             });
 
             requestedRows.forEach(function (row) {
-                if (row["isVisible"]) {
+                if (row["isVisible"] || allRows) {
                     var newRow = visibleColumnIdxs.map(function (idx) {
                         return row["row"][idx];
                     });
 
                     newRow.parentRow = row.parentRow;
+
+                    if (getDistinct) {
+                        var seenAll = true, hash = distinctHash;
+
+                        newRow.forEach(function (value) {
+                            if (!(seenAll = seenAll && hash[value])) {
+                                hash[value] = {};
+                            }
+
+                            hash = hash[value];
+                        });
+
+                        if (seenAll) return;
+                    }
 
                     visibleRows.push(newRow);
                 }
@@ -475,7 +489,11 @@
         };
 
         var _search = function (data) {
-            var results = _scanRows({ setVisibility: false, filters: data.filters });
+            var results = _scanRows({
+                setVisibility: false,
+                filters: data.filters,
+                allRows: data.allRows
+            });
 
             if (typeof data.sortOn        === "string") data.sortOn        = [ data.sortOn        ];
             if (typeof data.columns       === "string") data.columns       = [ data.columns       ];
@@ -483,7 +501,7 @@
 
             if (data.sortOn) _sort({ rows: results, sortOn: data.sortOn });
 
-            results = _getVisibleRows(data.returnColumns || data.columns, results);
+            results = _getVisibleRows(data.returnColumns || data.columns, results, true, data.getDistinct);
 
             if (data.limit > 0) results = results.slice(data.fromRow, data.fromRow + data.limit);
 
@@ -535,7 +553,7 @@
             }).filter(function (filter) { return filter.indices.length; });
 
             return rows.reduce(function (results, row) {
-                if (!row["isVisible"]) return results;
+                if (!row["isVisible"] && !data.allRows) return results;
 
                 var validRow = filters.every(function (filter) {
                     return filter.indices[filter.matchAll ? "every" : "some"](function (index) {

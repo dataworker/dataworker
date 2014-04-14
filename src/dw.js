@@ -1132,6 +1132,8 @@
                 cmd           : "search",
                 filters       : filters,
                 columns       : options.columns,
+                allRows       : options.allRows,
+                getDistinct   : options.getDistinct,
                 sortOn        : options.sortOn,
                 searchOn      : options.searchOn,
                 returnColumns : options.returnColumns,
