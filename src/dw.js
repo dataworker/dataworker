@@ -261,7 +261,7 @@
     DataWorker.prototype.applyFilter = function () {
         var self = this,
             filters = _getArray(arguments).map(function (filter) {
-                filter.regex = RegExp(filter.regex);
+                if (filter.regex) filter.regex = RegExp(filter.regex);
 
                 return filter;
             });;
