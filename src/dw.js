@@ -34,10 +34,6 @@
         self._initializeCallbacks(dataset);
         self._initializeWebWorker(dataset);
 
-        window.addEventListener("beforeunload", function () {
-            self._postMessage({ cmd : "finish" });
-        });
-
         return self;
     };
 
@@ -264,7 +260,7 @@
                 if (filter.regex) filter.regex = RegExp(filter.regex);
 
                 return filter;
-            });;
+            });
 
         self._queueNext(function () {
             self._postMessage({
