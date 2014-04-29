@@ -174,6 +174,7 @@
                 datasource;
 
             authentication = data.authenticate;
+
             if (typeof(datasources) === "undefined") {
                 datasources = (data.datasource instanceof Array)
                             ?   data.datasource.slice(0)
@@ -183,7 +184,16 @@
             ajaxDatasource = wsDatasource = socket = undefined;
 
             try {
-                if (useBackup) throw new Error();
+                if (useBackup) {
+                    if (datasources.length > 0) {
+                        postMessage({
+                            warning: "Datasource failed. Falling back to next datasource."
+                        });
+                    } else {
+                        postMessage({ error: "Error: No available datasources." });
+                        return false;
+                    }
+                }
 
                 datasource = datasources.shift();
 
@@ -207,11 +217,9 @@
                 }
             } catch (error) {
                 if (datasources.length) {
-                    waitToConnect = _initialize(data);
+                    waitToConnect = _initialize(data, true);
                 } else {
-                    postMessage({
-                        error : "Error: " + error
-                    });
+                    postMessage({ error : "Error: " + error });
                 }
             }
 
