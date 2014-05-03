@@ -1,9 +1,11 @@
-(function () {
+(function (globalWorker) {
     "use strict";
 
+    var handleMessage;
+
     if (typeof window === "undefined") {
-        runWorker(self);
-        self.addEventListener("message", self.handleMessage, false);
+        runWorker(globalWorker);
+        self.addEventListener("message", handleMessage, false);
     } else {
         var DataWorkerHelper = window.DataWorkerHelper = function DataWorkerHelper () {
             var self = this instanceof DataWorkerHelper
@@ -41,6 +43,8 @@
         };
 
         DataWorkerHelper.prototype.terminate = function () { delete this; };
+
+        DataWorkerHelper.prototype.handleMessage = handleMessage;
     }
 
     function runWorker(self) {
@@ -1245,7 +1249,7 @@
             return {};
         };
 
-        self.handleMessage = function (e) {
+        var messageHandler = function (e) {
             var data = e.data, reply = {};
 
             if (typeof(data) === "undefined") {
@@ -1421,6 +1425,12 @@
             postMessage(reply);
         };
 
+        if (self === globalWorker) {
+            handleMessage = messageHandler;
+        } else {
+            self.handleMessage = messageHandler;
+        }
+
     }
 
-})();
+})(this);
