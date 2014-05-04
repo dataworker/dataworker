@@ -5,7 +5,7 @@
 
     if (typeof window === "undefined") {
         runWorker(globalWorker);
-        self.addEventListener("message", handleMessage, false);
+        globalWorker.addEventListener("message", handleMessage, false);
     } else {
         var DataWorkerHelper = window.DataWorkerHelper = function DataWorkerHelper () {
             var self = this instanceof DataWorkerHelper
