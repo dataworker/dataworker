@@ -87,6 +87,15 @@
         return self;
     };
 
+    ActionQueue.prototype.finish = function () {
+        var self = this;
+
+        self._previousAction = null;
+        self._queueStack     = null;
+
+        return self;
+    };
+
     ActionQueue.prototype.printToConsole = function () {
         var self = this, h1 = "color: #D48919; font-weight: bold;", h2 = "color: #D48919;";
 

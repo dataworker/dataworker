@@ -123,8 +123,6 @@
         }
 
         self._queueNext(function () {
-            var thisActionQueue = this;
-
             self._isSingleThreaded = (
                 typeof(Worker) === "undefined"
                 || dataset.forceSingleThread
@@ -135,6 +133,8 @@
                 : ( new Worker(srcPath + "dw-helper.js") );
 
             self._worker.onmessage = function (e) {
+                if (!e.data) return;
+
                 if ("rowsReceived" in e.data) {
                     self._onReceiveRows(e.data.rowsReceived);
                     return;
@@ -197,9 +197,21 @@
         var self = this;
 
         self._queueNext(function () {
-            self._postMessage({ cmd : "finish" });
+            self._onReceiveColumns  = null;
+            self._onReceiveRows     = null;
+            self._onAllRowsReceived = null;
+            self._onTrigger         = null;
+            self._onError           = null;
+
+            self._renderFunction    = null;
+
+            self._postMessage({ cmd: "finish" });
         })._queueNext(function () {
             self._worker.terminate();
+            self._actionQueue.finish();
+
+            self._worker.onmessage = null;
+            self._worker = null;
         });
 
         return self;
@@ -881,7 +893,7 @@
         var self = this;
 
         self._queueNext(function () {
-            self._postMessage({ cmd : "getNumRows" });
+            self._postMessage({ cmd : "getNumberOfRecords" });
         })._queueNext(function () {
             callback(self._numRows);
             return self._finishAction();
