@@ -317,7 +317,7 @@
                     self._postMessage({ rowsReceived : msg.rows.length });
                 }
             } else if (
-                typeof(columns) !== "undefined"
+                typeof(self._columns) !== "undefined"
                 && typeof(msg.expectedNumRows) !== "undefined"
                 && self._expectedNumRows != self._rows.length
             ) {
