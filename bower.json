@@ -1,6 +1,6 @@
 {
     "name": "dataworker",
-    "version": "1.9.3",
+    "version": "1.10.0",
     "main": [
         "src/actionqueue.js",
         "src/dw-helper.js",

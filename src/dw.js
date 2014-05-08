@@ -193,7 +193,7 @@
         return self;
     };
 
-    DataWorker.prototype.finish = function () {
+    DataWorker.prototype.finish = function (cb) {
         var self = this;
 
         self._queueNext(function () {
@@ -212,6 +212,8 @@
 
             self._worker.onmessage = null;
             self._worker = null;
+
+            if (cb) cb();
         });
 
         return self;
