@@ -4328,7 +4328,7 @@ asyncTest("two single-threaded dataworkers", function () {
         });
 
         start();
-    }).finish();
+    });
 });
 
 asyncTest("applying filters to non-existant columns does not break dataworker", function () {

@@ -12,12 +12,16 @@
 
         self._previousAction = undefined;
 
+        self._isFinished = false;
+
         return self;
     };
 
     ActionQueue.prototype.queueNext = function () {
         var self = this, args = Array.prototype.slice.call(arguments),
             stackIndex = self._isOffEventQueue ? 0 : self._stackIndex;
+
+        if (self._isFinished) return self;
 
         if (typeof(self._queueStack[stackIndex]) === "undefined") {
             self._queueStack[stackIndex] = [];
@@ -36,6 +40,8 @@
 
         if (!self._isInAction) {
             (function doNextAction() {
+                if (self._isFinished) return;
+
                 queue = self._queueStack[self._stackIndex];
 
                 if (queue && queue.length > 0) {
@@ -90,8 +96,14 @@
     ActionQueue.prototype.finish = function () {
         var self = this;
 
-        self._previousAction = null;
-        self._queueStack     = null;
+        self.queueNext(function () {
+            self._previousAction = null;
+            self._queueStack     = null;
+
+            self._isFinished = true;
+
+            self.finishAction();
+        });
 
         return self;
     };

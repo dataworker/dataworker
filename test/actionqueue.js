@@ -208,11 +208,11 @@ test("finish action", function () {
     function toQ1() {
         action1Done = true;
         q.finishAction();
-    };
+    }
     function toQ2() {
         action2Done = true;
         q.finishAction();
-    };
+    }
 
     q._isInAction = true;
 
@@ -220,4 +220,28 @@ test("finish action", function () {
 
     ok(action1Done);
     ok(action2Done);
+});
+
+test("do not allow any more inputs after action queue is disposed", function () {
+    var q = new ActionQueue(),
+        action1Done = false, action2Done = false;
+
+    function toQ1() {
+        action1Done= true;
+        q.finishAction();
+    }
+    function toQ2() {
+        action2Done = true;
+        q.finishAction();
+    }
+
+    q._isInAction = true;
+
+    q.queueNext(toQ1)
+     .finish()
+     .queueNext(toQ2)
+     .finishAction();
+
+    ok(action1Done);
+    ok(!action2Done);
 });
