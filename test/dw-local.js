@@ -4683,3 +4683,25 @@ asyncTest("search (getDistinct)", function () {
         start();
     }, /a/, { getDistinct: true, columns: "category" }).finish();
 });
+
+asyncTest("sort by number allows scientific notation", function () {
+    expect(1);
+
+    var dataset = [
+        [ { name: "numbers", sortType: "num" } ],
+
+        [ "2.34e-5" ],
+        [ "1.23e5"  ]
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.sort("numbers").getRows(function (rows) {
+        deepEqual(rows, [
+            [ "2.34e-5" ],
+            [ "1.23e5"  ]
+        ]);
+
+        start();
+    }).finish();
+});

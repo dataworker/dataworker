@@ -28,7 +28,7 @@
         self._rowsPerPage = 10;
         self._currentPage = undefined;
 
-        self._onlyValidForNumbersRegex = /[^0-9.\-]/g;
+        self._onlyValidForNumbersRegex = /[^0-9.e\-]/g;
 
         self._hasChildElements = false;
 
@@ -757,7 +757,7 @@
             decimalMarkCharacter = data.decimalMarkCharacter;
 
         self._onlyValidForNumbersRegex = new RegExp(
-            "[0-9\-" + decimalMarkCharacter + "]", "g"
+            "[0-9e\-" + decimalMarkCharacter + "]", "g"
         );
 
         return {};
