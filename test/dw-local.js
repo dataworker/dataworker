@@ -2790,14 +2790,14 @@ asyncTest("getColumnsAndRecords obeys applied filter", function () {
 });
 
 asyncTest("setDecimalMarkCharacter", function () {
-    expect(1);
+    expect(2);
 
     var dataset = [
         [ "column_a" ],
 
         [ "1.435"    ],
         [ "3,600"    ],
-        [ "4.56"     ],
+        [ "4.560"     ],
         [ "2,345"    ]
     ];
 
@@ -2808,9 +2808,18 @@ asyncTest("setDecimalMarkCharacter", function () {
      .getColumnsAndRecords(function (columns, rows) {
         deepEqual(rows, [
             [ "1.435" ],
-            [ "4.56"  ],
+            [ "4.560" ],
             [ "2,345" ],
             [ "3,600" ]
+        ]);
+     }).setDecimalMarkCharacter(",")
+     .sort("column_a")
+     .getColumnsAndRecords(function (columns, rows) {
+        deepEqual(rows, [
+            [ "2,345" ],
+            [ "3,600" ],
+            [ "1.435" ],
+            [ "4.560" ]
         ]);
         start();
      }).finish();

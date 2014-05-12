@@ -485,10 +485,12 @@
 
         a += "";
         a = a.replace(self._onlyValidForNumbersRegex, "");
+        if (self._decimalMarkCharacter) a = a.replace(self._decimalMarkCharacter, ".");
         a = parseFloat(a);
 
         b += "";
         b = b.replace(self._onlyValidForNumbersRegex, "");
+        if (self._decimalMarkCharacter) b = b.replace(self._decimalMarkCharacter, ".");
         b = parseFloat(b);
 
         if (!isNaN(a) && !isNaN(b))
@@ -753,11 +755,10 @@
     };
 
     DWH.prototype.setDecimalMarkCharacter = function (data) {
-        var self = this,
-            decimalMarkCharacter = data.decimalMarkCharacter;
+        var self = this;
 
         self._onlyValidForNumbersRegex = new RegExp(
-            "[0-9e\-" + decimalMarkCharacter + "]", "g"
+            "[^0-9e\\-" + (self._decimalMarkCharacter = data.decimalMarkCharacter) + "]", "g"
         );
 
         return {};
