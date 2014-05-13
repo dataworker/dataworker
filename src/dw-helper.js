@@ -1323,7 +1323,7 @@
             self._socket.send(data.request);
             requestMade = true;
         } else if (typeof(self._ajaxDatasource) !== "undefined") {
-            _ajax(data.request);
+            self._ajax(data.request);
             requestMade = true;
         }
 
