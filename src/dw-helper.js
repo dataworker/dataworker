@@ -32,6 +32,8 @@
 
         self._hasChildElements = false;
 
+        self._isFinished = false;
+
         return self;
     };
 
@@ -72,7 +74,7 @@
         // Running in WebWorker.
 
         DWH.prototype._postMessage = function _postMessage(reply) {
-            globalWorker.postMessage(reply);
+            if (!this._isFinished) globalWorker.postMessage(reply);
         };
 
         globalWorker.onmessage = function (e) {
@@ -87,7 +89,7 @@
 
         // Called by DWH; DataWorker uses this to receive replies.
         DWH.prototype._postMessage = function (reply) {
-            this.onmessage({ data: reply });
+            if (!this._isFinished) this.onmessage({ data: reply });
         };
 
         // Called by DataWorker; DWH uses this to receive commands.
@@ -112,6 +114,8 @@
 
             self._socket.close();
         }
+
+        self._isFinished = true;
 
         return {};
     };
