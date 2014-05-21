@@ -4477,8 +4477,6 @@ asyncTest("apply filter (complex, gt/e, lt/e, eq, ne)", function () {
 asyncTest("apply filter (complex, matchAll)", function () {
     expect(2);
 
-    var numbers = { name: "numbers", sortType: "num" };
-
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
 
@@ -4512,8 +4510,6 @@ asyncTest("apply filter (complex, matchAll)", function () {
 asyncTest("apply filter (complex, empty filter does nothing)", function () {
     expect(1);
 
-    var numbers = { name: "numbers", sortType: "num" };
-
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
 
@@ -4537,8 +4533,6 @@ asyncTest("apply filter (complex, empty filter does nothing)", function () {
 
 asyncTest("apply filter (complex, columns can be string or array)", function () {
     expect(2);
-
-    var numbers = { name: "numbers", sortType: "num" };
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4571,8 +4565,6 @@ asyncTest("apply filter (complex, columns can be string or array)", function () 
 asyncTest("search (apply complex filters)", function () {
     expect(1);
 
-    var numbers = { name: "numbers", sortType: "num" };
-
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
 
@@ -4594,8 +4586,6 @@ asyncTest("search (apply complex filters)", function () {
 
 asyncTest("search (fromRow)", function () {
     expect(2);
-
-    var numbers = { name: "numbers", sortType: "num" };
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4622,8 +4612,6 @@ asyncTest("search (fromRow)", function () {
 
 asyncTest("search (allRows)", function () {
     expect(3);
-
-    var numbers = { name: "numbers", sortType: "num" };
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4709,6 +4697,34 @@ asyncTest("sort by number allows scientific notation", function () {
         deepEqual(rows, [
             [ "2.34e-5" ],
             [ "1.23e5"  ]
+        ]);
+
+        start();
+    }).finish();
+});
+
+asyncTest("removeColumns keeps the isVisible flags", function () {
+    expect(2);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "piano",    "dog"      ],
+        [ "banana",   "tissue",   "gum"      ]
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.applyFilter(/o/, "column_b").getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple", "violin", "music" ],
+            [ "cat",   "piano",  "dog"   ]
+        ]);
+    }).removeColumns("column_c").getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple", "violin" ],
+            [ "cat",   "piano"  ]
         ]);
 
         start();

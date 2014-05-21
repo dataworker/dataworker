@@ -371,6 +371,8 @@
 
     DWH.prototype._prepareRows = function (rawRows) {
         return rawRows.map(function (row) {
+            if (!(row instanceof Array)) return row;
+
             return {
                 row       : row,
                 isVisible : true
@@ -771,10 +773,10 @@
     DWH.prototype.search = function (data) {
         var self = this,
             results = self._scanRows({
-            setVisibility: false,
-            filters: data.filters,
-            allRows: data.allRows
-        });
+                setVisibility: false,
+                filters: data.filters,
+                allRows: data.allRows
+            });
 
         if (typeof data.sortOn        === "string") data.sortOn        = [ data.sortOn        ];
         if (typeof data.columns       === "string") data.columns       = [ data.columns       ];
@@ -866,7 +868,7 @@
     DWH.prototype.removeColumns = function (data) {
         var self = this,
             columnsToRemove = data.columnsToRemove,
-            i = 0, columnsToKeep = {}, filteredDataset = [];
+            i = 0, columnsToKeep = {};
 
         Object.keys(self._columns).forEach(function (columnName, i) {
             if (columnsToRemove.indexOf(columnName) === -1) {
@@ -885,11 +887,10 @@
                     = row["row"][self._columns[columnName]["index"]];
             });
 
-            filteredDataset.push(filteredRow);
+            row["row"] = filteredRow;;
         });
 
         self._columns = columnsToKeep;
-        self._rows    = self._prepareRows(filteredDataset);
 
         return {};
     };
