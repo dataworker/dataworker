@@ -115,9 +115,9 @@
             self._socket.close();
         }
 
-        self._isFinished = true;
+        self._postMessage({});
 
-        return {};
+        self._isFinished = true;
     };
 
     /* Initializations */
