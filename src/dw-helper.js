@@ -156,14 +156,14 @@
                 self._rows    = self._prepareRows(data.rows);
             } else if (/^https?:\/\//.test(datasource.source)) {
                 self._ajaxDatasource   = datasource.source;
-                self._ajaxAuthenticate = datasource.authenticate;
+                self._ajaxAuthenticate = datasource.authenticate || data.authenticate;
 
                 if (typeof(data.request) !== "undefined") {
                     self.requestDataset(data);
                 }
             } else if (/^wss?:\/\//.test(datasource.source)) {
                 self._wsDatasource   = datasource.source;
-                self._wsAuthenticate = datasource.authenticate;
+                self._wsAuthenticate = datasource.authenticate || data.authenticate;
 
                 waitToConnect = self._initializeWebsocketConnection(data);
             } else {

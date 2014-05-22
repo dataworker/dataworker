@@ -180,6 +180,7 @@
                 columns      : columns,
                 rows         : rows,
                 datasource   : datasource,
+                authenticate : dataset.authenticate,
                 request      : request,
                 onClose      : dataset.onClose
             });
