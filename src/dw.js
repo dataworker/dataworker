@@ -105,19 +105,15 @@
     };
 
     DataWorker.prototype._initializeWebWorker = function (dataset) {
-        var self = this, columns, rows, datasource, authenticate, request;
+        var self = this, columns, rows, datasource, request;
 
         if (dataset instanceof Array) {
             columns = dataset.slice(0, 1)[0];
             rows    = dataset.slice(1);
         } else {
-            datasource   = dataset.datasource;
+            datasource = dataset.datasource;
 
-            authenticate = (typeof dataset.authenticate === "string")
-                ? dataset.authenticate
-                : JSON.stringify(dataset.authenticate);
-
-            request      = (typeof dataset.request === "string")
+            request = (typeof dataset.request === "string")
                 ? dataset.request
                 : JSON.stringify(dataset.request);
         }
@@ -184,7 +180,6 @@
                 columns      : columns,
                 rows         : rows,
                 datasource   : datasource,
-                authenticate : authenticate,
                 request      : request,
                 onClose      : dataset.onClose
             });

@@ -16,14 +16,16 @@
         self._expectedNumRows;
 
         self._datasources;
-        self._authentication;
 
         self._wsDatasource;
+        self._wsAuthenticate;
         self._socket;
         self._onSocketClose;
         self._isWsReady;
 
         self._ajaxDatasource;
+        self._ajaxAuthenticate;
+        self._ajaxRequestCounter = 0;
 
         self._rowsPerPage = 10;
         self._currentPage = undefined;
@@ -127,15 +129,13 @@
             waitToConnect = false,
             datasource;
 
-        self._authentication = data.authenticate;
-
         if (typeof(self._datasources) === "undefined") {
             self._datasources = (data.datasource instanceof Array)
                         ?   data.datasource.slice(0)
                         : [ data.datasource ];
         }
 
-        self._ajaxDatasource = self._wsDatasource = self._socket = undefined;
+        self._wsDatasource = self._socket = self._ajaxDatasource = undefined;
 
         try {
             if (useBackup) {
@@ -154,14 +154,16 @@
             if (typeof(datasource) === "undefined") {
                 self._columns = self._prepareColumns(data.columns);
                 self._rows    = self._prepareRows(data.rows);
-            } else if (/^https?:\/\//.test(datasource)) {
-                self._ajaxDatasource = datasource;
+            } else if (/^https?:\/\//.test(datasource.source)) {
+                self._ajaxDatasource   = datasource.source;
+                self._ajaxAuthenticate = datasource.authenticate;
 
                 if (typeof(data.request) !== "undefined") {
-                    self._requestDataset(data);
+                    self.requestDataset(data);
                 }
-            } else if (/^wss?:\/\//.test(datasource)) {
-                self._wsDatasource = datasource;
+            } else if (/^wss?:\/\//.test(datasource.source)) {
+                self._wsDatasource   = datasource.source;
+                self._wsAuthenticate = datasource.authenticate;
 
                 waitToConnect = self._initializeWebsocketConnection(data);
             } else {
@@ -208,7 +210,7 @@
             url = self._ajaxDatasource + (/^\?/.test(request) ? "" : "?");
 
         url += self._getRequestParams(request);
-        url += self._getRequestParams(self._authentication);
+        url += self._getRequestParams(self._ajaxAuthenticate);
 
         xmlHttp.onreadystatechange = function () {
             if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
@@ -254,8 +256,12 @@
         self._isWsReady = false;
 
         self._socket.onopen  = function () {
-            if (data.authenticate) {
-                self._socket.send(data.authenticate);
+            if (self._wsAuthenticate) {
+                self._socket.send(
+                    typeof(self._wsAuthenticate) === "string"
+                        ? self._wsAuthenticate 
+                        : JSON.stringify(self._wsAuthenticate)
+                );
             }
 
             if (typeof(data.request) !== "undefined") {
