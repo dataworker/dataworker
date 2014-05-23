@@ -212,6 +212,21 @@
         ]
     });</pre>
                         <p>The sources will be tried in order. If they all fail, DataWorker will throw an error.</p>
+                        <p>For finer-grain control, authentications can be supplied on a per-datasource basis:</p>
+                        <pre>
+    var dw = new DataWorker({
+        request    : "\"cmd\":\"requestDataset\"}",
+        datasource : [
+            {
+                source       : "ws://127.0.0.1:8888",
+                authenticate : "zxcv"
+            },
+            {
+                source       : "http://127.0.0.1/data-origin",
+                authenticate : "asdf"
+            }
+        ]
+    });</pre>
                         <h5>Requesting further data</h5>
                         <p>A new dataset can be requested using the <code>requestDataset</code> method:</p>
                         <pre>
@@ -229,6 +244,21 @@
     // For AJAX only:
     dw.requestDatasetForAppend("query=string");</pre>
                         <p>Note that the newly-requested dataset should have the same columns as the previously-requested dataset.</p>
+                        <h5>Cancelling ongoing requests</h5>
+                        <p>Ongoing requests can be cancelled with the <code>cancelOnoingRequests</code> method:</p>
+                        <pre>
+    dw.cancelOngoingRequests();</pre>
+                        <p>When <code>requestDataset</code> is called, ongoing requests are automatically cancelled (<code>requestDatasetForAppend</code> does not cancel ongoing requests).</p>
+                        <p>When connected to a Websocket server, DataWorker will send the <code>cancelRequestsCmd</code>  message signalling the server to cancel the previous requests if such a message has been provided:</p>
+                        <pre>
+    var dw = new DataWorker({
+        datasource: {
+            source            : "ws://127.0.0.1:8888",
+            cancelRequestsCmd : "CANCEL",
+            cancelRequestsAck : "ACK_CANCEL"
+        }
+    });</pre>
+                        <p>If <code>cancelReqeustsAck</code> has been provided, DataWorker will wait for the server to acknowledge with a reply that matches <code>cancelRequestsAck</code> exactly before proceeding.
                     </section>
                     <section id="clone">
                         <h3>Clone</h3>
