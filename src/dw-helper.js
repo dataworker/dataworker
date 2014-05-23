@@ -20,12 +20,18 @@
         self._wsDatasource;
         self._wsAuthenticate;
         self._socket;
-        self._onSocketClose;
         self._isWsReady;
+
+        self._cancelRequestsCmd;
+        self._cancelRequestsAck;
+        self._waitForCancelRequestsAck = false;
+        self._onSocketClose;
 
         self._ajaxDatasource;
         self._ajaxAuthenticate;
         self._ajaxRequestCounter = 0;
+
+        self._shouldClearDataset = false;
 
         self._rowsPerPage = 10;
         self._currentPage = undefined;
@@ -69,7 +75,7 @@
             }
         }
 
-        self._postMessage(reply);
+        if (reply) self._postMessage(reply);
     };
 
     if (typeof(window) === "undefined") {
@@ -124,6 +130,8 @@
 
     /* Initializations */
 
+    function stringify(o) { return typeof(o) === "string" ? o : JSON.stringify(o); }
+
     DWH.prototype.initialize = function (data, useBackup) {
         var self = this,
             waitToConnect = false,
@@ -162,8 +170,12 @@
                     self.requestDataset(data);
                 }
             } else if (/^wss?:\/\//.test(datasource.source)) {
-                self._wsDatasource   = datasource.source;
-                self._wsAuthenticate = datasource.authenticate || data.authenticate;
+                self._wsDatasource      = datasource.source;
+                self._wsAuthenticate    = stringify(
+                    datasource.authenticate || data.authenticate
+                );
+                self._cancelRequestsCmd = stringify(datasource.cancelRequestsCmd);
+                self._cancelRequestsAck = stringify(datasource.cancelRequestsAck);
 
                 waitToConnect = self._initializeWebsocketConnection(data);
             } else {
@@ -207,13 +219,16 @@
     DWH.prototype._ajax = function (request) {
         var self = this,
             xmlHttp = new XMLHttpRequest(),
-            url = self._ajaxDatasource + (/^\?/.test(request) ? "" : "?");
+            url = self._ajaxDatasource + (/^\?/.test(request) ? "" : "?"),
+            requestCount = self._ajaxRequestCounter;
 
         url += self._getRequestParams(request);
         url += self._getRequestParams(self._ajaxAuthenticate);
 
         xmlHttp.onreadystatechange = function () {
             if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                if (requestCount !== self._ajaxRequestCounter) return;
+
                 var msg = JSON.parse(xmlHttp.responseText);
 
                 if (msg.error) {
@@ -221,6 +236,8 @@
                 }
 
                 if (msg.columns) {
+                    if (self._shouldClearDataset) self.clearDataset();
+
                     var error = self._checkColumnsForAppend(msg.columns);
                     if (error) return self._postMessage({ error: error });
                 }
@@ -257,11 +274,7 @@
 
         self._socket.onopen  = function () {
             if (self._wsAuthenticate) {
-                self._socket.send(
-                    typeof(self._wsAuthenticate) === "string"
-                        ? self._wsAuthenticate 
-                        : JSON.stringify(self._wsAuthenticate)
-                );
+                self._socket.send(self._wsAuthenticate);
             }
 
             if (typeof(data.request) !== "undefined") {
@@ -285,10 +298,16 @@
         };
 
         self._socket.onmessage = function (msg) {
+            if (self._waitForCancelRequestsAck && (msg.data === self._cancelRequestsAck)) {
+                self._waitForCancelRequestsAck = false;
+                self._postMessage({});
+                return;
+            }
+
             try {
                 msg = JSON.parse(msg.data);
             } catch (error) {
-                self._postMessage({ "error": error.message + ": " + msg.data });
+                self._postMessage({ "Error ": error.message + ": " + msg.data });
             }
 
             if (msg.error) {
@@ -297,6 +316,8 @@
             }
 
             if (msg.columns) {
+                if (self._shouldClearDataset) self.clearDataset();
+
                 var error = self._checkColumnsForAppend(msg.columns);
                 if (error) return _postMessage({ error: error });
             }
@@ -1323,7 +1344,7 @@
     DWH.prototype.requestDataset = function (data) {
         var self = this;
 
-        self.clearDataset();
+        self._shouldClearDataset = true;
         return self.requestDatasetForAppend(data);
     };
 
@@ -1379,6 +1400,26 @@
             columns : self._columns,
             rows    : self._rows.map(function (row) { return row.row; })
         };
+    };
+
+    DWH.prototype.cancelOngoingRequests = function (data) {
+        var self = this;
+
+        if (self._ajaxDatasource) {
+            self._ajaxRequestCounter++;
+        } else if (self._wsDatasource) {
+            if (
+                self._socket !== undefined
+                && self._cancelRequestsCmd !== undefined
+            ) {
+                self._waitForCancelRequestsAck = !!self._cancelRequestsAck;
+                self._socket.send(self._cancelRequestsCmd);
+
+                if (self._waitForCancelRequestsAck) return;
+            }
+        }
+
+        return {};
     };
 
     /* Miscellaneous */

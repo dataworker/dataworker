@@ -192,6 +192,8 @@
     DataWorker.prototype.finish = function (cb) {
         var self = this;
 
+        self.cancelOngoingRequests();
+
         self._queueNext(function () {
             self._onReceiveColumns  = null;
             self._onReceiveRows     = null;
@@ -934,9 +936,9 @@
     DataWorker.prototype.requestDataset = function (request) {
         var self = this;
 
-        self._queueNext(function () {
+        self.cancelOngoingRequests()._queueNext(function () {
             self._onAllRowsReceivedTracker = false;
-            self._onReceiveColumnsTracker = false;
+            self._onReceiveColumnsTracker  = false;
 
             self._postMessage({
                 cmd     : "requestDataset",
@@ -953,7 +955,7 @@
 
         self._queueNext(function () {
             self._onAllRowsReceivedTracker = false;
-            self._onReceiveColumnsTracker = false;
+            self._onReceiveColumnsTracker  = false;
 
             self._postMessage({
                 cmd     : "requestDatasetForAppend",
@@ -1115,6 +1117,16 @@
 
         self._queueNext(function () {
             self._postMessage({ cmd : "clearDataset" });
+        });
+
+        return self;
+    };
+
+    DataWorker.prototype.cancelOngoingRequests = function () {
+        var self = this;
+
+        self._queueNext(function () {
+            self._postMessage({ cmd : "cancelOngoingRequests" });
         });
 
         return self;
