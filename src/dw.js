@@ -48,7 +48,7 @@
     DataWorker.prototype._finishAction = function (finishAsynchronous) {
         var self = this;
 
-        if (finishAsynchronous && !self._isSingleThreaded) {
+        if (finishAsynchronous) {
             self._actionQueue.finishAsynchronous();
         }
 
@@ -60,9 +60,7 @@
     DataWorker.prototype._postMessage = function (message) {
         var self = this;
 
-        if (!self._isSingleThreaded) {
-            self._actionQueue.beginAsynchronous();
-        }
+        self._actionQueue.beginAsynchronous();
         self._worker.postMessage(message);
 
         return self;
