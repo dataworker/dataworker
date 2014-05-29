@@ -29,6 +29,7 @@
 
         self._ajaxDatasource;
         self._ajaxAuthenticate;
+        self._ajaxRequests = [];
         self._ajaxRequestCounter = 0;
 
         self._shouldClearDataset = false;
@@ -230,6 +231,8 @@
             xmlHttp = new XMLHttpRequest(),
             url = self._ajaxDatasource + (/^\?/.test(request) ? "" : "?"),
             requestCount = self._ajaxRequestCounter;
+
+        self._ajaxRequests.push(xmlHttp);
 
         url += self._getRequestParams(request);
         url += self._getRequestParams(self._ajaxAuthenticate);
@@ -1347,6 +1350,8 @@
         self._partitionedRows = [];
         self._expectedNumRows = undefined;
 
+        self._shouldClearDataset = false;
+
         return {};
     };
 
@@ -1415,6 +1420,8 @@
         var self = this;
 
         if (self._ajaxDatasource) {
+            self._ajaxRequests.forEach(function (xhr) { xhr.abort() });
+            self._ajaxRequests = [];
             self._ajaxRequestCounter++;
         } else if (self._wsDatasource) {
             if (

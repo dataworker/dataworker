@@ -931,17 +931,18 @@
         return self;
     };
 
-    DataWorker.prototype.requestDataset = function (request) {
-        var self = this;
+    DataWorker.prototype.requestDataset = function (request, forAppend) {
+        var self = this,
+            cmd  = "requestDataset";
 
-        self.cancelOngoingRequests()._queueNext(function () {
+        if (forAppend) cmd += "ForAppend"
+        else self.cancelOngoingRequests();
+
+        self._queueNext(function () {
             self._onAllRowsReceivedTracker = false;
             self._onReceiveColumnsTracker  = false;
 
-            self._postMessage({
-                cmd     : "requestDataset",
-                request : request
-            });
+            self._postMessage({ cmd: cmd, request: request });
         });
 
         return self;
@@ -949,19 +950,7 @@
 
 
     DataWorker.prototype.requestDatasetForAppend = function (request) {
-        var self = this;
-
-        self._queueNext(function () {
-            self._onAllRowsReceivedTracker = false;
-            self._onReceiveColumnsTracker  = false;
-
-            self._postMessage({
-                cmd     : "requestDatasetForAppend",
-                request : request
-            });
-        });
-
-        return self;
+        return this.requestDataset(request, true);
     };
 
     DataWorker.prototype.hideColumns = function () {
