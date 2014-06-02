@@ -392,6 +392,8 @@
                             <li><code>columns</code> <i>(array of strings or single string)</i>: Columns on which to filter (defaults to all columns)</li>
                             <li><code>column</code> <i>(single string)</i>: Single column on which to filter (defaults to all columns) (note: if both <code>columns</code> and <code>column</code> are defined, the latter will be used)</li>
                             <li><code>matchAll</code> <i>(boolean)</i>: If this flag is set to <code>true</code> then all columns provided must match the filter for the row to stay visible. By default, if any of the columns match the row will stay visible</li>
+                            <li><code>regex</code> <i>(string or RegExp)</i>: Columns must match this regular expression (if a string is provided it will be converted to a RegExp)</li>
+                            <li><code>!regex</code> <i>(string or RegExp)</i>: Columns must <b>not</b> match this regular expression (if a string is provided it will be converted to a RegExp)</li>
                             <li><code>eq</code> <i>(value)</i>: Columns must equal (==) this value</li>
                             <li><code>ne</code> <i>(value)</i>: Columns must not equal (!=) this value</li>
                             <li><code>gte</code> <i>(value)</i>: Columns must be greater than or equal to (&gt;=) this value</li>
@@ -407,8 +409,9 @@
             eq     : "apple"
         },
         {
-            column : "column_b",
-            regex  : /yellow/
+            column   : "column_b",
+            regex    : /yellow/,
+            "!regex" : /blue/
         },
         {
             columns : [ "column_a", "column_b" ],

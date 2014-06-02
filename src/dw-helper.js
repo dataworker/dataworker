@@ -578,8 +578,12 @@
                 filter.indices = allIndices;
             }
 
-            filter.tests = [ "eq", "ne", "gte", "gt", "lte", "lt", "regex"]
+            filter.tests = [ "eq", "ne", "gte", "gt", "lte", "lt", "regex", "!regex" ]
                 .filter(function (name) { return name in filter });
+
+            [ "regex", "!regex" ].forEach(function (type) {
+                if (filter[type]) filter[type] = RegExp(filter[type]);
+            });
 
             return filter;
         }).filter(function (filter) { return filter.indices.length; });
@@ -618,13 +622,14 @@
         if (isNum) cell = parseFloat(cell);
 
         switch (testName) {
-            case "regex": return filter.regex.test(cell);
-            case "eq":    return cell == filter.eq;
-            case "ne":    return cell != filter.ne;
-            case "gte":   return cell >= filter.gte;
-            case "gt":    return cell >  filter.gt;
-            case "lte":   return cell <= filter.lte;
-            case "lt":    return cell <  filter.lt;
+            case "regex":  return filter.regex.test(cell);
+            case "!regex": return !filter["!regex"].test(cell);
+            case "eq":     return cell == filter.eq;
+            case "ne":     return cell != filter.ne;
+            case "gte":    return cell >= filter.gte;
+            case "gt":     return cell >  filter.gt;
+            case "lte":    return cell <= filter.lte;
+            case "lt":     return cell <  filter.lt;
         }
     };
 

@@ -4730,3 +4730,30 @@ asyncTest("removeColumns keeps the isVisible flags", function () {
         start();
     }).finish();
 });
+
+asyncTest("column filters now support inverse regex (\"!regex\")", function () {
+    expect(2);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",    "violin",   "music"    ],
+        [ "cat",      "piano",    "dog"      ],
+        [ "banana",   "tissue",   "gum"      ]
+    ];
+
+    var dw = new DataWorker(dataset);
+
+    dw.applyFilter({ column: "column_b", regex: /o/ }).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple", "violin", "music" ],
+            [ "cat",   "piano",  "dog"   ]
+        ]);
+    }).clearFilters().applyFilter({ column: "column_b", "!regex": /o/ }).getRows(function (rows) {
+        deepEqual(rows, [
+            [ "banana", "tissue", "gum" ]
+        ]);
+
+        start();
+    }).finish();
+});

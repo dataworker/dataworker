@@ -266,11 +266,7 @@
 
     DataWorker.prototype.applyFilter = function () {
         var self = this,
-            filters = _getArray(arguments).map(function (filter) {
-                if (filter.regex) filter.regex = RegExp(filter.regex);
-
-                return filter;
-            });
+            filters = _getArray(arguments);
 
         self._queueNext(function () {
             self._postMessage({
@@ -935,7 +931,7 @@
         var self = this,
             cmd  = "requestDataset";
 
-        if (forAppend) cmd += "ForAppend"
+        if (forAppend) cmd += "ForAppend";
         else self.cancelOngoingRequests();
 
         self._queueNext(function () {
