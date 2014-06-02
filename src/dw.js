@@ -174,13 +174,16 @@
             };
 
             self._postMessage({
-                cmd          : "initialize",
-                columns      : columns,
-                rows         : rows,
-                datasource   : datasource,
-                authenticate : dataset.authenticate,
-                request      : request,
-                onClose      : dataset.onClose
+                cmd                    : "initialize",
+
+                columns                : columns,
+                rows                   : rows,
+
+                datasource             : datasource,
+                authenticate           : dataset.authenticate,
+                request                : request,
+                onClose                : dataset.onClose,
+                shouldAttemptReconnect : dataset.shouldAttemptReconnect
             });
         });
 

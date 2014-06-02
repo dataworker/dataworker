@@ -26,6 +26,7 @@
         self._cancelRequestsAck;
         self._waitForCancelRequestsAck = false;
         self._onSocketClose;
+        self._shouldAttemptReconnect = false;
 
         self._ajaxDatasource;
         self._ajaxAuthenticate;
@@ -130,6 +131,7 @@
                 self._socket.send(self._onSocketClose);
             }
 
+            self._socket.onclose = function () {};
             self._socket.close();
         }
 
@@ -186,6 +188,8 @@
                 );
                 self._cancelRequestsCmd = stringify(datasource.cancelRequestsCmd);
                 self._cancelRequestsAck = stringify(datasource.cancelRequestsAck);
+
+                self._shouldAttemptReconnect = data.shouldAttemptReconnect;
 
                 waitToConnect = self._initializeWebsocketConnection(data);
             } else {
@@ -295,7 +299,14 @@
 
             self._isWsReady = true;
         };
-        self._socket.onclose = function () {};
+        self._socket.onclose = function (e) {
+            if (
+                self._shouldAttemptReconnect
+                && e.code !== 1000 && e.code !== 1001
+            ) {
+                self._initializeWebsocketConnection(data);
+            }
+        };
         self._socket.onerror = function (error) {
             if (error.target.readyState === 0 || error.target.readyState === 3) {
                 self._isWsReady = true;
