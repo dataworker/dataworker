@@ -153,6 +153,12 @@
             self._datasources = (data.datasource instanceof Array)
                         ?   data.datasource.slice(0)
                         : [ data.datasource ];
+
+            self._datasources = self._datasources.map(function (datasource) {
+                return typeof(datasource) === "string"
+                    ? { source: datasource }
+                    : datasource;
+            });
         }
 
         self._wsDatasource = self._socket = self._ajaxDatasource = undefined;
