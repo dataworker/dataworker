@@ -37,6 +37,9 @@
         return self;
     };
 
+    DataWorker.workerPool = new WebWorkerPool(srcPath + "dw-helper.js");
+    DataWorker.prototype.workerPool = DataWorker.workerPool;
+
     DataWorker.prototype._queueNext = function (action) {
         var self = this;
 
@@ -124,7 +127,7 @@
 
             self._worker = self._isSingleThreaded
                 ? ( new DataWorkerHelper() )
-                : ( new Worker(srcPath + "dw-helper.js") );
+                : self.workerPool.getWorker();
 
             self._worker.onmessage = function (e) {
                 if (!e.data) return;
@@ -206,7 +209,7 @@
 
             self._postMessage({ cmd: "finish" });
         })._queueNext(function () {
-            self._worker.terminate();
+            self.workerPool.reclaim(self._worker);
             self._actionQueue.finish();
 
             self._worker.onmessage = null;

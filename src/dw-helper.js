@@ -138,6 +138,7 @@
         self._postMessage({});
 
         self._isFinished = true;
+        helper = null;
     };
 
     /* Initializations */
