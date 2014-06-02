@@ -1,40 +1,38 @@
 (function() {
     "use strict";
 
-    var srcPath = getSourcePath();
-
-    function getSourcePath () {
-        var scripts = document.getElementsByTagName('script'),
+    var srcPath = (function () {
+        var scripts = document.getElementsByTagName("script"),
             srcFile = scripts[scripts.length - 1].src;
 
         return srcFile.replace(
-            /(http:\/\/)?.*?(\/(.*\/)?).*/,
+            /(https?:\/\/)?.*?(\/(.*\/)?).*/,
             function () { return arguments[2]; }
         );
-    }
+    })();
 
-    var JData = window.JData = function JData (dataset) {
-        var self = this instanceof JData ? this : Object.create(JData.prototype);
+    var DataWorker = window.DataWorker = function DataWorker (dataset) {
+        var self = this instanceof DataWorker ? this : Object.create(DataWorker.prototype);
 
-        self._columns       = {};
-        self._rows          = [];
-        self._summary_rows  = [];
-        self._distinct_rows = [];
-        self._hash          = {};
+        self._columns      = {};
+        self._rows         = [];
+        self._summaryRows  = [];
+        self._distinctRows = [];
+        self._hash         = {};
 
-        self._num_rows = 0;
-        self._expected_num_rows = 0;
-        self._current_page = undefined;
-        self._number_of_pages = undefined;
+        self._numRows = 0;
+        self._expectedNumRows = 0;
+        self._currentPage = undefined;
+        self._numberOfPages = undefined;
 
-        self._partitioned_datasets = {};
+        self._partitionedDatasets = {};
 
-        self._render_function = function () {};
+        self._renderFunction = function () {};
 
-        self._action_queue = new ActionQueue();
+        self._actionQueue = new ActionQueue();
 
-        self._initialize_callbacks(dataset);
-        self._initialize_web_worker(dataset);
+        self._initializeCallbacks(dataset);
+        self._initializeWebWorker(dataset);
 
         window.addEventListener("beforeunload", function () {
             self._worker.postMessage({ cmd : "finish" });
@@ -43,59 +41,59 @@
         return self;
     };
 
-    JData.prototype._queue_next = function (action) {
+    DataWorker.prototype._queueNext = function (action) {
         var self = this;
 
-        self._action_queue.queueNext(action);
+        self._actionQueue.queueNext(action);
 
         return self;
     };
 
-    JData.prototype._finish_action = function () {
+    DataWorker.prototype._finishAction = function () {
         var self = this;
 
-        self._action_queue.finishAction();
+        self._actionQueue.finishAction();
 
         return self;
     };
 
-    JData.prototype._initialize_callbacks = function (dataset) {
+    DataWorker.prototype._initializeCallbacks = function (dataset) {
         var self = this;
 
-        self._on_receive_columns_tracker = false;
-        if ("on_receive_columns" in dataset) {
-            self._on_receive_columns = function () {
-                self._on_receive_columns_tracker = false;
-                dataset["on_receive_columns"].apply(this, arguments);
+        self._onReceiveColumnsTracker = false;
+        if ("onReceiveColumns" in dataset) {
+            self._onReceiveColumns = function () {
+                self._onReceiveColumnsTracker = false;
+                dataset["onReceiveColumns"].apply(this, arguments);
             };
         } else {
-            self._on_receive_columns = function () {};
+            self._onReceiveColumns = function () {};
         }
 
-        self._on_all_rows_received_tracker = false;
-        if ("on_all_rows_received" in dataset) {
-            self._on_all_rows_received = function () {
-                self._on_all_rows_received_tracker = false;
-                dataset["on_all_rows_received"].apply(this, arguments);
+        self._onAllRowsReceivedTracker = false;
+        if ("onAllRowsReceived" in dataset) {
+            self._onAllRowsReceived = function () {
+                self._onAllRowsReceivedTracker = false;
+                dataset["onAllRowsReceived"].apply(this, arguments);
             };
         } else {
-            self._on_all_rows_received = function () {};
+            self._onAllRowsReceived = function () {};
         }
 
-        self._on_receive_rows = "on_receive_rows" in dataset
-                              ? dataset["on_receive_rows"]
+        self._onReceiveRows = "onReceiveRows" in dataset
+                              ? dataset["onReceiveRows"]
                               : function () {};
 
-        self._on_trigger = "on_trigger" in dataset
-                         ? dataset["on_trigger"]
+        self._onTrigger = "onTrigger" in dataset
+                         ? dataset["onTrigger"]
                          : function () {};
 
-        self._on_error = "on_error" in dataset ? dataset["on_error"] : function () {};
+        self._onError = "onError" in dataset ? dataset["onError"] : function () {};
 
         return self;
     };
 
-    JData.prototype._initialize_web_worker = function (dataset) {
+    DataWorker.prototype._initializeWebWorker = function (dataset) {
         var self = this, columns, rows, datasource, authenticate, request;
 
         if (dataset instanceof Array) {
@@ -113,56 +111,56 @@
                 : JSON.stringify(dataset.request);
         }
 
-        self._queue_next(function () {
-            var this_action_queue = this;
+        self._queueNext(function () {
+            var thisActionQueue = this;
 
             self._worker = ( typeof Worker === "undefined" )
-                ? ( new JDataWorker() )
-                : ( new Worker(srcPath + "jdata_worker.js") );
+                ? ( new DataWorkerHelper() )
+                : ( new Worker(srcPath + "dw-helper.js") );
 
             self._worker.onmessage = function (e) {
-                if ("rows_received" in e.data) {
-                    self._on_receive_rows(e.data.rows_received);
+                if ("rowsReceived" in e.data) {
+                    self._onReceiveRows(e.data.rowsReceived);
                     return;
                 }
-                if ("trigger_msg" in e.data) {
-                    self._on_trigger(e.data.trigger_msg);
+                if ("triggerMsg" in e.data) {
+                    self._onTrigger(e.data.triggerMsg);
                     return;
                 }
-                if ("all_rows_received" in e.data) {
-                    self._on_all_rows_received_tracker = true;
-                    self._on_all_rows_received();
-                    return;
-                }
-
-                if ("current_page" in e.data) {
-                    self._current_page = e.data.current_page;
-                }
-
-                if ("number_of_pages" in e.data) {
-                    self._number_of_pages = e.data.number_of_pages;
-                }
-
-                if ("error"         in e.data) self._on_error(e.data.error);
-
-                if ("columns"       in e.data) self._columns = e.data.columns;
-                if ("rows"          in e.data) self._rows = e.data.rows;
-                if ("summary_rows"  in e.data) self._summary_rows = e.data.summary_rows;
-                if ("distinct_rows" in e.data) self._distinct_rows = e.data.distinct_rows;
-
-                if ("hash"          in e.data) self._hash = e.data.hash;
-                if ("keys"          in e.data) self._keys = e.data.keys;
-
-                if ("num_rows"      in e.data) self._num_rows = e.data.num_rows;
-                if ("ex_num_rows"   in e.data) self._expected_num_rows = e.data.ex_num_rows;
-
-                if ("columns_received" in e.data) {
-                    self._on_receive_columns_tracker = true;
-                    self._on_receive_columns(self._columns, self._expected_num_rows);
+                if ("allRowsReceived" in e.data) {
+                    self._onAllRowsReceivedTracker = true;
+                    self._onAllRowsReceived();
                     return;
                 }
 
-                self._finish_action();
+                if ("currentPage" in e.data) {
+                    self._currentPage = e.data.currentPage;
+                }
+
+                if ("numberOfPages" in e.data) {
+                    self._numberOfPages = e.data.numberOfPages;
+                }
+
+                if ("error"        in e.data) self._onError(e.data.error);
+
+                if ("columns"      in e.data) self._columns = e.data.columns;
+                if ("rows"         in e.data) self._rows = e.data.rows;
+                if ("summaryRows"  in e.data) self._summaryRows = e.data.summaryRows;
+                if ("distinctRows" in e.data) self._distinctRows = e.data.distinctRows;
+
+                if ("hash"         in e.data) self._hash = e.data.hash;
+                if ("keys"         in e.data) self._keys = e.data.keys;
+
+                if ("numRows"      in e.data) self._numRows = e.data.numRows;
+                if ("exNumRows"    in e.data) self._expectedNumRows = e.data.exNumRows;
+
+                if ("columnsReceived" in e.data) {
+                    self._onReceiveColumnsTracker = true;
+                    self._onReceiveColumns(self._columns, self._expectedNumRows);
+                    return;
+                }
+
+                self._finishAction();
             };
 
             self._worker.postMessage({
@@ -172,113 +170,113 @@
                 datasource   : datasource,
                 authenticate : authenticate,
                 request      : request,
-                on_close     : dataset.on_close
+                onClose      : dataset.onClose
             });
         });
 
         return self;
     };
 
-    JData.prototype.finish = function () {
+    DataWorker.prototype.finish = function () {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({ cmd : "finish" });
-        })._queue_next(function () {
+        })._queueNext(function () {
             self._worker.terminate();
         });
 
         return self;
     };
 
-    JData.prototype._get_columns = function () {
+    DataWorker.prototype._getColumns = function () {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "get_columns" });
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "getColumns" });
         });
 
         return self;
     };
 
-    JData.prototype.get_columns = function (callback) {
+    DataWorker.prototype.getColumns = function (callback) {
         var self = this;
 
-        self._get_columns()._queue_next(function () {
+        self._getColumns()._queueNext(function () {
             callback(self._columns);
-            return self._finish_action();
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype._refresh = function () {
+    DataWorker.prototype._refresh = function () {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({ cmd : "refresh" });
         });
 
         return self;
     };
 
-    JData.prototype._refresh_all = function () {
+    DataWorker.prototype._refreshAll = function () {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "refresh_all" });
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "refreshAll" });
         });
 
         return self;
     };
 
-    JData.prototype.get_dataset = function () {
+    DataWorker.prototype.getDataset = function () {
         var self = this,
             callback = arguments[0],
-            column_names = arguments[1] instanceof Array
-                         ? arguments[1]
-                         : Array.prototype.slice.call(arguments, 1);
+            columnNames = arguments[1] instanceof Array
+                        ? arguments[1]
+                        : Array.prototype.slice.call(arguments, 1);
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd          : "get_dataset",
-                column_names : column_names
+                cmd         : "getDataset",
+                columnNames : columnNames
             });
-        })._queue_next(function () {
+        })._queueNext(function () {
             callback(self._rows);
-            return self._finish_action();
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.get_distinct_consecutive_rows = function () {
+    DataWorker.prototype.getDistinctConsecutiveRows = function () {
         var self = this,
             callback = arguments[0],
-            column_name = arguments[1];
+            columnName = arguments[1];
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd         : "get_distinct_consecutive_rows",
-                column_name : column_name
+                cmd        : "getDistinctConsecutiveRows",
+                columnName : columnName
             });
-        })._queue_next(function () {
-            callback(self._distinct_rows);
-            return self._finish_action();
+        })._queueNext(function () {
+            callback(self._distinctRows);
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.apply_filter = function () {
+    DataWorker.prototype.applyFilter = function () {
         var self = this,
             filters = arguments[0] instanceof Array
                     ? arguments[0]
                     : Array.prototype.slice.call(arguments);
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd     : "apply_filter",
+                cmd     : "applyFilter",
                 filters : filters
             });
         });
@@ -286,71 +284,71 @@
         return self;
     };
 
-    JData.prototype.clear_filters = function () {
+    DataWorker.prototype.clearFilters = function () {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd : "clear_filters"
+                cmd : "clearFilters"
             });
         });
 
         return self;
     };
 
-    JData.prototype.filter = function () {
+    DataWorker.prototype.filter = function () {
         var self = this,
             regex = arguments[0],
-            relevant_columns = arguments[1] instanceof Array
-                             ? arguments[1]
-                             : Array.prototype.slice.call(arguments, 1);
-        
-        self._queue_next(function () {
+            relevantColumns = arguments[1] instanceof Array
+                            ? arguments[1]
+                            : Array.prototype.slice.call(arguments, 1);
+
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd              : "filter",
-                regex            : regex,
-                relevant_columns : relevant_columns
+                cmd             : "filter",
+                regex           : regex,
+                relevantColumns : relevantColumns
             });
         });
 
         return self;
     };
 
-    JData.prototype.apply_limit = function (num_rows) {
+    DataWorker.prototype.applyLimit = function (numRows) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd      : "apply_limit",
-                num_rows : num_rows
+                cmd     : "applyLimit",
+                numRows : numRows
             });
         });
 
         return self;
     };
 
-    JData.prototype.limit = function (num_rows) {
+    DataWorker.prototype.limit = function (numRows) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd      : "limit",
-                num_rows : num_rows
+                cmd     : "limit",
+                numRows : numRows
             });
         });
 
         return self;
     };
 
-    JData.prototype.sort = function () {
-        var self = this, sort_columns = arguments[0] instanceof Array
-                                      ? arguments[0]
-                                      : Array.prototype.slice.call(arguments);
+    DataWorker.prototype.sort = function () {
+        var self = this, sortColumns = arguments[0] instanceof Array
+                                     ? arguments[0]
+                                     : Array.prototype.slice.call(arguments);
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
                 cmd     : "sort",
-                sort_on : sort_columns,
+                sortOn  : sortColumns,
                 columns : self._columns,
                 rows    : self._rows
             });
@@ -359,184 +357,184 @@
         return self;
     };
 
-    JData.prototype.set_decimal_mark_character = function (decimal_mark_character) {
+    DataWorker.prototype.setDecimalMarkCharacter = function (decimalMarkCharacter) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd                    : "set_decimal_mark_character",
-                decimal_mark_character : decimal_mark_character
+                cmd                  : "setDecimalMarkCharacter",
+                decimalMarkCharacter : decimalMarkCharacter
             });
         });
 
         return self;
     };
 
-    JData.prototype.remove_columns = function () {
+    DataWorker.prototype.removeColumns = function () {
         var self = this,
-            columns_to_remove = arguments[0] instanceof Array
-                              ? arguments[0]
-                              : Array.prototype.slice.call(arguments);
+            columnsToRemove = arguments[0] instanceof Array
+                            ? arguments[0]
+                            : Array.prototype.slice.call(arguments);
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd               : "remove_columns",
-                columns_to_remove : columns_to_remove
+                cmd             : "removeColumns",
+                columnsToRemove : columnsToRemove
             });
         });
 
         return self;
     };
 
-    JData.prototype.paginate = function (rows_per_page) {
+    DataWorker.prototype.paginate = function (rowsPerPage) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd           : "paginate",
-                rows_per_page : rows_per_page
+                cmd         : "paginate",
+                rowsPerPage : rowsPerPage
             });
         });
 
         return self;
     };
 
-    JData.prototype.get_next_page = function (callback) {
+    DataWorker.prototype.getNextPage = function (callback) {
         var self = this;
 
-        self._get_page(undefined, true, false)._queue_next(function() {
-            callback(self._rows, self._current_page);
-            return self._finish_action();
+        self._getPage(undefined, true, false)._queueNext(function() {
+            callback(self._rows, self._currentPage);
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.get_previous_page = function (callback) {
+    DataWorker.prototype.getPreviousPage = function (callback) {
         var self = this;
 
-        self._get_page(undefined, false, true)._queue_next(function () {
-            callback(self._rows, self._current_page);
-            return self._finish_action();
+        self._getPage(undefined, false, true)._queueNext(function () {
+            callback(self._rows, self._currentPage);
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.get_number_of_pages = function (callback) {
+    DataWorker.prototype.getNumberOfPages = function (callback) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd : "get_number_of_pages"
+                cmd : "getNumberOfPages"
             });
-        })._queue_next(function () {
-            callback(self._number_of_pages);
-            return self._finish_action();
+        })._queueNext(function () {
+            callback(self._numberOfPages);
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype._get_page = function (page_num, increment_page, decrement_page) {
+    DataWorker.prototype._getPage = function (pageNum, incrementPage, decrementPage) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd            : "get_page",
-                page_num       : page_num,
-                increment_page : increment_page,
-                decrement_page : decrement_page
-            });
-        });
-
-        return self;
-    };
-
-    JData.prototype.get_page = function (callback, page_num) {
-        var self = this;
-
-        self._get_page(page_num)._queue_next(function () {
-            callback(self._rows, self._current_page);
-            self._finish_action();
-        });
-
-        return self;
-    };
-
-    JData.prototype.set_page = function (page_num) {
-        var self = this;
-
-        self._queue_next(function () {
-            self._worker.postMessage({
-                    cmd      : "set_page",
-                    page_num : page_num
+                cmd           : "getPage",
+                pageNum       : pageNum,
+                incrementPage : incrementPage,
+                decrementPage : decrementPage
             });
         });
 
         return self;
     };
 
-    JData.prototype.get_rows = function (callback, start, end) {
+    DataWorker.prototype.getPage = function (callback, pageNum) {
+        var self = this;
+
+        self._getPage(pageNum)._queueNext(function () {
+            callback(self._rows, self._currentPage);
+            self._finishAction();
+        });
+
+        return self;
+    };
+
+    DataWorker.prototype.setPage = function (pageNum) {
+        var self = this;
+
+        self._queueNext(function () {
+            self._worker.postMessage({
+                    cmd     : "setPage",
+                    pageNum : pageNum
+            });
+        });
+
+        return self;
+    };
+
+    DataWorker.prototype.getRows = function (callback, start, end) {
         var self         = this,
-            column_names = arguments[3] instanceof Array
-                         ? arguments[3]
-                         : Array.prototype.slice.call(arguments, 3);
+            columnNames = arguments[3] instanceof Array
+                        ? arguments[3]
+                        : Array.prototype.slice.call(arguments, 3);
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd          : "get_rows",
-                start        : start,
-                end          : end,
-                column_names : column_names
+                cmd         : "getRows",
+                start       : start,
+                end         : end,
+                columnNames : columnNames
             });
-        })._queue_next(function () {
+        })._queueNext(function () {
             callback(self._rows);
-            self._finish_action();
+            self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.get_columns_and_records = function (callback) {
+    DataWorker.prototype.getColumnsAndRecords = function (callback) {
         var self = this;
 
-        self._refresh()._queue_next(function () {
+        self._refresh()._queueNext(function () {
             callback(self._columns, self._rows);
-            return self._finish_action();
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.get_all_columns_and_all_records = function (callback) {
+    DataWorker.prototype.getAllColumnsAndAllRecords = function (callback) {
         var self = this;
 
-        self._refresh_all()._queue_next(function () {
+        self._refreshAll()._queueNext(function () {
             callback(self._columns, self._rows);
-            return self._finish_action();
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.append = function (data) {
+    DataWorker.prototype.append = function (data) {
         var self = this;
 
-        self._queue_next(function () {
-            if (data instanceof JData) {
-                data.get_all_columns_and_all_records(function (new_columns, new_rows) {
+        self._queueNext(function () {
+            if (data instanceof DataWorker) {
+                data.getAllColumnsAndAllRecords(function (newColumns, newRows) {
                     self._worker.postMessage({
-                        cmd         : "append",
-                        new_columns : new_columns,
-                        new_rows    : new_rows
+                        cmd        : "append",
+                        newColumns : newColumns,
+                        newRows    : newRows
                     });
                 });
             } else {
                 self._worker.postMessage({
                     cmd         : "append",
-                    new_columns : data.slice(0, 1)[0],
-                    new_rows    : data.slice(1)
+                    newColumns : data.slice(0, 1)[0],
+                    newRows    : data.slice(1)
                 });
             }
         });
@@ -544,82 +542,82 @@
         return self;
     };
 
-    JData.prototype.join = function (fdata, pk, fk, join_type) {
+    DataWorker.prototype.join = function (fdata, pk, fk, joinType) {
         var self = this, args = Array.prototype.slice.call(arguments);
-        var f_hash, f_columns;
+        var fHash, fColumns;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             if (!pk.length || !fk.length) {
-                self._on_error("No join key(s) provided.");
+                self._onError("No join key(s) provided.");
             }
             if (pk.length != fk.length) {
-                self._on_error("Odd number of join keys.");
+                self._onError("Odd number of join keys.");
             }
             if (
-                typeof(join_type) !== "undefined"
-                && !(join_type === "left" || join_type === "right" || join_type === "inner")
+                typeof(joinType) !== "undefined"
+                && !(joinType === "left" || joinType === "right" || joinType === "inner")
             ) {
-                self._on_error("Unknown join type.");
+                self._onError("Unknown join type.");
             }
 
-            return self._finish_action();
+            return self._finishAction();
         });
 
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "get_all_columns" });
-        })._queue_next(function () {
-            fdata.get_all_columns(function (columns) {
-                Object.keys(columns).forEach(function (column_name) {
-                    if (column_name in self._columns) {
-                        self._on_error("Column names overlap.");
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "getAllColumns" });
+        })._queueNext(function () {
+            fdata.getAllColumns(function (columns) {
+                Object.keys(columns).forEach(function (columnName) {
+                    if (columnName in self._columns) {
+                        self._onError("Column names overlap.");
                     }
                 });
 
-                f_columns = columns;
+                fColumns = columns;
 
-                return self._finish_action();
+                return self._finishAction();
             });
-        })._queue_next(function () {
-            fdata.get_hash_of_dataset_by_key_columns.call(fdata, function (hash) {
-                f_hash = hash;
-                return self._finish_action();
+        })._queueNext(function () {
+            fdata.getHashOfDatasetByKeyColumns.call(fdata, function (hash) {
+                fHash = hash;
+                return self._finishAction();
             }, fk);
-        })._queue_next(function () {
+        })._queueNext(function () {
             self._worker.postMessage({
-                cmd         : "join",
-                key_columns : pk,
-                r_hash      : f_hash,
-                join_type   : join_type,
-                f_columns   : f_columns
+                cmd        : "join",
+                keyColumns : pk,
+                rHash      : fHash,
+                joinType   : joinType,
+                fColumns   : fColumns
             });
         });
 
         return self;
     };
 
-    JData.prototype.get_hash_of_dataset_by_key_columns = function (callback, key_columns) {
+    DataWorker.prototype.getHashOfDatasetByKeyColumns = function (callback, keyColumns) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd         : "hash",
-                key_columns : key_columns
+                cmd        : "hash",
+                keyColumns : keyColumns
             });
-        })._queue_next(function () {
+        })._queueNext(function () {
             callback(self._hash);
-            return self._finish_action();
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.prepend_column_names = function (prepend) {
+    DataWorker.prototype.prependColumnNames = function (prepend) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd     : "prepend_column_names",
+                cmd     : "prependColumnNames",
                 prepend : prepend
             });
         });
@@ -627,54 +625,54 @@
         return self;
     };
 
-    JData.prototype.alter_column_name = function (old_name, new_name) {
+    DataWorker.prototype.alterColumnName = function (oldName, newName) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd      : "alter_column_name",
-                old_name : old_name,
-                new_name : new_name
+                cmd     : "alterColumnName",
+                oldName : oldName,
+                newName : newName
             });
         });
 
         return self;
     };
 
-    JData.prototype.alter_column_sort_type = function (column, sort_type) {
+    DataWorker.prototype.alterColumnSortType = function (column, sortType) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd       : "alter_column_sort_type",
-                column    : column,
-                sort_type : sort_type
-            });
-        });
-
-        return self;
-    };
-
-    JData.prototype.alter_column_aggregate_type = function (column, agg_type) {
-        var self = this;
-
-        self._queue_next(function () {
-            self._worker.postMessage({
-                cmd      : "alter_column_agg_type",
+                cmd      : "alterColumnSortType",
                 column   : column,
-                agg_type : agg_type
+                sortType : sortType
             });
         });
 
         return self;
     };
 
-    JData.prototype.alter_column_title = function (column, title) {
+    DataWorker.prototype.alterColumnAggregateType = function (column, aggType) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd    : "alter_column_title",
+                cmd     : "alterColumnAggType",
+                column  : column,
+                aggType : aggType
+            });
+        });
+
+        return self;
+    };
+
+    DataWorker.prototype.alterColumnTitle = function (column, title) {
+        var self = this;
+
+        self._queueNext(function () {
+            self._worker.postMessage({
+                cmd    : "alterColumnTitle",
                 column : column,
                 title  : title
             });
@@ -683,129 +681,129 @@
         return self;
     };
 
-    JData.prototype.group = function () {
+    DataWorker.prototype.group = function () {
         var self = this,
-            group_by = arguments[0] instanceof Array
-                     ? arguments[0]
-                     : Array.prototype.slice.call(arguments);
-        
-        self._queue_next(function () {
+            groupBy = arguments[0] instanceof Array
+                    ? arguments[0]
+                    : Array.prototype.slice.call(arguments);
+
+        self._queueNext(function () {
             self._worker.postMessage({
                 cmd            : "group",
-                key_columns    : group_by
+                keyColumns    : groupBy
             });
         });
 
         return self;
     };
 
-    JData.prototype.partition = function () {
+    DataWorker.prototype.partition = function () {
         var self = this,
-            partition_by = arguments[0] instanceof Array
-                         ? arguments[0]
-                         : Array.prototype.slice.call(arguments);
+            partitionBy = arguments[0] instanceof Array
+                        ? arguments[0]
+                        : Array.prototype.slice.call(arguments);
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd         : "partition",
-                key_columns : partition_by
+                cmd        : "partition",
+                keyColumns : partitionBy
             });
         });
 
         return self;
     };
 
-    JData.prototype.get_partition_keys = function (callback) {
+    DataWorker.prototype.getPartitionKeys = function (callback) {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "get_partition_keys" });
-        })._queue_next(function () {
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "getPartitionKeys" });
+        })._queueNext(function () {
             callback(self._keys);
-            self._finish_action();
+            self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.get_partitioned = function () {
+    DataWorker.prototype.getPartitioned = function () {
         var self = this,
             callback = arguments[0],
             keys = arguments[1] instanceof Array
                  ? arguments[1]
                  : Array.prototype.slice.call(arguments, 1);
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd : "get_partitioned",
+                cmd : "getPartitioned",
                 key : keys.join("|")
             });
-        })._queue_next(function () {
+        })._queueNext(function () {
             callback(self._rows);
-            return self._finish_action();
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.render = function (render_function) {
+    DataWorker.prototype.render = function (renderFunction) {
         var self = this;
 
-        if (typeof(render_function) === "function") {
-            self._queue_next(function () {
-                self._render_function = render_function;
-                return self._finish_action();
+        if (typeof(renderFunction) === "function") {
+            self._queueNext(function () {
+                self._renderFunction = renderFunction;
+                return self._finishAction();
             });
         } else {
-            self._queue_next(function () {
-                self._render_function();
-                return self._finish_action();
+            self._queueNext(function () {
+                self._renderFunction();
+                return self._finishAction();
             });
         }
 
         return self;
     };
 
-    JData.prototype.on_error = function (cb, actImmediately) {
+    DataWorker.prototype.onError = function (cb, actImmediately) {
         var self = this;
 
         if (actImmediately) {
-            self._on_error = cb;
+            self._onError = cb;
         } else {
-            self._queue_next(function () {
-                self._on_error = cb;
+            self._queueNext(function () {
+                self._onError = cb;
 
-                return self._finish_action();
+                return self._finishAction();
             });
         }
 
         return self;
     };
 
-    JData.prototype.on_receive_columns = function (callback, actImmediately) {
+    DataWorker.prototype.onReceiveColumns = function (callback, actImmediately) {
         var self = this;
 
         var wrappedCallback = function () {
-            self._on_receive_columns_tracker = false;
+            self._onReceiveColumnsTracker = false;
             callback.apply(this, arguments);
         };
 
         if (typeof(callback) === "function") {
             if (actImmediately) {
-                self._on_receive_columns = wrappedCallback;
+                self._onReceiveColumns = wrappedCallback;
 
-                if (self._on_receive_columns_tracker) {
-                    callback(self._columns, self._expected_num_rows);
+                if (self._onReceiveColumnsTracker) {
+                    callback(self._columns, self._expectedNumRows);
                 }
             } else {
-                self._queue_next(function () {
-                    self._on_receive_columns = wrappedCallback;
+                self._queueNext(function () {
+                    self._onReceiveColumns = wrappedCallback;
 
-                    if (self._on_receive_columns_tracker) {
-                        callback(self._columns, self._expected_num_rows);
+                    if (self._onReceiveColumnsTracker) {
+                        callback(self._columns, self._expectedNumRows);
                     }
 
-                    return self._finish_action();
+                    return self._finishAction();
                 });
             }
         }
@@ -813,16 +811,16 @@
         return self;
     };
 
-    JData.prototype.on_receive_rows = function (callback, actImmediately) {
+    DataWorker.prototype.onReceiveRows = function (callback, actImmediately) {
         var self = this;
 
         if (typeof(callback) === "function") {
             if (actImmediately) {
-                self._on_receive_rows = callback;
+                self._onReceiveRows = callback;
             } else {
-                self._queue_next(function () {
-                    self._on_receive_rows = callback;
-                    return self._finish_action();
+                self._queueNext(function () {
+                    self._onReceiveRows = callback;
+                    return self._finishAction();
                 });
             }
         }
@@ -830,16 +828,16 @@
         return self;
     };
 
-    JData.prototype.on_trigger = function (callback, actImmediately) {
+    DataWorker.prototype.onTrigger = function (callback, actImmediately) {
         var self = this;
 
         if (typeof(callback) === "function") {
             if (actImmediately) {
-                self._on_trigger = callback;
+                self._onTrigger = callback;
             } else {
-                self._queue_next(function () {
-                    self._on_trigger = callback;
-                    return self._finish_action();
+                self._queueNext(function () {
+                    self._onTrigger = callback;
+                    return self._finishAction();
                 });
             }
         }
@@ -847,30 +845,30 @@
         return self;
     };
 
-    JData.prototype.on_all_rows_received = function (callback, actImmediately) {
+    DataWorker.prototype.onAllRowsReceived = function (callback, actImmediately) {
         var self = this;
 
         var wrappedCallback = function () {
-            self._on_all_rows_received_tracker = false;
+            self._onAllRowsReceivedTracker = false;
             callback.apply(this, arguments);
         };
 
         if (typeof(callback) === "function") {
             if (actImmediately) {
-                self._on_all_rows_received = wrappedCallback;
+                self._onAllRowsReceived = wrappedCallback;
 
-                if (self._on_all_rows_received_tracker) {
+                if (self._onAllRowsReceivedTracker) {
                     callback();
                 }
             } else {
-                self._queue_next(function () {
-                    self._on_all_rows_received = wrappedCallback;
+                self._queueNext(function () {
+                    self._onAllRowsReceived = wrappedCallback;
 
-                    if (self._on_all_rows_received_tracker) {
+                    if (self._onAllRowsReceivedTracker) {
                         callback();
                     }
 
-                    return self._finish_action();
+                    return self._finishAction();
                 });
             }
         }
@@ -878,59 +876,59 @@
         return self;
     };
 
-    JData.prototype.get_number_of_records = function (callback) {
+    DataWorker.prototype.getNumberOfRecords = function (callback) {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "get_num_rows" });
-        })._queue_next(function () {
-            callback(self._num_rows);
-            return self._finish_action();
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "getNumRows" });
+        })._queueNext(function () {
+            callback(self._numRows);
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.clone = function (callback) {
+    DataWorker.prototype.clone = function (callback) {
         var self = this;
 
-        self.get_all_columns_and_all_records(function (columns, records) {
-            var columns_row = Object.keys(columns).map(function (column_name) {
-                return columns[column_name];
+        self.getAllColumnsAndAllRecords(function (columns, records) {
+            var columnsRow = Object.keys(columns).map(function (columnName) {
+                return columns[columnName];
             }).sort(function (a, b) {
                 return a["index"] - b["index"];
             });
 
-            var dataset = [ columns_row ].concat(records);
+            var dataset = [ columnsRow ].concat(records);
 
-            callback(new JData(dataset));
+            callback(new DataWorker(dataset));
         });
 
         return self;
     };
 
-    JData.prototype.get_expected_number_of_records = function (callback) {
+    DataWorker.prototype.getExpectedNumberOfRecords = function (callback) {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "get_expected_num_rows" });
-        })._queue_next(function () {
-            callback(self._expected_num_rows);
-            return self._finish_action();
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "getExpectedNumRows" });
+        })._queueNext(function () {
+            callback(self._expectedNumRows);
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.request_dataset = function (request) {
+    DataWorker.prototype.requestDataset = function (request) {
         var self = this;
 
-        self._queue_next(function () {
-            self._on_all_rows_received_tracker = false;
-            self._on_receive_columns_tracker = false;
+        self._queueNext(function () {
+            self._onAllRowsReceivedTracker = false;
+            self._onReceiveColumnsTracker = false;
 
             self._worker.postMessage({
-                cmd     : "request_dataset",
+                cmd     : "requestDataset",
                 request : request
             });
         });
@@ -939,15 +937,15 @@
     };
 
 
-    JData.prototype.request_dataset_for_append = function (request) {
+    DataWorker.prototype.requestDatasetForAppend = function (request) {
         var self = this;
 
-        self._queue_next(function () {
-            self._on_all_rows_received_tracker = false;
-            self._on_receive_columns_tracker = false;
+        self._queueNext(function () {
+            self._onAllRowsReceivedTracker = false;
+            self._onReceiveColumnsTracker = false;
 
             self._worker.postMessage({
-                cmd     : "request_dataset_for_append",
+                cmd     : "requestDatasetForAppend",
                 request : request
             });
         });
@@ -955,91 +953,91 @@
         return self;
     };
 
-    JData.prototype.hide_columns = function () {
-        var self = this, msg = { cmd : "hide_columns" },
-            column_names = arguments[0] instanceof Array
-                         ? arguments[0]
-                         : Array.prototype.slice.call(arguments);
+    DataWorker.prototype.hideColumns = function () {
+        var self = this, msg = { cmd : "hideColumns" },
+            columnNames = arguments[0] instanceof Array
+                        ? arguments[0]
+                        : Array.prototype.slice.call(arguments);
 
-        if (column_names[0] instanceof RegExp) {
-            msg["column_name_regex"] = column_names[0];
+        if (columnNames[0] instanceof RegExp) {
+            msg["columnNameRegex"] = columnNames[0];
         } else {
-            msg["column_names"] = column_names;
+            msg["columnNames"] = columnNames;
         }
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage(msg);
         });
 
         return self;
     };
 
-    JData.prototype.show_columns = function () {
-        var self = this, msg = { cmd : "show_columns" },
-            column_names = arguments[0] instanceof Array
-                         ? arguments[0]
-                         : Array.prototype.slice.call(arguments);
+    DataWorker.prototype.showColumns = function () {
+        var self = this, msg = { cmd : "showColumns" },
+            columnNames = arguments[0] instanceof Array
+                        ? arguments[0]
+                        : Array.prototype.slice.call(arguments);
 
-        if (column_names[0] instanceof RegExp) {
-            msg["column_name_regex"] = column_names[0];
+        if (columnNames[0] instanceof RegExp) {
+            msg["columnNameRegex"] = columnNames[0];
         } else {
-            msg["column_names"] = column_names;
+            msg["columnNames"] = columnNames;
         }
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage(msg);
         });
 
         return self;
     };
 
-    JData.prototype.hide_all_columns = function () {
+    DataWorker.prototype.hideAllColumns = function () {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "hide_all_columns" });
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "hideAllColumns" });
         });
 
         return self;
     };
 
-    JData.prototype.show_all_columns = function () {
+    DataWorker.prototype.showAllColumns = function () {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "show_all_columns" });
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "showAllColumns" });
         });
 
         return self;
     };
 
-    JData.prototype.get_all_columns = function (callback) {
+    DataWorker.prototype.getAllColumns = function (callback) {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "get_all_columns" });
-        })._queue_next(function () {
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "getAllColumns" });
+        })._queueNext(function () {
             callback(self._columns);
-            return self._finish_action();
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.add_child_rows = function (data, join_column) {
+    DataWorker.prototype.addChildRows = function (data, joinColumn) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             var callback = function (rows) {
                 self._worker.postMessage({
-                    cmd     : "add_child_rows",
-                    join_on : join_column,
-                    rows    : rows
+                    cmd    : "addChildRows",
+                    joinOn : joinColumn,
+                    rows   : rows
                 });
             };
 
-            if (data instanceof JData) {
-                data.get_dataset(function (rows) {
+            if (data instanceof DataWorker) {
+                data.getDataset(function (rows) {
                     callback(rows);
                 });
             } else {
@@ -1050,23 +1048,23 @@
         return self;
     };
 
-    JData.prototype.then = function (callback) {
+    DataWorker.prototype.then = function (callback) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             callback();
-            return self._finish_action();
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.post_message = function (message) {
+    DataWorker.prototype.postMessage = function (message) {
         var self = this;
 
-        self._queue_next(function () {
+        self._queueNext(function () {
             self._worker.postMessage({
-                cmd     : "post_message",
+                cmd     : "postMessage",
                 message : message
             });
         });
@@ -1074,24 +1072,24 @@
         return self;
     };
 
-    JData.prototype.get_summary_rows = function (callback) {
+    DataWorker.prototype.getSummaryRows = function (callback) {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "get_summary_rows" });
-        })._queue_next(function () {
-            callback(self._summary_rows);
-            return self._finish_action();
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "getSummaryRows" });
+        })._queueNext(function () {
+            callback(self._summaryRows);
+            return self._finishAction();
         });
 
         return self;
     };
 
-    JData.prototype.clear_dataset = function (callback) {
+    DataWorker.prototype.clearDataset = function (callback) {
         var self = this;
 
-        self._queue_next(function () {
-            self._worker.postMessage({ cmd : "clear_dataset" });
+        self._queueNext(function () {
+            self._worker.postMessage({ cmd : "clearDataset" });
         });
 
         return self;

@@ -2,24 +2,24 @@
 <html lang="en">
     <head>
         <link href="bootstrap/css/bootstrap.css" rel="stylesheet" media="screen">
-        <link href="jdata.css" rel="stylesheet">
+        <link href="dw.css" rel="stylesheet">
 
         <script src="http://code.jquery.com/jquery.js"></script>
         <script src="bootstrap/js/bootstrap.js"></script>
 
-        <title>JData</title>
+        <title>DataWorker</title>
     </head>
     <body>
         <div class="container" id="top">
-            <div class="header_row row">
+            <div class="header-row row">
                 <div class="span12">
-                    <h1>JData</h1>
+                    <h1>DataWorker</h1>
                 </div>
             </div>
             <div class="row">
                 <div class="span3">
                     <ul class="nav nav-tabs nav-stacked">
-                        <li><a href="#top">JData</a></li>
+                        <li><a href="#top">DataWorker</a></li>
                         <li class="nav-header">Get started!</li>
                         <li><a href="#construct">Construct</a></li>
                         <li><a href="#stream">Streaming Data</a></li>
@@ -27,23 +27,23 @@
                         <li><a href="#child-rows">Child Rows</a></li>
                         <li><a href="#promises">Promises</a></li>
                         <li class="nav-header">Manipulate the dataset!</li>
-                        <li><a href="#alter_columns">Alter columns</a></li>
+                        <li><a href="#alter-columns">Alter columns</a></li>
                         <li><a href="#append">Append</a></li>
                         <li><a href="#filter">Filter</a></li>
                         <li><a href="#group">Group</a></li>
                         <li><a href="#join">Join</a></li>
                         <li><a href="#limit">Limit</a></li>
-                        <li><a href="#remove_columns">Remove columns</a></li>
-                        <li><a href="#hide_columns">Hide columns</a></li>
-                        <li><a href="#clear_dataset">Clear Dataset</a></li>
+                        <li><a href="#remove-columns">Remove columns</a></li>
+                        <li><a href="#hide-columns">Hide columns</a></li>
+                        <li><a href="#clear-dataset">Clear Dataset</a></li>
                         <li><a href="#sort">Sort</a></li>
                         <li><a href="#add-child-rows">Add Child Rows</a></li>
                         <li class="nav-header">Access the dataset!</li>
-                        <li><a href="#get_dataset">Get dataset</a></li>
-                        <li><a href="#get_columns">Get columns</a></li>
-                        <li><a href="#get_columns_and_records">Get columns and records</a></li>
-                        <li><a href="#get_number_of_records">Get number of records</a></li>
-                        <li><a href="#get_distinct">Get distinct</a></li>
+                        <li><a href="#get-dataset">Get dataset</a></li>
+                        <li><a href="#get-columns">Get columns</a></li>
+                        <li><a href="#get-columns-and-records">Get columns and records</a></li>
+                        <li><a href="#get-number-of-records">Get number of records</a></li>
+                        <li><a href="#get-distinct">Get distinct</a></li>
                         <li><a href="#pagination">Pagination</a></li>
                         <li><a href="#partition">Partition</a></li>
                         <li><a href="#render">Render</a></li>
@@ -52,64 +52,64 @@
                 <div class="span9">
                     <section id="construct">
                         <h3>Construct</h3>
-                        <p>JData takes an array of records to construct the initial dataset. The first record defines column properties.</p>
+                        <p>DataWorker takes an array of records to construct the initial dataset. The first record defines column properties.</p>
                         <pre>
     var dataset = [
         [
             {
-                name: 'column_a',
-                title: 'Column A',
-                agg_type: 'max',
-                sort_type: 'alpha'
+                name: "column_a",
+                title: "Column A",
+                aggType: "max",
+                sortType: "alpha"
             },
             {
-                name: 'column_b',
-                title: 'Column B',
-                agg_type: 'max',
-                sort_type: 'alpha'
+                name: "column_b",
+                title: "Column B",
+                aggType: "max",
+                sortType: "alpha"
             },
             {
-                name: 'column_c',
-                title: 'Column C',
-                agg_type: 'min',
-                sort_type: 'alpha'
+                name: "column_c",
+                title: "Column C",
+                aggType: "min",
+                sortType: "alpha"
             }
         ],
 
-        [ 'apple',      'violin',    'music' ],
-        [ 'cat',        'tissue',      'dog' ],
-        [ 'banana',      'piano',      'gum' ],
-        [ 'gummy',       'power',     'star' ]
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
     ];
 
-    var d = new JData(dataset);</pre>
+    var dw = new DataWorker(dataset);</pre>
                         <p>It is also possible to just supply column names:</P>
                         <pre>
     var dataset = [
-        [ 'column_a', 'column_b', 'column_c' ],
+        [ "column_a", "column_b", "column_c" ],
 
-        [ 'apple',      'violin',    'music' ],
-        [ 'cat',        'tissue',      'dog' ],
-        [ 'banana',      'piano',      'gum' ],
-        [ 'gummy',       'power',     'star' ]
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
     ];
 
-    var d = new JData(dataset);</pre>
+    var dw = new DataWorker(dataset);</pre>
                         <p>If only column names are supplied, the following default column properties are used:</p>
                         <ul>
-                            <li><code>title</code>: <code>column_name</code></li>
-                            <li><code>agg_type</code>: 'max'</li>
-                            <li><code>sort_type</code>: 'alpha'</li>
+                            <li><code>title</code>: <code>columnName</code></li>
+                            <li><code>aggType</code>: "max"</li>
+                            <li><code>sortType</code>: "alpha"</li>
                         </ul>
-                        <p>Additionally, you should give JData an error handler (otherwise JData will just fail silently) using the <code>on_error</code> method:</p>
+                        <p>Additionally, you should give DataWorker an error handler (otherwise DataWorker will just fail silently) using the <code>onError</code> method:</p>
                         <pre>
-    var d = new JData(dataset).on_error(function (error_msg) {
-        alert(error_msg);
+    var dw = new DataWorker(dataset).onError(function (errorMsg) {
+        alert(errorMsg);
     });</pre>
                     <h5>Error handling</h5>
-                    <p>JData can be provided with an error handler:</p>
+                    <p>DataWorker can be provided with an error handler:</p>
                     <pre>
-    d.on_error(function (msg) {
+    dw.onError(function (msg) {
         alert(msg);
     });</pre>
                     <p>By default, errors are printed to the console.</p>
@@ -117,70 +117,70 @@
                     <section id="stream">
                         <h3>Streaming Data</h3>
                         <h5>Via Websockets</h5>
-                        <p>Alternatively, JData can stream data from a WebSocket server:</p>
+                        <p>Alternatively, DataWorker can stream data from a WebSocket server:</p>
                         <pre>
-    var d = new JData({
+    var dw = new DataWorker({
         datasource   : "ws://127.0.0.1:8888",
         authenticate : "{}",
-        request      : '{"cmd":"request_dataset"}'
+        request      : "{\"cmd\":\"requestDataset\"}"
     });</pre>
                         <p><code>datasource</code> should be the URL of the websocket server.</p>
                         <p><code>authenticate</code> is optional. If present, will be the first message sent to the server upon connecting.</p>
                         <p><code>request</code> is sent after <code>authenticate</code>.<p>
-                        <p>After the request is sent, JData will expect a reply in the form of a JSON object with <code>total_num_rows</code> and <code>columns</code> properties such as:</p>
+                        <p>After the request is sent, DataWorker will expect a reply in the form of a JSON object with <code>totalNumRows</code> and <code>columns</code> properties such as:</p>
                         <pre>
     {
-        total_num_rows => 10,
-        columns        => [ 'column_a', 'column_b', 'column_c' ]
+        totalNumRows : 10,
+        columns      : [ "column_a", "column_b", "column_c" ]
     }</pre>
-                        <p><code>total_num_rows</code> should be the number of rows to expect in that dataset.</p>
+                        <p><code>totalNumRows</code> should be the number of rows to expect in that dataset.</p>
                         <p><code>columns</code> should be the columns of the expected dataset. They can be provided as simple column names or as hashes with custom column properties.</p>
-                        <p>Note JData cannot proceed without first knowing the columns and the total number of expected rows. That being said, these two properties may be transmitted separately. For example:</p>
+                        <p>Note DataWorker cannot proceed without first knowing the columns and the total number of expected rows. That being said, these two properties may be transmitted separately. For example:</p>
                         <pre>
     // First message:
-    { total_num_rows => 10 }
+    { "totalNumRows": 10 }
 
     // Second message:
-    { columns => [ 'column_a', 'column_b', 'column_c' ] }</pre>
-                        <p>Afterwards, JData will expect arrays of dataset rows from the server. These rows will be appended to the dataset. The reply will be similar to the following:</p>
+    { columns: [ "column_a", "column_b", "column_c" ] }</pre>
+                        <p>Afterwards, DataWorker will expect arrays of dataset rows from the server. These rows will be appended to the dataset. The reply will be similar to the following:</p>
                         <pre>
     [
-        [ 'apple',      'violin',    'music' ],
-        [ 'cat',        'tissue',      'dog' ],
-        [ 'banana',      'piano',      'gum' ],
-        [ 'gummy',       'power',     'star' ]
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
     ]</pre>
-                        <p>The <code>on_receive_rows</code> callback will be called whenever rows are received from the Websocket server. This callback can be set with the <code>on_receive_rows</code> method:</p>
+                        <p>The <code>onReceiveRows</code> callback will be called whenever rows are received from the Websocket server. This callback can be set with the <code>onReceiveRows</code> method:</p>
                         <pre>
-    d.on_receive_rows(function (num_rows) {
-        alert("Received " + num_rows + " rows.");
+    dw.onReceiveRows(function (numRows) {
+        alert("Received " + numRows + " rows.");
     });</pre>
                         <p>Alternatively, this callback can be passed into the constructor:</p>
                         <pre>
-    var d = new JData({
-        datasource      : "ws://127.0.0.1:8888",
-        authenticate    : "{}",
-        request         : '{"cmd":"request_dataset"}',
-        on_receive_rows : function (num_rows) {
-            alert(num_rows + " rows received.");
+    var dw = new DataWorker({
+        datasource    : "ws://127.0.0.1:8888",
+        authenticate  : "{}",
+        request       : "{\"cmd\":\"requestDataset\"}",
+        onReceiveRows : function (numRows) {
+            alert(numRows + " rows received.");
         }
     });</pre>
                         <p>If not set, this callback defaults to doing nothing.</p>
-                        <p>The <code>on_all_rows_received</code> callback is called when all expected rows have been received from the Websocket server. This callback can be set with the <code>on_all_rows_received</code> method:</p>
+                        <p>The <code>onAllRowsReceived</code> callback is called when all expected rows have been received from the Websocket server. This callback can be set with the <code>onAllRowsReceived</code> method:</p>
                         <pre>
-    d.on_all_rows_received(function () {
+    dw.onAllRowsReceived(function () {
         alert("All rows have been received!");
     });</pre>
                         <p>Alternatively, this callback can be passed into the constructor:</p>
                         <pre>
-    var d = new JData({
-        datasource           : "ws://127.0.0.1:8888",
-        authenticate         : "{}",
-        request              : '{"cmd":"request_dataset"}',
-        on_receive_rows      : function (num_rows) {
-            alert(num_rows + " rows received.");
+    var dw = new DataWorker({
+        datasource         : "ws://127.0.0.1:8888",
+        authenticate       : "{}",
+        request            : "{\"cmd\":\"requestDataset\"}",
+        onReceiveRows      : function (numRows) {
+            alert(numRows + " rows received.");
         }
-        on_all_rows_received : function () {
+        onAllRowsReceived : function () {
             alert("All rows have been received!");
         }
     });</pre>
@@ -188,58 +188,58 @@
                         <h5>Via AJAX</h5>
                         <p>If WebSockets are not available, data can be received via AJAX as well:</p>
                         <pre>
-    var d = new JData({
+    var dw = new DataWorker({
         datasource           : "http://127.0.0.1:8888",
-        request              : '?this=is;a=query;string',
-        on_all_rows_received : function () {
+        request              : "?this=is;a=query;string",
+        onAllRowsReceived : function () {
             alert("all rows have been received!");
         }
     });</pre>
                         <p><code>datasource</code> should be the base url to send GET requests to.</p>
-                        <p><code>request</code> should be the query string to append to the base url. The prepended question mark is optional; if it is missing, one will automatically be inserted. Optionally, <code>request</code> could be a JSON string; JData will convert this into a query string.</p>
-                        <p>The only callback triggered by AJAX datasets is the <code>on_all_rows_received</code> callback.</p>
+                        <p><code>request</code> should be the query string to append to the base url. The prepended question mark is optional; if it is missing, one will automatically be inserted. Optionally, <code>request</code> could be a JSON string; DataWorker will convert this into a query string.</p>
+                        <p>The only callback triggered by AJAX datasets is the <code>onAllRowsReceived</code> callback.</p>
                         <h5>Using fallbacks</h5>
-                        <p>If multiple data sources exist, it is possible to provide fallbacks when instantiating JData. This can be useful if you have a server down for maintenance or your WebSocket service is not running. Simply provide the possible sources as an array to <code>datasource</code> in priority order:</p>
+                        <p>If multiple data sources exist, it is possible to provide fallbacks when instantiating DataWorker. This can be useful if you have a server down for maintenance or your WebSocket service is not running. Simply provide the possible sources as an array to <code>datasource</code> in priority order:</p>
                         <pre>
-    var d = new JData({
-        request    : '{"cmd":"request_dataset"}',
+    var dw = new DataWorker({
+        request    : "{\"cmd\":\"requestDataset\"}",
         datasource : [
             "http://example.com",
             "ws://127.0.0.1:8888",
             "http://127.0.0.1:9999"
         ]
     });</pre>
-                        <p>The sources will be tried in order. If they all fail, JData will throw an error.</p>
+                        <p>The sources will be tried in order. If they all fail, DataWorker will throw an error.</p>
                         <h5>Requesting further data</h5>
-                        <p>A new dataset can be requested using the <code>request_dataset</code> method:</p>
+                        <p>A new dataset can be requested using the <code>requestDataset</code> method:</p>
                         <pre>
     // For WebSockets or AJAX:
-    d.request_dataset('{"cmd":"request_dataset"}');
+    dw.requestDataset("{\"cmd\":\"requestDataset\"}");
 
     // For AJAX only:
-    d.request_dataset('query=string');</pre>
+    dw.requestDataset("query=string");</pre>
                         <p>The newly-requested dataset will completely replace the previously-requested dataset.</p>
-                        <p>A new dataset can be requested and appended to the current dataset using the <code>request_dataset_for_append</code> method:</p>
+                        <p>A new dataset can be requested and appended to the current dataset using the <code>requestDatasetForAppend</code> method:</p>
                         <pre>
     // For WebSockets or AJAX:
-    d.request_dataset_for_append('{"cmd":"request_dataset"}');
+    dw.requestDatasetForAppend("{\"cmd\":\"requestDataset\"}");
 
     // For AJAX only:
-    d.request_dataset_for_append('query=string');</pre>
+    dw.requestDatasetForAppend("query=string");</pre>
                         <p>Note that the newly-requested dataset should have the same columns as the previously-requested dataset.</p>
                     </section>
                     <section id="clone">
                         <h3>Clone</h3>
-                        <p>A JData dataset can be deep-copied by calling <code>clone</code>:</p>
+                        <p>A DataWorker dataset can be deep-copied by calling <code>clone</code>:</p>
                         <pre>
-    d.clone(function (new_d) {
-        new_dataset = new_d;
+    dw.clone(function (newD) {
+        newDataset = newD;
     });</pre>
                         <p>Note that any streaming datasources are not copied as part of the cloning process.</p>
                     </section>
                     <section id="child-rows">
                         <h3>Child Rows</h3>
-                        <p>JData has a concept of child rows. Child rows are rows that are a subset of another row, and may be used, for example, to provide more detail. The functionality is currently limited to a small subset of functions. Where use of child rows is not explicitly defined, they are treated as if they are distinct rows that have been added to the dataset. These are the currently supported functions:</p>
+                        <p>DataWorker has a concept of child rows. Child rows are rows that are a subset of another row, and may be used, for example, to provide more detail. The functionality is currently limited to a small subset of functions. Where use of child rows is not explicitly defined, they are treated as if they are distinct rows that have been added to the dataset. These are the currently supported functions:</p>
                         <ul>
                             <li><a href="#sort">Sort</a></li>
                             <li><a href="#add-child-rows">Add Child Rows</a></li>
@@ -247,28 +247,28 @@
                     </section>
                     <section id="promises">
                         <h3>Promises</h3>
-                        <p>JData uses a queue system to make sure operations are executed in the correct order. It's possible to utilize this queue with the <code>then</code> function. This is loosely equivalent to the concept of <a href="http://www.html5rocks.com/en/tutorials/es6/promises/">Promises</a> in javascript, however it is simplified and does not follow any set of standards at the moment.</p>
+                        <p>DataWorker uses a queue system to make sure operations are executed in the correct order. It's possible to utilize this queue with the <code>then</code> function. This is loosely equivalent to the concept of <a href="http://www.html5rocks.com/en/tutorials/es6/promises/">Promises</a> in javascript, however it is simplified and does not follow any set of standards at the moment.</p>
                         <pre>
-    d.render().then(function () {
-        alert('Done Rendering!');
+    dw.render().then(function () {
+        alert("Done Rendering!");
     });</pre>
                         <p>The callback will not be executed until after previous operations are completed. In this case, it will trigger the render function, then alert the user that it has finished rendering.</p>
                     </section>
-                    <section id="alter_columns">
+                    <section id="alter-columns">
                         <h3>Alter columns</h3>
-                        <p>Column properties can be altered after JData is instantiated.</p>
+                        <p>Column properties can be altered after DataWorker is instantiated.</p>
                         <h5>Alter column name</h5>
                         <p>To change the name of <code>column_a</code> to <code>column_a1</code>:</p>
                         <pre>
-    d.alter_column_name('column_a', 'column_a1');</pre>
+    dw.alterColumnName("column_a", "column_a1");</pre>
                         <h5>Alter column title</h5>
                         <p>To change the title of <code>column_a</code> to <code>Things I Love</code>:</p>
                         <pre>
-    d.alter_column_title('column_a', 'Things I Love');</pre>
+    dw.alterColumnTitle("column_a", "Things I Love");</pre>
                         <h5>Alter column aggregate type</h5>
                         <p>To change the aggregate type of <code>column_a</code> to <code>min</code>:</p>
                         <pre>
-    d.alter_column_aggregate_type('column_a', 'min');</pre>
+    dw.alterColumnAggregateType("column_a", "min");</pre>
                         <p>Valid aggregate types are:</p>
                         <ul>
                             <li><code>max</code></li>
@@ -278,7 +278,7 @@
                         <h5>Alter column sort type</h5>
                         <p>To change the sort type of <code>column_a</code> to <code>num</code>:</p>
                         <pre>
-    d.alter_column_sort_type('column_a', 'num');</pre>
+    dw.alterColumnSortType("column_a", "num");</pre>
                         <p>Valid sort types are:</p>
                         <ul>
                             <li><code>alpha</code></li>
@@ -288,457 +288,457 @@
                         <h5>Prepend column names</h5>
                         <p>To prepend <code>a_</code> to all column names:</p>
                         <pre>
-    d.prepend_column_names('a_');</pre>
+    dw.prependColumnNames("a_");</pre>
                     </section>
                     <section id="append">
                         <h3>Append</h3>
                         <p>The <code>append</code> method is used to concatenate two datasets together. The following appends <code>dataset2</code> to <code>dataset1</code>:</p>
                         <pre>
     var dataset1 = [
-        [ 'column_a', 'column_b', 'column_c' ],
+        [ "column_a", "column_b", "column_c" ],
 
-        [ 'apple',      'violin',    'music' ],
-        [ 'cat',        'tissue',      'dog' ],
-        [ 'banana',      'piano',      'gum' ],
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
     ];
     var dataset2 = [
-        [ 'column_a', 'column_b', 'column_c' ],
+        [ "column_a", "column_b", "column_c" ],
 
-        [ 'gummy',       'power',    'apple' ],
-        [ 'car',        'screen',    'phone' ],
-        [ 'sign',        'bagel',    'chips' ]
+        [ "gummy",       "power",    "apple" ],
+        [ "car",        "screen",    "phone" ],
+        [ "sign",        "bagel",    "chips" ]
     ];
 
-    var d = new JData(dataset1);
-    d.append(dataset2);</pre>
-                        <p>Alternatively, you may also append a JData dataset:</p>
+    var dw = new DataWorker(dataset1);
+    dw.append(dataset2);</pre>
+                        <p>Alternatively, you may also append a DataWorker dataset:</p>
                         <pre>
     var dataset1 = [
-        [ 'column_a', 'column_b', 'column_c' ],
+        [ "column_a", "column_b", "column_c" ],
 
-        [ 'apple',      'violin',    'music' ],
-        [ 'cat',        'tissue',      'dog' ],
-        [ 'banana',      'piano',      'gum' ]
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ]
     ];
     var dataset2 = [
-        [ 'column_a', 'column_b', 'column_c' ],
+        [ "column_a", "column_b", "column_c" ],
 
-        [ 'gummy',       'power',    'apple' ],
-        [ 'car',        'screen',    'phone' ],
-        [ 'sign',        'bagel',    'chips' ]
+        [ "gummy",       "power",    "apple" ],
+        [ "car",        "screen",    "phone" ],
+        [ "sign",        "bagel",    "chips" ]
     ];
 
-    var d1 = new JData(dataset1);
-    var d2 = new JData(dataset2);
+    var d1 = new DataWorker(dataset1);
+    var d2 = new DataWorker(dataset2);
     d1.append(d2);</pre>
                         <p>Note that column names must match up; an error will be thrown otherwise.</p>
                     </section>
                     <section id="filter">
                         <h3>Filter</h3>
-                        <p>The <code>apply_filter</code> method is used to filter out rows that do not contain the specified regex. The following filters out any row that does not contain the word 'apple':</p>
+                        <p>The <code>applyFilter</code> method is used to filter out rows that do not contain the specified regex. The following filters out any row that does not contain the word "apple":</p>
                         <pre>
     var dataset = [
-        [ 'column_a', 'column_b', 'column_c'         ],
+        [ "column_a", "column_b", "column_c"         ],
 
-        [ 'apple',    'red',      'fuji'             ],
-        [ 'apple',    'green',    'granny smith'     ],
-        [ 'apple',    'yellow',   'golden delicious' ],
+        [ "apple",    "red",      "fuji"             ],
+        [ "apple",    "green",    "granny smith"     ],
+        [ "apple",    "yellow",   "golden delicious" ],
 
-        [ 'banana',   'green',    'unripe'           ],
-        [ 'banana',   'yellow',   'ripe'             ],
-        [ 'banana',   'brown',    'beyond ripe'      ],
-        [ 'banana',   'black',    'rotten/frozen'    ]
-    ], d = new JData(dataset);
+        [ "banana",   "green",    "unripe"           ],
+        [ "banana",   "yellow",   "ripe"             ],
+        [ "banana",   "brown",    "beyond ripe"      ],
+        [ "banana",   "black",    "rotten/frozen"    ]
+    ], dw = new DataWorker(dataset);
 
-    d.apply_filter(/\bapple\b/)
+    dw.applyFilter(/\bapple\b/)
 
     /* This results in the following rows:
-        [ 'apple', 'red',    'fuji'             ],
-        [ 'apple', 'green',  'granny smith'     ],
-        [ 'apple', 'yellow', 'golden delicious' ]
+        [ "apple", "red",    "fuji"             ],
+        [ "apple", "green",  "granny smith"     ],
+        [ "apple", "yellow", "golden delicious" ]
     */</pre>
                         <p>You may also filter only on certain columns:</p>
                         <pre>
-    d.apply_filter(/\bapple\b/, 'column_a', 'column_b');</pre>
+    dw.applyFilter(/\bapple\b/, "column_a", "column_b");</pre>
                         <p>Note that the following also works (and results in the exact same dataset):</p>
                         <pre>
-    d.apply_filter(/\bapple\b/, [ 'column_a', 'column_b' ]);</pre>
+    dw.applyFilter(/\bapple\b/, [ "column_a", "column_b" ]);</pre>
                         <p>You may also use the complex syntax:</p>
                         <pre>
-    d.apply_filter(
+    dw.applyFilter(
         {
-            column : 'column_a',
+            column : "column_a",
             regex  : /\bapple\b/
         },
         {
-            column : 'column_b',
-            regex  : 'yellow'
+            column : "column_b",
+            regex  : "yellow"
         }
     );
 
     /* This results in the single row:
-        [ 'apple', 'yellow', 'golden delicious' ]
+        [ "apple", "yellow", "golden delicious" ]
     */</pre>
-                        <p>The filter can be cleared by calling the <code>clear_filters</code> method:</p>
+                        <p>The filter can be cleared by calling the <code>clearFilters</code> method:</p>
                         <pre>
-    d.clear_filters();</pre>
+    dw.clearFilters();</pre>
                         <p>Filters stack on top of each other:</p>
                         <pre>
-    d.apply_filter(/banana/);
+    dw.applyFilter(/banana/);
     /* This results in the following rows:
-        [ 'banana', 'green',  'unripe'        ],
-        [ 'banana', 'yellow', 'ripe'          ],
-        [ 'banana', 'brown',  'beyond ripe'   ],
-        [ 'banana', 'black',  'rotten/frozen' ]
+        [ "banana", "green",  "unripe"        ],
+        [ "banana", "yellow", "ripe"          ],
+        [ "banana", "brown",  "beyond ripe"   ],
+        [ "banana", "black",  "rotten/frozen" ]
     */
 
-    d.apply_filter(/yellow/);
+    dw.applyFilter(/yellow/);
     /* The results are further filtered down to one row:
-        [ 'banana', 'yellow', 'ripe' ],
+        [ "banana", "yellow", "ripe" ],
     */
 
-    d.clear_filters().apply_filter(/yellow/);
+    dw.clearFilters().applyFilter(/yellow/);
     /* Old filters are cleared and a new one is applied:
-        [ 'apple',  'yellow', 'golden delicious' ],
-        [ 'banana', 'yellow', 'ripe'             ],
+        [ "apple",  "yellow", "golden delicious" ],
+        [ "banana", "yellow", "ripe"             ],
     /*</pre>
                         <p>To permanently remove rows from a dataset with a filter, use the <code>filter</code> method:</p>
                         <pre>
-    d.filter(/\bapple\b/)</pre>
+    dw.filter(/\bapple\b/)</pre>
                     </section>
                     <section id="group">
                         <h3>Group</h3>
                         <p>Similar to grouping in SQL, the <code>group</code> method allows you to group rows together.</p>
                         <pre>
-    d.group('column_a');</pre>
+    dw.group("column_a");</pre>
                         <p>You may also group by multiple rows:</p>
                         <pre>
-    d.group('column_a', 'column_b');</pre>
+    dw.group("column_a", "column_b");</pre>
                         <p>Note that the following is also valid:</p>
                         <pre>
-    d.group([ 'column_a', 'column_b' ]);</pre>
-                        <p>Rows with the same value for the specified column(s) will be combined; the column property <code>agg_type</code> determines how values for non-specified columns are combined.</p>
+    dw.group([ "column_a", "column_b" ]);</pre>
+                        <p>Rows with the same value for the specified column(s) will be combined; the column property <code>aggType</code> determines how values for non-specified columns are combined.</p>
                     </section>
                     <section id="join">
                         <h3>Join</h3>
-                        <p>JData also supports joining via the <code>join</code> method. It can inner join, left outer join, or right outer join.</p>
+                        <p>DataWorker also supports joining via the <code>join</code> method. It can inner join, left outer join, or right outer join.</p>
                         <p>The following inner joins <code>d1</code> with <code>d2</code> on <code>column_a</code> from <code>d1</code> and <code>column_d</code> from <code>d2</code>:</p>
                         <pre>
-    d1.join(d2, 'column_a', 'column_d');</pre>
+    d1.join(d2, "column_a", "column_d");</pre>
                         <p>The following left outer joins <code>d1</code> with <code>d2</code> on <code>column_a</code> from <code>d1</code> and <code>column_d</code> from <code>d2</code>:</p>
                         <pre>
-    d1.join(d2, 'column_a', 'column_d', 'left');</pre>
+    d1.join(d2, "column_a", "column_d", "left");</pre>
                         <p>The following right outer joins <code>d1</code> with <code>d2</code> on <code>column_a</code> from <code>d1</code> and <code>column_d</code> from <code>d2</code>:</p>
                         <pre>
-    d1.join(d2, 'column_a', 'column_d', 'right');</pre>
+    d1.join(d2, "column_a", "column_d", "right");</pre>
                         <p>Joins can also be performed on multiple columns:</p>
                         <pre>
-    d1.join(d2, [ 'column_a', 'column_b' ], [ 'column_d', 'column_e' ]);</pre>
+    d1.join(d2, [ "column_a", "column_b" ], [ "column_d", "column_e" ]);</pre>
                     </section>
                     <section id="limit">
                         <h3>Limit</h3>
-                        <p>The <code>apply_limit</code> method limits the amount of visible rows in the dataset. The following allows only the first 10 rows in the dataset to be visible:</p>
-                        <pre>   d.apply_limit(10);</pre>
-                        <p>The limit can be cleared by calling the <code>clear_filters</code> method:</p>
-                        <pre>   d.clear_filters();</pre>
+                        <p>The <code>applyLimit</code> method limits the amount of visible rows in the dataset. The following allows only the first 10 rows in the dataset to be visible:</p>
+                        <pre>   dw.applyLimit(10);</pre>
+                        <p>The limit can be cleared by calling the <code>clearFilters</code> method:</p>
+                        <pre>   dw.clearFilters();</pre>
                         <p>To permanently remove rows from a dataset with a limit, use the <code>limit</code> method:</p>
-                        <pre>   d.limit(10)</pre>
+                        <pre>   dw.limit(10)</pre>
                     </section>
-                    <section id="remove_columns">
+                    <section id="remove-columns">
                         <h3>Remove columns</h3>
-                        <p>You may completely delete columns from a dataset with the <code>remove_columns</code> method.
-                        <pre>   d.remove_columns('column_a', 'column_b');</pre>
+                        <p>You may completely delete columns from a dataset with the <code>removeColumns</code> method.</p>
+                        <pre>   dw.removeColumns("column_a", "column_b");</pre>
                         <p>Note that the following is also valid:</p>
-                        <pre>   d.remove_columns([ 'column_a', 'column_b' ]);</pre>
+                        <pre>   dw.removeColumns([ "column_a", "column_b" ]);</pre>
                     </section>
-                    <section id="hide_columns">
+                    <section id="hide-columns">
                         <h3>Hide columns</h3>
-                        <p>Instead of permanently deleting the columns, you may also temporarily hide them from view using the <code>hide_columns</code> method:</p>
-                        <pre>   d.hide_columns('column_a', 'column_b');</pre>
+                        <p>Instead of permanently deleting the columns, you may also temporarily hide them from view using the <code>hideColumns</code> method:</p>
+                        <pre>   dw.hideColumns("column_a", "column_b");</pre>
                         <p>Note that the following is also valid:</p>
-                        <pre>   d.hide_columns([ 'column_a', 'column_b' ]);</pre>
-                        <p>Hidden columns can be shown with the <code>show_columns</code> method:</p>
-                        <pre>   d.show_columns('column_a', 'column_b');</pre>
+                        <pre>   dw.hideColumns([ "column_a", "column_b" ]);</pre>
+                        <p>Hidden columns can be shown with the <code>showColumns</code> method:</p>
+                        <pre>   dw.showColumns("column_a", "column_b");</pre>
                         <p>Note that the following is also valid:</p>
-                        <pre>   d.show_columns([ 'column_a', 'column_b' ]);</pre>
-                        <p>The <code>hide_columns</code> and <code>show_columns</code> methods may also take a regex as an argument. Any column name matching the regex will be hidden/shown, respectively.</p>
-                        <pre>   d.hide_columns(/^column_[ab]$/i);</pre>
-                        <p>All columns can be hidden with the <code>hide_all_columns</code> method:</p>
-                        <pre>   d.hide_all_columns();</pre>
-                        <p>All hidden columns can be revealed with the <code>show_all_columns</code> method:</p>
-                        <pre>   d.show_all_columns();</pre>
-                        <p>Alternatively, you may retrieve all columns (visible AND non-visible) by using the <code>get_all_columns</code> method:</p>
+                        <pre>   dw.showColumns([ "column_a", "column_b" ]);</pre>
+                        <p>The <code>hideColumns</code> and <code>showColumns</code> methods may also take a regex as an argument. Any column name matching the regex will be hidden/shown, respectively.</p>
+                        <pre>   dw.hideColumns(/^column_[ab]$/i);</pre>
+                        <p>All columns can be hidden with the <code>hideAllColumns</code> method:</p>
+                        <pre>   dw.hideAllColumns();</pre>
+                        <p>All hidden columns can be revealed with the <code>showAllColumns</code> method:</p>
+                        <pre>   dw.showAllColumns();</pre>
+                        <p>Alternatively, you may retrieve all columns (visible AND non-visible) by using the <code>getAllColumns</code> method:</p>
                         <pre>
-    d.get_all_columns(function (columns) {
-        all_columns = columns; 
+    dw.getAllColumns(function (columns) {
+        allColumns = columns;
     });</pre>
                     </section>
-                    <section id="clear_dataset">
+                    <section id="clear-dataset">
                         <h3>Clear Dataset</h3>
-                        <p>If you want to completely clear the dataset so that you can add new data while leaving any custom handlers intact, you may call <code>clear_dataset</code>.</p>
-                        <pre>   d.clear_dataset();</pre>
+                        <p>If you want to completely clear the dataset so that you can add new data while leaving any custom handlers intact, you may call <code>clearDataset</code>.</p>
+                        <pre>   dw.clearDataset();</pre>
                         <p>This will remove references to all columns and rows. The function takes no parameters.</p>
                     </section>
                     <section id="sort">
                         <h3>Sort</h3>
                         <p>The following sorts the dataset on <code>column_a</code>:</p>
                         <pre>
-    d.sort('column_a')</pre>
+    dw.sort("column_a")</pre>
                         <p>To reverse sort, prepend the column name with a <code>-</code>:</p>
                         <pre>
-    d.sort('-column_a')</pre>
+    dw.sort("-column_a")</pre>
                         <p>You may also sort on multiple columns:</p>
                         <pre>
-    d.sort('column_a', '-column_b');</pre>
+    dw.sort("column_a", "-column_b");</pre>
                         <p>In this case, the sort will fallback to <code>column_b</code> if the contents of <code>column_a</code> are equal.</p>
                         <p>Note that the following does the same thing:</p>
                         <pre>
-    d.sort([ 'column_a', '-column_b' ]);</pre>
-                        <p>When child rows exist in the dataset, parents and children are kept together. The dataset will be sorted first by the parent, then by the children, using the same column. Using the example from <a href="#add-child-rows">Add Child Rows</a>, <code>d.sort('-numbers');</code> will produce the following dataset:</p>
+    dw.sort([ "column_a", "-column_b" ]);</pre>
+                        <p>When child rows exist in the dataset, parents and children are kept together. The dataset will be sorted first by the parent, then by the children, using the same column. Using the example from <a href="#add-child-rows">Add Child Rows</a>, <code>dw.sort("-numbers");</code> will produce the following dataset:</p>
                         <pre>
     [
-        [ 'xyz', 789 ],
-            [ 'xyz', 789 ],
-        [ 'abc', 123 ],
-            [ 'abc', 579 ],
-            [ 'abc', 456 ],
-        [ 'def', 0   ]
+        [ "xyz", 789 ],
+            [ "xyz", 789 ],
+        [ "abc", 123 ],
+            [ "abc", 579 ],
+            [ "abc", 456 ],
+        [ "def", 0   ]
     ]</pre>
                     </section>
                     <section id="add-child-rows">
                         <h3>Add Child Rows</h3>
-                        Child rows can be added to the dataset by calling <code>add_child_rows</code>. The columns must be the same as the original dataset as in the following example:</p>
+                        Child rows can be added to the dataset by calling <code>addChildRows</code>. The columns must be the same as the original dataset as in the following example:</p>
                         <pre>
     var dataset = [
-        [ 'letters', 'numbers' ],
+        [ "letters", "numbers" ],
 
-        [ 'abc',     579       ],
-        [ 'def',     0         ],
-        [ 'xyz',     789       ]
-    ], child_rows = [
-        [ 'abc',     123       ],
-        [ 'abc',     456       ],
-        [ 'xyz',     789       ]
-    ], d = JData(dataset);</pre>
-                        <p>The call to <code>add_child_rows</code> expects a column that will be used to determine to which row the children belong. It also expects a dataset of child rows.</p>
+        [ "abc",     579       ],
+        [ "def",     0         ],
+        [ "xyz",     789       ]
+    ], childRows = [
+        [ "abc",     123       ],
+        [ "abc",     456       ],
+        [ "xyz",     789       ]
+    ], dw = DataWorker(dataset);</pre>
+                        <p>The call to <code>addChildRows</code> expects a column that will be used to determine to which row the children belong. It also expects a dataset of child rows.</p>
                         <p>You may either pass in an array of rows:</p>
                         <pre>
-    d.add_child_rows(child_rows, 'letters');</pre>
-                        <p><b>or</b> you may pass in another JData object:</p>
+    dw.addChildRows(childRows, "letters");</pre>
+                        <p><b>or</b> you may pass in another DataWorker object:</p>
                         <pre>
-    var d2 = JData([[ 'letters', 'numbers' ]].concat(child_rows), 'letters');
+    var d2 = DataWorker([[ "letters", "numbers" ]].concat(childRows), "letters");
 
-    d.add_child_rows(d2);</pre>
-                        <p>In either case, the result passed into the callback for <code>get_dataset</code> will be the same:</p>
+    dw.addChildRows(d2);</pre>
+                        <p>In either case, the result passed into the callback for <code>getDataset</code> will be the same:</p>
                         <pre>
     [
-        [ 'abc', 123 ],
-            [ 'abc', 456 ],
-            [ 'abc', 579 ],
-        [ 'def', 0   ],
-        [ 'xyz', 789 ],
-            [ 'xyz', 789 ]
+        [ "abc", 123 ],
+            [ "abc", 456 ],
+            [ "abc", 579 ],
+        [ "def", 0   ],
+        [ "xyz", 789 ],
+            [ "xyz", 789 ]
     ]</pre>
                         <p>The default visibility for a child row depends on its parent. If the parent row was set to hidden then the child row will still be added to the parent, but will be hidden as well.</p>
                         <p>If a parent row cannot be found for the children, those child rows will be ignored. If multiple parent rows exist for a given child row, the result is undefined.</p>
                     </section>
-                    <section id="get_dataset">
+                    <section id="get-dataset">
                         <h3>Get dataset</h3>
-                        <p>Visible dataset rows can be retrieved for use via the <code>get_dataset</code> method.</p>
+                        <p>Visible dataset rows can be retrieved for use via the <code>getDataset</code> method.</p>
                         <pre>
     var dataset = [
-        [ 'column_a', 'column_b', 'column_c' ],
+        [ "column_a", "column_b", "column_c" ],
 
-        [ 'apple',      'violin',    'music' ],
-        [ 'cat',        'tissue',      'dog' ],
-        [ 'banana',      'piano',      'gum' ],
-        [ 'gummy',       'power',     'star' ]
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
     ];
 
-    var d = new JData(dataset);
+    var dw = new DataWorker(dataset);
     var records;
-    
-    d.get_dataset(function (result) { records = result; });</pre>
+
+    dw.getDataset(function (result) { records = result; });</pre>
                         <p>The following is the contents of <code>records</code>:</p>
                         <pre>
     [
-        [ 'apple',      'violin',    'music' ],
-        [ 'cat',        'tissue',      'dog' ],
-        [ 'banana',      'piano',      'gum' ],
-        [ 'gummy',       'power',     'star' ]
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
     ]</pre>
-                        <p>The <code>get_dataset</code> method can also grab only specified rows:</p>
+                        <p>The <code>getDataset</code> method can also grab only specified rows:</p>
                         <pre>
-    g.get_dataset(function (result) { records = result; }, 'column_a', 'column_b');</pre>
+    g.getDataset(function (result) { records = result; }, "column_a", "column_b");</pre>
                         <p>The following would be the contents of <code>records</code>:</p>
                         <pre>
     [
-        [ 'apple',      'violin' ],
-        [ 'cat',        'tissue' ],
-        [ 'banana',      'piano' ],
-        [ 'gummy',       'power' ]
+        [ "apple",      "violin" ],
+        [ "cat",        "tissue" ],
+        [ "banana",      "piano" ],
+        [ "gummy",       "power" ]
     ]</pre>
                         <p>Note that the following does the same thing as the preceding sample:</p>
                         <pre>
-    g.get_dataset(
+    g.getDataset(
         function (result) { records = result; },
-        [ 'column_a', 'column_b' ]
+        [ "column_a", "column_b" ]
     );</pre>
                     </section>
-                    <section id="get_columns">
+                    <section id="get-columns">
                         <h3>Get columns</h3>
-                        <p>The <code>get_columns</code> method is used to get the visible columns of the dataset:</p>
+                        <p>The <code>getColumns</code> method is used to get the visible columns of the dataset:</p>
                         <pre>
-    d.get_columns(function (columns) {
-        visible_columns = columns;
+    dw.getColumns(function (columns) {
+        visibleColumns = columns;
     });</pre>
-                        <p>Use <code>get_all_columns</code> to retrieve both visible and non-visible columns.</p>
+                        <p>Use <code>getAllColumns</code> to retrieve both visible and non-visible columns.</p>
                     </section>
-                    <section id="get_columns_and_records">
+                    <section id="get-columns-and-records">
                         <h3>Get columns and records</h3>
-                        <p>Visible columns may be retrieved simultaneously with visible records with <code>get_columns_and_records</code>.</p>
+                        <p>Visible columns may be retrieved simultaneously with visible records with <code>getColumnsAndRecords</code>.</p>
                         <pre>
-    d.get_columns_and_records(function (columns, records) {
+    dw.getColumnsAndRecords(function (columns, records) {
         // Do something.
     });</pre>
-                        <p>Columns will be given as a dictionary with the <code>column_name</code> as the key and its properties (also in a dictionary) as the value.</p>
-                        <p>Records will be returned the same as in <code>get_dataset</code>.</p>
+                        <p>Columns will be given as a dictionary with the <code>columnName</code> as the key and its properties (also in a dictionary) as the value.</p>
+                        <p>Records will be returned the same as in <code>getDataset</code>.</p>
                     </section>
-                    <section id="get_number_of_records">
+                    <section id="get-number-of-records">
                         <h3>Get number of records</h3>
                         <h5>Get number of records</h5>
-                        <p>The <code>get_number_of_records</code> returns the number of visible rows currently in the dataset:</p>
+                        <p>The <code>getNumberOfRecords</code> returns the number of visible rows currently in the dataset:</p>
                         <pre>
-    d.get_number_of_records(function (num) {
-        number_of_rows = num;
+    dw.getNumberOfRecords(function (num) {
+        numberOfRows = num;
     });</pre>
-                        <p>Note that for streaming datasets, this value will be the current number of rows it has (and not the total number of rows expected). Use <code>get_expected_number_of_records</code> to determine the total number of rows in a streaming dataset.</p>
+                        <p>Note that for streaming datasets, this value will be the current number of rows it has (and not the total number of rows expected). Use <code>getExpectedNumberOfRecords</code> to determine the total number of rows in a streaming dataset.</p>
                         <h5>Get expected number of records</h5>
-                        <p>The <code>get_expected_number_of_records</code> method returns the expected number of records in a streaming dataset.</p>
+                        <p>The <code>getExpectedNumberOfRecords</code> method returns the expected number of records in a streaming dataset.</p>
                         <pre>
-    d.get_expected_number_of_records(function (num) {
-        expected_number_of_rows = num;
+    dw.getExpectedNumberOfRecords(function (num) {
+        expectedNumberOfRows = num;
     });</pre>
                     </section>
-                    <section id="get_distinct">
+                    <section id="get-distinct">
                         <h3>Get distinct</h3>
                         <h5>Get distinct consecutive rows</h5>
-                        <p>Distinct rows can be retrieved using <code>get_distinct_consecutive_rows</code>. The function takes a <code>callback</code> and <code>column_name</code> as its parameters:</p>
+                        <p>Distinct rows can be retrieved using <code>getDistinctConsecutiveRows</code>. The function takes a <code>callback</code> and <code>columnName</code> as its parameters:</p>
                         <pre>
-    function do_something_interesting(records) { }
-    d.get_distinct_consecutive_rows(do_something_interesting, 'column_a');</pre>
-                        <p>The value passed into the callback is an array of records. Each record contains three values: <code>value</code> of the column, <code>start_row</code> of that value, and <code>end_row</code> of that value.</p>
+    function doSomethingInteresting(records) { }
+    dw.getDistinctConsecutiveRows(doSomethingInteresting, "column_a");</pre>
+                        <p>The value passed into the callback is an array of records. Each record contains three values: <code>value</code> of the column, <code>startRow</code> of that value, and <code>endRow</code> of that value.</p>
                         <p>If values are repeated again later, but not consecutively, another record will exist in the results. For example, with the following dataset:</p>
                         <pre>
     [
-        [ 'column_a', 'column_b' ]
+        [ "column_a", "column_b" ]
 
-        [ 'abc',      '123'      ],
-        [ 'abc',      '456'      ],
-        [ 'abc',      '789'      ],
-        [ 'def',      '123'      ],
-        [ 'ghi',      '123'      ],
-        [ 'ghi',      '456'      ],
-        [ 'def',      '456'      ],
-        [ 'def',      '789'      ]
+        [ "abc",      "123"      ],
+        [ "abc",      "456"      ],
+        [ "abc",      "789"      ],
+        [ "def",      "123"      ],
+        [ "ghi",      "123"      ],
+        [ "ghi",      "456"      ],
+        [ "def",      "456"      ],
+        [ "def",      "789"      ]
     ]</pre>
-                        <p>the function <code>get_distinct_consecutive_rows</code> will pass the following <code>records</code> into the callback as a sole parameter if 'column_a' were passed in as <code>column_name</code>:</p>
+                        <p>the function <code>getDistinctConsecutiveRows</code> will pass the following <code>records</code> into the callback as a sole parameter if "column_a" were passed in as <code>columnName</code>:</p>
                         <pre>
     [
-        [ 'abc', 0, 2 ],
-        [ 'def', 3, 3 ],
-        [ 'ghi', 4, 5 ],
-        [ 'def', 6, 7 ]
+        [ "abc", 0, 2 ],
+        [ "def", 3, 3 ],
+        [ "ghi", 4, 5 ],
+        [ "def", 6, 7 ]
     ]</pre>
-                        <p>but if 'column_b' were passed in as <code>column_name</code> then the results would be:</p>
+                        <p>but if "column_b" were passed in as <code>columnName</code> then the results would be:</p>
                         <pre>
     [
-        [ '123', 0, 0 ],
-        [ '456', 1, 1 ],
-        [ '789', 2, 2 ],
-        [ '123', 3, 4 ],
-        [ '456', 5, 6 ],
-        [ '789', 7, 7 ]
+        [ "123", 0, 0 ],
+        [ "456", 1, 1 ],
+        [ "789", 2, 2 ],
+        [ "123", 3, 4 ],
+        [ "456", 5, 6 ],
+        [ "789", 7, 7 ]
     ]</pre>
                         <p>The number of records returned will always be equal to or less than the number of records in the original dataset.</p>
                     </section>
                     <section id="pagination">
                         <h3>Pagination</h3>
-                        <p>Pagination eases incremental of the records. The following sets JData to display 10 rows per page</p>
+                        <p>Pagination eases incremental of the records. The following sets DataWorker to display 10 rows per page</p>
                         <pre>
-    d.paginate(10);</pre>
+    dw.paginate(10);</pre>
                         <h5>Get next page</h5>
-                        <p>Now you may grab the next 10 rows using the <code>get_next_page</code> method:</p>
+                        <p>Now you may grab the next 10 rows using the <code>getNextPage</code> method:</p>
                         <pre>
-    var next_10_rows, current_page;
-    
-    d.get_next_page(function (result, page_number) {
-        next_10_rows = result;
-        current_page = page_number;
+    var next10Rows, currentPage;
+
+    dw.getNextPage(function (result, pageNumber) {
+        next10Rows = result;
+        currentPage = pageNumber;
     });</pre>
                         <p>The callback will provide the requested rows as well as the current page number.</p>
                         <p>The pagination system will not let you change to a page outside of the dataset. Grabbing the next page when you're on the last page will still return the last page.</p>
                         <h5>Get previous page</h5>
-                        <p>The previous 10 rows can be grabbed using the <code>get_previous_page</code> method:</p>
+                        <p>The previous 10 rows can be grabbed using the <code>getPreviousPage</code> method:</p>
                         <pre>
-    var previous_10_rows, current_page;
-    
-    d.get_previous_page(function (result, page_number) {
-        previous_10_rows = result;
-        current_page = page_number;
+    var previous10Rows, currentPage;
+
+    dw.getPreviousPage(function (result, pageNumber) {
+        previous10Rows = result;
+        currentPage = pageNumber;
     });</pre>
                         <p>Grabbing a previous page from the 1st page will simply return the 1st page again.</p>
                         <h5>Get page</h5>
-                        <p>You may jump to a specific page using the <code>get_page</code> method. The following grabs page 4:</p>
+                        <p>You may jump to a specific page using the <code>getPage</code> method. The following grabs page 4:</p>
                         <pre>
-    var page, current_page;
-    
-    d.get_page(function (result, page_number) {
+    var page, currentPage;
+
+    dw.getPage(function (result, pageNumber) {
         page = result;
-        current_page = page_number; // page_number == 4
+        currentPage = pageNumber; // pageNumber == 4
     }, 4);</pre>
                         <p>Note that this also sets your current page to the page you grab.</p>
                         <h5>Set page</h5>
-                        <p>Use the <code>set_page</code> method to set a new current page. Attempting to set the page to 0 or a negative number will set the page to page 1. Setting to a page past the max number of current pages will set the page to the last page. The following sets your current page to page 4:</p>
+                        <p>Use the <code>setPage</code> method to set a new current page. Attempting to set the page to 0 or a negative number will set the page to page 1. Setting to a page past the max number of current pages will set the page to the last page. The following sets your current page to page 4:</p>
                         <pre>
-    d.set_page(4);</pre>
+    dw.setPage(4);</pre>
                         <h5>Get number of pages</h5>
-                        <p>Use the <code>get_number_of_pages</code> method to get the total number of pages in the dataset with the current pagination. Note that this is also the same as the last page in the dataset.</p>
+                        <p>Use the <code>getNumberOfPages</code> method to get the total number of pages in the dataset with the current pagination. Note that this is also the same as the last page in the dataset.</p>
                         <pre>
-    var last_page;
+    var lastPage;
 
-    d.get_number_of_pages(function (total_number_of_pages) {
-        last_page = total_number_of_pages;
+    dw.getNumberOfPages(function (totalNumberOfPages) {
+        lastPage = totalNumberOfPages;
     });</pre>
                     </section>
                     <section id="partition">
                         <h3>Partition</h3>
-                        <p>JData can partition its dataset into multiple smaller datasets. The partitioned datasets can be retrieved afterwards using their partition key(s). The following partitions the dataset by the contents of <code>column_a</code> and uses the <code>get_partitioned</code> method to push each partition onto the <code>partitioned</code> array:</p>
+                        <p>DataWorker can partition its dataset into multiple smaller datasets. The partitioned datasets can be retrieved afterwards using their partition key(s). The following partitions the dataset by the contents of <code>column_a</code> and uses the <code>getPartitioned</code> method to push each partition onto the <code>partitioned</code> array:</p>
                         <pre>
     var partitioned = [];
 
-    d.partition('column_a');
+    dw.partition("column_a");
 
-    d.get_partition_keys().forEach(function (key) {
-        d.get_partitioned(function (result) { partitioned.push(result); }, key);
+    dw.getPartitionKeys().forEach(function (key) {
+        dw.getPartitioned(function (result) { partitioned.push(result); }, key);
     });</pre>
-                        <p>They <code>get_partitioned</code> method returns an array of records.</code>
+                        <p>They <code>getPartitioned</code> method returns an array of records.</code>
                         <p>You may also partition by multiple keys:</p>
                         <pre>
-    d.partition('column_a', 'column_b');</pre>
+    dw.partition("column_a", "column_b");</pre>
                         <p>The following does the same thing:</p>
                         <pre>
-    d.partition([ 'column_a', 'column_b' ]);</pre>
+    dw.partition([ "column_a", "column_b" ]);</pre>
                     </section>
                     <section id="render">
                         <h3>Render</h3>
-                        <p>The <code>render</code> method allows you to pass JData a function to render the dataset. When <code>render</code> is called without arguments, JData will call the rendering function that the user passed in, or do nothing if the user has not set a rendering function.</p>
+                        <p>The <code>render</code> method allows you to pass DataWorker a function to render the dataset. When <code>render</code> is called without arguments, DataWorker will call the rendering function that the user passed in, or do nothing if the user has not set a rendering function.</p>
                         <pre>
-    d.render(function () { /* code for rendering the dataset */ });
+    dw.render(function () { /* code for rendering the dataset */ });
 
     /* Make some changes to the dataset. */
 
-    d.render(); // Renders the new dataset according to the user-defined function.</pre>
+    dw.render(); // Renders the new dataset according to the user-defined function.</pre>
                     </section>
                 </div>
             </div>

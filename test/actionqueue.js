@@ -4,15 +4,15 @@
  *                                                                           *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-module('ActionQueue');
+module("ActionQueue");
 
-test('construct', function () {
+test("construct", function () {
     var q = new ActionQueue();
 
     ok(q instanceof ActionQueue);
 });
 
-test('queue action (not in action)', function () {
+test("queue action (not in action)", function () {
     var q = new ActionQueue(), actionDone = false;
 
     q.queueNext(function () {
@@ -23,7 +23,7 @@ test('queue action (not in action)', function () {
     ok(actionDone);
 });
 
-test('queue action (in action)', function () {
+test("queue action (in action)", function () {
     var q = new ActionQueue();
 
     function toQ() { q.finishAction(); };
@@ -41,20 +41,20 @@ test('queue action (in action)', function () {
     );
 });
 
-test('queue action (named function with args)', function () {
-    var q = new ActionQueue(), toSet = 'arghh';
+test("queue action (named function with args)", function () {
+    var q = new ActionQueue(), toSet = "arghh";
 
     function toQ(arg) {
         toSet = arg;
         q.finishAction();
     };
 
-    q.queueNext(toQ, 'Hello, world!');
+    q.queueNext(toQ, "Hello, world!");
 
-    equal(toSet, 'Hello, world!');
+    equal(toSet, "Hello, world!");
 });
 
-asyncTest('queue action (within queued action)', function () {
+asyncTest("queue action (within queued action)", function () {
     expect(6);
 
     var q = new ActionQueue(), steps = 0;
@@ -96,7 +96,7 @@ asyncTest('queue action (within queued action)', function () {
     q.finishAction();
 });
 
-test('finish action', function () {
+test("finish action", function () {
     var q = new ActionQueue(),
         action1Done = false, action2Done = false;
 

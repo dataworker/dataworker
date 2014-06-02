@@ -3,41 +3,21 @@
     <head>
         <meta charset="utf-8" />
 
-        <title>JData Tests</title>
-        <link rel="stylesheet" href="qunit-1.11.0.css" />
+        <title>DataWorker Tests</title>
+        <link rel="stylesheet" href="../lib/qunit/qunit.css" />
 
-        <script src="JSLitmus.js"></script>
-        <script src="qunit-1.11.0.js"></script>
+        <script src="../lib/qunit/qunit.js"></script>
 
-        <script src="action_queue.js"></script>
-        <script src="jdata_worker.js"></script>
-        <script src="jdata.js"></script>
+        <script src="../src/actionqueue.js"></script>
+        <script src="../src/dw-helper.js"></script>
+        <script src="../src/dw.js"></script>
 
-        <script src="performance_tests.js"></script>
-        <script src="unit_tests.js"></script>
-
-        <script>
-//            var d = new JData({
-//                datasource           : "ws://127.0.0.1:8888",
-//                authenticate         : "{}",
-//                request              : '{"cmd":"request_dataset"}',
-//                on_receive_rows      : function (num_received) {
-//                    console.log(num_received + " rows received.");
-//                },
-//                on_all_rows_received : function () {
-//                    console.log("All rows received!");
-//                }
-//            });
-        </script>
+        <script src="actionqueue.js"></script>
+        <script src="dw-local.js"></script>
     </head>
 
     <body>
         <div id="qunit"></div>
         <div id="qunit-fixture"></div>
-
-        <br />
-
-        <p>Performance Tests...</p>
-        <div id="test_element" style="overflow:hidden; width: 1px; height: 1px;"></div>
     </body>
 </html>

@@ -1,0 +1,12 @@
+{
+    "name": "dataworker",
+    "version": "1.0.0",
+    "main": [
+        "src/actionqueue.js",
+        "src/dw-helper.js",
+        "src/dw.js"
+    ],
+    "ignore": [
+        ".gitignore"
+    ]
+}
