@@ -3,6 +3,15 @@ var JData;
 (function() {
     "use strict";
 
+    var srcPath = getSourcePath();
+
+    function getSourcePath () {
+        var scripts = document.getElementsByTagName('script'),
+            srcFile = scripts[scripts.length - 1].src;
+
+        return srcFile.replace(/(http:\/\/)?.*?(\/(.*\/)?).*/, function () { return arguments[2]; });
+    }
+
     JData = function (dataset) {
         var self = this instanceof JData ? this : Object.create(JData.prototype);
 
@@ -544,36 +553,6 @@ var JData;
         return self;
     };
 
-    JData.prototype._partition_hashed_dataset = function (hashed_dataset) {
-        var self = this;
-        var i = 0, key_columns = Object.keys(hashed_dataset), 
-            columns_row = Object.keys(self._columns).map(function (column_name) {
-                var column = self._columns[column_name];
-                column["name"] = column_name;
-
-                return column;
-            }).sort(function (a, b) {
-                return self._num_sort(a["index"], b["index"]);
-            });
-
-        var next = function () {
-            var key = key_columns[i++], dataset = hashed_dataset[key];
-
-            dataset.unshift(columns_row);
-            self._partitioned_datasets[key] = new JData(dataset);
-
-            if (i < key_columns.length) {
-                setTimeout(next, 0);
-            } else {
-                self._next_action(true);
-            }
-        };
-
-        setTimeout(next, 0);
-
-        return self;
-    };
-
     JData.prototype.partition = function () {
         var self = this,
             partition_by = arguments[0] instanceof Array
@@ -583,12 +562,11 @@ var JData;
         self._queue_next(function () {
             self._worker.postMessage({
                 cmd         : "hash",
-                key_columns : "partition_by"
+                key_columns : partition_by
             });
         });
 
         self._queue_next(function () {
-            self._partition_hashed_dataset.call(self, hashed_dataset);
             self._worker.postMessage({
                 cmd            : "partition",
                 hashed_dataset : self._hash

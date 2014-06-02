@@ -20,18 +20,21 @@ asyncTest('construct (simple columns)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -81,18 +84,21 @@ asyncTest('construct (complex columns)', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'Column A',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'Column B',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'Column C',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -252,6 +258,7 @@ asyncTest('remove columns', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             }
         });
@@ -851,36 +858,42 @@ asyncTest('join (inner join on single field)', function () {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             column_b: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             column_c: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             },
             column_d: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_d',
+                name      : 'column_d',
                 index     : 3
             },
             column_e: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_e',
+                name      : 'column_e',
                 index     : 4
             },
             column_f: {
                 agg_type  : 'max',
                 sort_type : 'alpha',
                 title     : 'column_f',
+                name      : 'column_f',
                 index     : 5
             }
         });
@@ -1088,18 +1101,21 @@ asyncTest('prepend column names', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             p_column_b: {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             p_column_c: {
                 sort_type : 'alpha',
                 agg_type  : 'min',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1128,18 +1144,21 @@ asyncTest('alter column name', function () {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_a',
+                name      : 'column_a',
                 index     : 0
             },
             'column_b': {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_b',
+                name      : 'column_b',
                 index     : 1
             },
             'column_c': {
                 sort_type : 'alpha',
                 agg_type  : 'max',
                 title     : 'column_c',
+                name      : 'column_c',
                 index     : 2
             }
         });
@@ -1340,442 +1359,472 @@ asyncTest('group (multi-field)', function () {
     }).finish();
 });
 
-//asyncTest('get partitioned (single field)', function () {
-//    expect(9);
+asyncTest('get partitioned (single field)', function () {
+    expect(9);
 
-//    var dataset = [
-//        [
-//            { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
-//            { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
-//            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' },
-//        ],
+    var dataset = [
+        [
+            { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
+            { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
+            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' },
+        ],
 
-//        [ 'apple',      'violin',    'music' ],
-//        [ 'cat',        'tissue',      'dog' ],
-//        [ 'banana',      'piano',      'gum' ],
-//        [ 'gummy',       'power',     'star' ],
-//        [ 'apple',      'trance',   'camaro' ],
-//        [ 'cat',           'soy',  'blender' ],
-//        [ 'banana',   'eyedrops',      'tie' ],
-//        [ 'apple',        'body',      'key' ]
-//    ];
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ],
+        [ 'apple',      'trance',   'camaro' ],
+        [ 'cat',           'soy',  'blender' ],
+        [ 'banana',   'eyedrops',      'tie' ],
+        [ 'apple',        'body',      'key' ]
+    ];
 
-//    var d = new JData(dataset).partition('column_a');
+    var d = new JData(dataset).partition('column_a');
 
-//    var partition_keys,
-//        apple_partition  = {},
-//        banana_partition = {},
-//        cat_partition    = {},
-//        gummy_partition  = {};
+    var partition_keys,
+        apple_partition  = {},
+        banana_partition = {},
+        cat_partition    = {},
+        gummy_partition  = {};
 
-//    d.render(function () {
-//        deepEqual(partition_keys.sort(), [
-//            [ 'apple'  ],
-//            [ 'banana' ],
-//            [ 'cat'    ],
-//            [ 'gummy'  ]
-//        ]);
+    d.render(function () {
+        deepEqual(partition_keys.sort(), [
+            [ 'apple'  ],
+            [ 'banana' ],
+            [ 'cat'    ],
+            [ 'gummy'  ]
+        ]);
 
-//        deepEqual(apple_partition['columns'], {
-//            column_a: {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b: {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c: {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(apple_partition['rows'], [
-//            [ 'apple',   'body',    'key' ],
-//            [ 'apple', 'trance', 'camaro' ],
-//            [ 'apple', 'violin',  'music' ]
-//        ]);
+        deepEqual(apple_partition['columns'], {
+            column_a: {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b: {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c: {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(apple_partition['rows'], [
+            [ 'apple',   'body',    'key' ],
+            [ 'apple', 'trance', 'camaro' ],
+            [ 'apple', 'violin',  'music' ]
+        ]);
 
-//        deepEqual(banana_partition['columns'], {
-//            column_a: {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b: {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c: {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(banana_partition['rows'], [
-//            [ 'banana', 'eyedrops', 'tie' ],
-//            [ 'banana',    'piano', 'gum' ]
-//        ]);
+        deepEqual(banana_partition['columns'], {
+            column_a: {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b: {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c: {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(banana_partition['rows'], [
+            [ 'banana', 'eyedrops', 'tie' ],
+            [ 'banana',    'piano', 'gum' ]
+        ]);
 
-//        deepEqual(cat_partition['columns'], {
-//            column_a: {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b: {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c: {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(cat_partition['rows'], [
-//            [ 'cat',    'soy', 'blender' ],
-//            [ 'cat', 'tissue',     'dog' ]
-//        ]);
+        deepEqual(cat_partition['columns'], {
+            column_a: {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b: {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c: {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(cat_partition['rows'], [
+            [ 'cat',    'soy', 'blender' ],
+            [ 'cat', 'tissue',     'dog' ]
+        ]);
 
-//        deepEqual(gummy_partition['columns'], {
-//            column_a: {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b: {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c: {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(gummy_partition['rows'], [
-//            [ 'gummy', 'power', 'star' ]
-//        ]);
+        deepEqual(gummy_partition['columns'], {
+            column_a: {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b: {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c: {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(gummy_partition['rows'], [
+            [ 'gummy', 'power', 'star' ]
+        ]);
 
-//        start();
-//    });
+        start();
+    });
 
-//    d.get_partition_keys(function (keys) {
-//        partition_keys = keys;
-//    });
+    d.get_partition_keys(function (keys) {
+        partition_keys = keys;
+    });
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_b').get_columns_and_records(function (columns, rows) {
-//            apple_partition['columns'] = columns;
-//            apple_partition['rows']    = rows;
-//        }).finish();
-//    }, 'apple');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_b').get_columns_and_records(function (columns, rows) {
+            apple_partition['columns'] = columns;
+            apple_partition['rows']    = rows;
+        }).finish();
+    }, 'apple');
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_b').get_columns_and_records(function (columns, rows) {
-//            banana_partition['columns'] = columns;
-//            banana_partition['rows']    = rows;
-//        }).finish();
-//    }, 'banana');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_b').get_columns_and_records(function (columns, rows) {
+            banana_partition['columns'] = columns;
+            banana_partition['rows']    = rows;
+        }).finish();
+    }, 'banana');
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_b').get_columns_and_records(function (columns, rows) {
-//            cat_partition['columns'] = columns;
-//            cat_partition['rows']    = rows;
-//        }).finish();
-//    }, 'cat');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_b').get_columns_and_records(function (columns, rows) {
+            cat_partition['columns'] = columns;
+            cat_partition['rows']    = rows;
+        }).finish();
+    }, 'cat');
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_b').get_columns_and_records(function (columns, rows) {
-//            gummy_partition['columns'] = columns;
-//            gummy_partition['rows']    = rows;
-//        }).finish();
-//    }, 'gummy');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_b').get_columns_and_records(function (columns, rows) {
+            gummy_partition['columns'] = columns;
+            gummy_partition['rows']    = rows;
+        }).finish();
+    }, 'gummy');
 
-//    var wait = function () {
-//        if (
-//            Object.keys(apple_partition).length > 0
-//            && Object.keys(banana_partition).length > 0
-//            && Object.keys(cat_partition).length > 0
-//            && Object.keys(gummy_partition).length > 0
-//        ) {
-//            d.render().finish();
-//        } else {
-//            setTimeout(wait, 0);
-//        }
-//    };
+    var wait = function () {
+        if (
+            Object.keys(apple_partition).length > 0
+            && Object.keys(banana_partition).length > 0
+            && Object.keys(cat_partition).length > 0
+            && Object.keys(gummy_partition).length > 0
+        ) {
+            d.render().finish();
+        } else {
+            setTimeout(wait, 0);
+        }
+    };
 
-//    setTimeout(wait, 0);
-//});
+    setTimeout(wait, 0);
+});
 
-//asyncTest('get partitioned (multi-field)', function () {
-//    expect(13);
+asyncTest('get partitioned (multi-field)', function () {
+    expect(13);
 
-//    var dataset = [
-//        [
-//            { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
-//            { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
-//            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' },
-//        ],
+    var dataset = [
+        [
+            { name: 'column_a', sort_type: 'alpha', agg_type: 'max' },
+            { name: 'column_b', sort_type: 'alpha', agg_type: 'min' },
+            { name: 'column_c', sort_type: 'alpha', agg_type: 'min' },
+        ],
 
-//        [ 'apple',      'violin',    'music' ],
-//        [ 'cat',        'tissue',      'dog' ],
-//        [ 'banana',      'piano',      'gum' ],
-//        [ 'gummy',       'power',     'star' ],
-//        [ 'apple',      'trance',   'camaro' ],
-//        [ 'cat',           'soy',  'blender' ],
-//        [ 'banana',      'piano',      'tie' ],
-//        [ 'apple',      'violin',      'key' ]
-//    ];
+        [ 'apple',      'violin',    'music' ],
+        [ 'cat',        'tissue',      'dog' ],
+        [ 'banana',      'piano',      'gum' ],
+        [ 'gummy',       'power',     'star' ],
+        [ 'apple',      'trance',   'camaro' ],
+        [ 'cat',           'soy',  'blender' ],
+        [ 'banana',      'piano',      'tie' ],
+        [ 'apple',      'violin',      'key' ]
+    ];
 
-//    var d = new JData(dataset).partition('column_a', 'column_b');
+    var d = new JData(dataset).partition('column_a', 'column_b');
 
-//    var partition_keys,
-//        apple_trance_partition = {},
-//        apple_violin_partition = {},
-//        banana_piano_partition = {},
-//        cat_soy_partition      = {},
-//        cat_tissue_partition   = {},
-//        gummy_power_partition  = {};
+    var partition_keys,
+        apple_trance_partition = {},
+        apple_violin_partition = {},
+        banana_piano_partition = {},
+        cat_soy_partition      = {},
+        cat_tissue_partition   = {},
+        gummy_power_partition  = {};
 
-//    d.render(function () {
-//        deepEqual(partition_keys.sort(), [
-//            [ 'apple', 'trance' ],
-//            [ 'apple', 'violin' ],
-//            [ 'banana', 'piano' ],
-//            [ 'cat',      'soy' ],
-//            [ 'cat',   'tissue' ],
-//            [ 'gummy', 'power'  ]
-//        ]);
+    d.render(function () {
+        deepEqual(partition_keys.sort(), [
+            [ 'apple', 'trance' ],
+            [ 'apple', 'violin' ],
+            [ 'banana', 'piano' ],
+            [ 'cat',      'soy' ],
+            [ 'cat',   'tissue' ],
+            [ 'gummy', 'power'  ]
+        ]);
 
-//        deepEqual(apple_trance_partition['columns'], {
-//            column_a : {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(apple_trance_partition['rows'], [
-//            [ 'apple', 'trance', 'camaro' ]
-//        ]);
+        deepEqual(apple_trance_partition['columns'], {
+            column_a : {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(apple_trance_partition['rows'], [
+            [ 'apple', 'trance', 'camaro' ]
+        ]);
 
-//        deepEqual(apple_violin_partition['columns'], {
-//            column_a : {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(apple_violin_partition['rows'], [
-//            [ 'apple', 'violin',   'key' ],
-//            [ 'apple', 'violin', 'music' ]
-//        ]);
+        deepEqual(apple_violin_partition['columns'], {
+            column_a : {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(apple_violin_partition['rows'], [
+            [ 'apple', 'violin',   'key' ],
+            [ 'apple', 'violin', 'music' ]
+        ]);
 
-//        deepEqual(banana_piano_partition['columns'], {
-//            column_a : {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(banana_piano_partition['rows'], [
-//            [ 'banana', 'piano', 'gum' ],
-//            [ 'banana', 'piano', 'tie' ]
-//        ]);
+        deepEqual(banana_piano_partition['columns'], {
+            column_a : {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(banana_piano_partition['rows'], [
+            [ 'banana', 'piano', 'gum' ],
+            [ 'banana', 'piano', 'tie' ]
+        ]);
 
-//        deepEqual(cat_soy_partition['columns'], {
-//            column_a : {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(cat_soy_partition['rows'], [
-//            [ 'cat', 'soy',  'blender' ]
-//        ]);
+        deepEqual(cat_soy_partition['columns'], {
+            column_a : {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(cat_soy_partition['rows'], [
+            [ 'cat', 'soy',  'blender' ]
+        ]);
 
-//        deepEqual(cat_tissue_partition['columns'], {
-//            column_a : {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(cat_tissue_partition['rows'], [
-//            [ 'cat', 'tissue', 'dog' ]
-//        ]);
+        deepEqual(cat_tissue_partition['columns'], {
+            column_a : {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(cat_tissue_partition['rows'], [
+            [ 'cat', 'tissue', 'dog' ]
+        ]);
 
-//        deepEqual(gummy_power_partition['columns'], {
-//            column_a : {
-//                sort_type : 'alpha',
-//                agg_type  : 'max',
-//                title     : 'column_a',
-//                index     : 0
-//            },
-//            column_b : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_b',
-//                index     : 1
-//            },
-//            column_c : {
-//                sort_type : 'alpha',
-//                agg_type  : 'min',
-//                title     : 'column_c',
-//                index     : 2
-//            }
-//        });
-//        deepEqual(gummy_power_partition['rows'], [
-//            [ 'gummy', 'power', 'star' ]
-//        ]);
+        deepEqual(gummy_power_partition['columns'], {
+            column_a : {
+                sort_type : 'alpha',
+                agg_type  : 'max',
+                title     : 'column_a',
+                name      : 'column_a',
+                index     : 0
+            },
+            column_b : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_b',
+                name      : 'column_b',
+                index     : 1
+            },
+            column_c : {
+                sort_type : 'alpha',
+                agg_type  : 'min',
+                title     : 'column_c',
+                name      : 'column_c',
+                index     : 2
+            }
+        });
+        deepEqual(gummy_power_partition['rows'], [
+            [ 'gummy', 'power', 'star' ]
+        ]);
 
-//        start();
-//    });
+        start();
+    });
 
-//    d.get_partition_keys(function (keys) {
-//        partition_keys = keys;
-//    });
+    d.get_partition_keys(function (keys) {
+        partition_keys = keys;
+    });
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
-//            apple_trance_partition['columns'] = columns;
-//            apple_trance_partition['rows']    = rows;
-//        }).finish();
-//    }, 'apple', 'trance');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
+            apple_trance_partition['columns'] = columns;
+            apple_trance_partition['rows']    = rows;
+        }).finish();
+    }, 'apple', 'trance');
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
-//            apple_violin_partition['columns'] = columns;
-//            apple_violin_partition['rows']    = rows;
-//        }).finish();
-//    }, 'apple', 'violin');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
+            apple_violin_partition['columns'] = columns;
+            apple_violin_partition['rows']    = rows;
+        }).finish();
+    }, 'apple', 'violin');
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
-//            banana_piano_partition['columns'] = columns;
-//            banana_piano_partition['rows']    = rows;
-//        }).finish();
-//    }, 'banana', 'piano');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
+            banana_piano_partition['columns'] = columns;
+            banana_piano_partition['rows']    = rows;
+        }).finish();
+    }, 'banana', 'piano');
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
-//            cat_soy_partition['columns'] = columns;
-//            cat_soy_partition['rows']    = rows;
-//        }).finish();
-//    }, 'cat', 'soy');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
+            cat_soy_partition['columns'] = columns;
+            cat_soy_partition['rows']    = rows;
+        }).finish();
+    }, 'cat', 'soy');
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
-//            cat_tissue_partition['columns'] = columns;
-//            cat_tissue_partition['rows']    = rows;
-//        }).finish();
-//    }, 'cat', 'tissue');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
+            cat_tissue_partition['columns'] = columns;
+            cat_tissue_partition['rows']    = rows;
+        }).finish();
+    }, 'cat', 'tissue');
 
-//    d.get_partitioned(function (partition) {
-//        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
-//            gummy_power_partition['columns'] = columns;
-//            gummy_power_partition['rows']    = rows;
-//        }).finish();
-//    }, 'gummy', 'power');
+    d.get_partitioned(function (partition) {
+        partition.sort('column_c').get_columns_and_records(function (columns, rows) {
+            gummy_power_partition['columns'] = columns;
+            gummy_power_partition['rows']    = rows;
+        }).finish();
+    }, 'gummy', 'power');
 
-//    var wait = function () {
-//        if (
-//            Object.keys(apple_trance_partition).length > 0
-//            && Object.keys(apple_violin_partition).length > 0
-//            && Object.keys(banana_piano_partition).length > 0
-//            && Object.keys(cat_soy_partition).length > 0
-//            && Object.keys(cat_tissue_partition).length > 0
-//            && Object.keys(gummy_power_partition).length > 0
-//        ) {
-//            d.render().finish();
-//        } else {
-//            setTimeout(wait, 0);
-//        }
-//    };
+    var wait = function () {
+        if (
+            Object.keys(apple_trance_partition).length > 0
+            && Object.keys(apple_violin_partition).length > 0
+            && Object.keys(banana_piano_partition).length > 0
+            && Object.keys(cat_soy_partition).length > 0
+            && Object.keys(cat_tissue_partition).length > 0
+            && Object.keys(gummy_power_partition).length > 0
+        ) {
+            d.render().finish();
+        } else {
+            setTimeout(wait, 0);
+        }
+    };
 
-//    setTimeout(wait, 0);
-//});
+    setTimeout(wait, 0);
+});
