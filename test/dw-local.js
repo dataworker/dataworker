@@ -1,9 +1,3 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *                                                                           *
- * Tests for DataWorker                                                      *
- *                                                                           *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 module("DataWorker (Local Data)");
 
 asyncTest("construct (simple columns)", function () {

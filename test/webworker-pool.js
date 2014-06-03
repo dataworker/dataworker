@@ -9,7 +9,7 @@ module("WebWorkerPool");
 asyncTest("creates webworker out of simple source file", function () {
     expect(2);
 
-    var wwp    = new WebWorkerPool("wwp/count.js"),
+    var wwp    = new WebWorkerPool("resources/counting-webworker.js"),
         worker = wwp.getWorker(),
         count  = 0;
 
@@ -63,7 +63,7 @@ asyncTest("creates webworker from Blob", function () {
 asyncTest("new webworker is created unless one has been reclaimed", function () {
     expect(5);
 
-    var wwp = new WebWorkerPool("wwp/count.js"),
+    var wwp = new WebWorkerPool("resources/counting-webworker.js"),
         worker1, worker2, worker3;
 
     function step1() {

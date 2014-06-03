@@ -127,9 +127,7 @@
         var self = this;
 
         if (self._socket && self._socket.readyState !== 0 && self._socket.readyState !== 3) {
-            if (typeof(self._onSocketClose) !== "undefined") {
-                self._socket.send(self._onSocketClose);
-            }
+            if (self._onSocketClose !== undefined) self._socket.send(self._onSocketClose);
 
             self._socket.onclose = function () {};
             self._socket.close();
@@ -237,10 +235,76 @@
         return queryString;
     };
 
+    DWH.prototype._processInput = function (data, allDataReceived) {
+        var self = this, msg;
+
+        try {
+            msg = typeof data === "string" ? JSON.parse(data) : data;
+        } catch (error) {
+            return self._postMessage({ error: "Error " + error.message + ": " + data });
+        }
+
+        if (msg.error) {
+            return self._postMessage({ error : msg.error });
+        }
+
+        if (msg.columns) {
+            if (self._shouldClearDataset) self.clearDataset();
+
+            var error = self._checkColumnsForAppend(msg.columns);
+            if (error) return _postMessage({ error: error });
+        }
+
+        if (msg.expectedNumRows === "INFINITE") {
+            self._expectedNumRows = msg.expectedNumRows;
+        } else if (msg.expectedNumRows !== undefined) {
+            if (self._expectedNumRows === undefined) self._expectedNumRows = 0;
+            self._expectedNumRows += parseInt(msg.expectedNumRows);
+        }
+
+        if (msg.rows) {
+            var preparedRows = self._prepareRows(msg.rows);
+
+            self._rows.push.apply(self._rows, preparedRows);
+
+            if (self._partitionedBy.length > 0) {
+                self._insertIntoPartitionedRows(preparedRows);
+            }
+
+            if (self._expectedNumRows !== "INFINITE" && self._rows.length === self._expectedNumRows) {
+                self._postMessage({ allRowsReceived : true });
+            } else {
+                self._postMessage({ rowsReceived : msg.rows.length });
+            }
+        } else if (
+            self._columns !== undefined
+            && msg.expectedNumRows !== undefined
+            && self._expectedNumRows !== self._rows.length
+        ) {
+            self._postMessage({
+                columnsReceived : true,
+                columns         : self._getVisibleColumns(),
+                exNumRows       : self._expectedNumRows
+            });
+        }
+
+        if (msg.summaryRows) self._summaryRows.push.apply(self._prepareRows(msg.summaryRows));
+
+        if (
+            parseInt(msg.expectedNumRows) === 0
+            || (self._expectedNumRows === undefined && allDataReceived)
+        ) {
+            self._postMessage({ allRowsReceived : true });
+        }
+
+        if (msg.trigger) self._postMessage({ triggerMsg : msg.msg });
+    };
+
     DWH.prototype._ajax = function (request) {
         var self = this,
             xmlHttp = new XMLHttpRequest(),
             url = self._ajaxDatasource + (/^\?/.test(request) ? "" : "?"),
+            streamIdx = 0,
             requestCount = self._ajaxRequestCounter;
 
         self._ajaxRequests.push(xmlHttp);
@@ -249,39 +313,20 @@
         url += self._getRequestParams(self._ajaxAuthenticate);
 
         xmlHttp.onreadystatechange = function () {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                if (requestCount !== self._ajaxRequestCounter) return;
+            if (
+                requestCount === self._ajaxRequestCounter
+                && xmlHttp.status === 200
+                && xmlHttp.readyState > 2
+            ) {
+                var lines = xmlHttp.responseText.substr(streamIdx).split(/([\r\n]+)/);
 
-                var msg = JSON.parse(xmlHttp.responseText);
+                if (lines[lines.length - 1] && xmlHttp.readyState === 3) lines.pop();
 
-                if (msg.error) {
-                    self._postMessage({ error : msg.error });
-                }
-
-                if (msg.columns) {
-                    if (self._shouldClearDataset) self.clearDataset();
-
-                    var error = self._checkColumnsForAppend(msg.columns);
-                    if (error) return self._postMessage({ error: error });
-                }
-                if (msg.rows) {
-                    if (typeof(self._rows) === "undefined") self._rows = [];
-                    self._rows = self._rows.concat(self._prepareRows(msg.rows));
-                }
-                if (msg.summaryRows) {
-                    if (typeof(self._summaryRows) === "undefined") self._summaryRows = [];
-                    self._summaryRows = self._summaryRows.concat(self._prepareRows(msg.summaryRows));
-                }
-
-                self._postMessage({
-                    columnsReceived : true,
-                    columns         : self._getVisibleColumns(),
-                    exNumRows       : self._getVisibleRows().length
+                lines.forEach(function (line, idx) {
+                    streamIdx += line.length;
+                    if (idx % 2) return;
+                    self._processInput(line || {}, xmlHttp.readyState === 4);
                 });
-
-                self._postMessage({ allRowsReceived : true });
-
-                if (msg.trigger) self._postMessage({ triggerMsg: msg.msg });
             }
         };
 
@@ -292,7 +337,11 @@
     DWH.prototype._initializeWebsocketConnection = function (data) {
         var self = this;
 
-        self._socket = new WebSocket(self._wsDatasource);
+        try {
+            self._socket = new WebSocket(self._wsDatasource);
+        } catch (e) {
+            self._postMessage({ error: "blah" });
+        }
         self._isWsReady = false;
 
         self._socket.onopen  = function () {
@@ -334,70 +383,7 @@
                 return;
             }
 
-            try {
-                msg = JSON.parse(msg.data);
-            } catch (error) {
-                self._postMessage({ "Error ": error.message + ": " + msg.data });
-            }
-
-            if (msg.error) {
-                self._postMessage({ error : msg.error });
-                return;
-            }
-
-            if (msg.columns) {
-                if (self._shouldClearDataset) self.clearDataset();
-
-                var error = self._checkColumnsForAppend(msg.columns);
-                if (error) return _postMessage({ error: error });
-            }
-
-            if (msg.expectedNumRows === "INFINITE") {
-                self._expectedNumRows = msg.expectedNumRows;
-            } else if (typeof(msg.expectedNumRows) !== "undefined") {
-                if (typeof(expectedNumRows) === "undefined") {
-                    self._expectedNumRows = parseInt(msg.expectedNumRows);
-                } else {
-                    self._expectedNumRows += parseInt(msg.expectedNumRows);
-                }
-            }
-
-            if (msg.rows) {
-                var preparedRows = self._prepareRows(msg.rows);
-
-                if (typeof(self._rows) === "undefined") self._rows = [];
-                self._rows.push.apply(self._rows, preparedRows);
-
-                if (self._partitionedBy.length > 0) {
-                    self._insertIntoPartitionedRows(preparedRows);
-                }
-
-                if (self._expectedNumRows !== "INFINITE" && self._rows.length == self._expectedNumRows) {
-                    self._postMessage({ allRowsReceived : true });
-                } else {
-                    self._postMessage({ rowsReceived : msg.rows.length });
-                }
-            } else if (
-                typeof(self._columns) !== "undefined"
-                && typeof(msg.expectedNumRows) !== "undefined"
-                && self._expectedNumRows != self._rows.length
-            ) {
-                self._postMessage({
-                    columnsReceived : true,
-                    columns         : self._getVisibleColumns(),
-                    exNumRows       : self._expectedNumRows
-                });
-            }
-
-            if (msg.summaryRows) {
-                if (typeof(self._summaryRows) === "undefined") self._summaryRows = [];
-                self._summaryRows = self._summaryRows.concat(self._prepareRows(msg.summaryRows));
-            }
-
-            if (msg.expectedNumRows == 0) self._postMessage({ allRowsReceived : true });
-
-            if (msg.trigger) self._postMessage({ triggerMsg : msg.msg });
-
+            self._processInput(msg.data);
             self._onSocketClose = data.onClose;
         };
 

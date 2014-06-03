@@ -100,7 +100,9 @@
                          ? dataset["onTrigger"]
                          : function () {};
 
-        self._onError = "onError" in dataset ? dataset["onError"] : function () {};
+        self._onError = "onError" in dataset ? dataset["onError"] : function (error) {
+            if (console && console.error) console.error(error);
+        };
 
         return self;
     };
