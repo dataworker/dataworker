@@ -1,5 +1,5 @@
 (function (globalWorker) {
-"use strict";
+    "use strict";
 
     var helper;
 
@@ -16,11 +16,11 @@
         self._expectedNumRows;
 
         self._datasources;
+        self._isDatasourceReady = false;
 
         self._wsDatasource;
         self._wsAuthenticate;
         self._socket;
-        self._isWsReady;
 
         self._cancelRequestsCmd;
         self._cancelRequestsAck;
@@ -57,7 +57,7 @@
 
             if (waitToConnect) {
                 var wait = function () {
-                    if (self._isWsReady) {
+                    if (self._isDatasourceReady) {
                         self._postMessage(reply);
                     } else {
                         setTimeout(wait, 500);
@@ -183,9 +183,7 @@
                 self._ajaxDatasource   = datasource.source;
                 self._ajaxAuthenticate = datasource.authenticate || data.authenticate;
 
-                if (typeof(data.request) !== "undefined") {
-                    self.requestDataset(data);
-                }
+                waitToConnect = self._verifyAjaxDatasource(data);
             } else if (/^wss?:\/\//.test(datasource.source)) {
                 self._wsDatasource      = datasource.source;
                 self._wsAuthenticate    = stringify(
@@ -211,6 +209,29 @@
         }
 
         return waitToConnect;
+    };
+
+    DWH.prototype._verifyAjaxDatasource = function (data) {
+        var self = this, xmlHttp = new XMLHttpRequest();
+
+        xmlHttp.onreadystatechange = function () {
+            if (this.readyState === 4) {
+                self._isDatasourceReady = true;
+
+                if (this.status === 200) {
+                    if (typeof(data.request) !== "undefined") {
+                        self.requestDataset(data);
+                    }
+                } else {
+                    self.initialize(data, true);
+                }
+            }
+        };
+
+        xmlHttp.open("HEAD", self._ajaxDatasource);
+        xmlHttp.send();
+
+        return true;
     };
 
     DWH.prototype._getRequestParams = function (params) {
@@ -337,12 +358,8 @@
     DWH.prototype._initializeWebsocketConnection = function (data) {
         var self = this;
 
-        try {
-            self._socket = new WebSocket(self._wsDatasource);
-        } catch (e) {
-            self._postMessage({ error: "blah" });
-        }
-        self._isWsReady = false;
+        self._socket = new WebSocket(self._wsDatasource);
+        self._isDatasourceReady = false;
 
         self._socket.onopen  = function () {
             if (self._wsAuthenticate) {
@@ -353,7 +370,7 @@
                 self._socket.send(data.request);
             }
 
-            self._isWsReady = true;
+            self._isDatasourceReady = true;
         };
         self._socket.onclose = function (e) {
             if (
@@ -365,7 +382,7 @@
         };
         self._socket.onerror = function (error) {
             if (error.target.readyState === 0 || error.target.readyState === 3) {
-                self._isWsReady = true;
+                self._isDatasourceReady = true;
                 self._socket = null;
 
                 self.initialize(data, true);
@@ -384,8 +401,9 @@
             }
 
             self._processInput(msg.data);
-            self._onSocketClose = data.onClose;
         };
+
+        self._onSocketClose = data.onClose;
 
         return true;
     };
