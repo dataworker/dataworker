@@ -179,9 +179,11 @@
             if (typeof(datasource) === "undefined") {
                 self._columns = self._prepareColumns(data.columns);
                 self._rows    = self._prepareRows(data.rows);
-            } else if (/^https?:\/\//.test(datasource.source)) {
+            } else if (/^(?:https?|file):\/\//.test(datasource.source)) {
                 self._ajaxDatasource   = datasource.source;
                 self._ajaxAuthenticate = datasource.authenticate || data.authenticate;
+
+                self._isLocalAjax = /^file/.test(datasource.source);
 
                 waitToConnect = self._verifyAjaxDatasource(data);
             } else if (/^wss?:\/\//.test(datasource.source)) {
@@ -218,7 +220,7 @@
             if (this.readyState === 4) {
                 self._isDatasourceReady = true;
 
-                if (this.status === 200) {
+                if (self._isLocalAjax ? this.response : this.status === 200) {
                     if (typeof(data.request) !== "undefined") {
                         self.requestDataset(data);
                     }
@@ -260,7 +262,7 @@
         var self = this, msg;
 
         try {
-            msg = typeof data === "string" ? JSON.parse(data) : data;
+            msg = typeof(data) === "string" ? JSON.parse(data) : data;
         } catch (error) {
             return self._postMessage({ error: "Error " + error.message + ": " + data });
         }
@@ -336,7 +338,7 @@
         xmlHttp.onreadystatechange = function () {
             if (
                 requestCount === self._ajaxRequestCounter
-                && xmlHttp.status === 200
+                && (self._isLocalAjax ? xmlHttp.response : xmlHttp.status === 200)
                 && xmlHttp.readyState > 2
             ) {
                 var lines = xmlHttp.responseText.substr(streamIdx).split(/([\r\n]+)/);

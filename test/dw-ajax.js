@@ -1,5 +1,12 @@
 module("DataWorker (AJAX Data)");
 
+var srcPath = (function () {
+    var scripts = document.getElementsByTagName("script"),
+        srcFile = scripts[scripts.length - 1].src;
+
+    return srcFile.replace(/((?:https?|file):\/\/)?.*?(\/(.*\/)?).*/, "$1$2");
+})();
+
 function getRandomWord() {
     var length = parseInt(Math.random() * 30),
         word = "", i;
@@ -62,7 +69,8 @@ asyncTest("construct (webworker)", function () {
     ];
 
     var d = new DataWorker({
-        datasource: window.location.origin + "/test/resources/simple-dataset.json"
+        forceSingleThread: true,
+        datasource: srcPath + "resources/simple-dataset.json"
     }).requestDataset();
 
     ok(d instanceof DataWorker);
@@ -100,7 +108,7 @@ asyncTest("construct (single-thread)", function () {
 
     var d = new DataWorker({
         forceSingleThread: true,
-        datasource: window.location.origin + "/test/resources/simple-dataset.json"
+        datasource: srcPath + "resources/simple-dataset.json"
     }).requestDataset();
 
     ok(d instanceof DataWorker);
@@ -139,7 +147,7 @@ asyncTest("AJAX as a fallback for when websocket fails", function () {
     var d = new DataWorker({
         datasource: [
             "ws://localhost/foo/bar",
-            window.location.origin + "/test/resources/simple-dataset.json"
+            srcPath + "resources/simple-dataset.json"
         ]
     }).requestDataset();
 
@@ -192,7 +200,7 @@ asyncTest("Streaming ajax", function () {
     ];
 
     var d = new DataWorker({
-        datasource: window.location.origin + "/test/resources/streaming-dataset-300-rows.json"
+        datasource: srcPath + "resources/streaming-dataset-300-rows.json"
     }).requestDataset();
 
     d.onAllRowsReceived(function () {
