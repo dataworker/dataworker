@@ -251,7 +251,7 @@ asyncTest("construct (fallback to websocket)", function () {
     var d = new DataWorker({
         datasource: [
             {
-                source       : "http://test.com/missing"
+                source       : srcPath + "foo/bar"
             },
             {
                 source       : "ws://websocket.test.com:8085",
