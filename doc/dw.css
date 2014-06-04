@@ -2,6 +2,18 @@ h1 {
     text-align: center;
 }
 
+#side-nav > ul {
+    width: 200px;
+    height: 95%;
+    overflow-y: auto;
+}
+
+#side-nav > ul > li.active {
+    background: #d9edf7;
+}
+
+#side-nav > .affix { top: 7px; }
+
 .header-row {
     border-style: solid;
     border-width: 1px;
