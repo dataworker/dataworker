@@ -171,7 +171,7 @@
 
                 if ("columnsReceived" in e.data) {
                     self._onReceiveColumnsTracker = true;
-                    self._onReceiveColumns(self._columns, self._expectedNumRows);
+                    self._onReceiveColumns();
                     return;
                 }
 

@@ -304,11 +304,7 @@
             && msg.expectedNumRows !== undefined
             && self._expectedNumRows !== self._rows.length
         ) {
-            self._postMessage({
-                columnsReceived : true,
-                columns         : self._getVisibleColumns(),
-                exNumRows       : self._expectedNumRows
-            });
+            self._postMessage({ columnsReceived: true });
         }
 
         if (msg.summaryRows) self._summaryRows.push.apply(self._prepareRows(msg.summaryRows));
