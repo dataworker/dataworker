@@ -129,18 +129,18 @@
                         <p><code>datasource</code> should be the URL of the websocket server.</p>
                         <p><code>authenticate</code> is optional. If present, will be the first message sent to the server upon connecting.</p>
                         <p><code>request</code> is sent after <code>authenticate</code>.<p>
-                        <p>After the request is sent, DataWorker will expect a reply in the form of a JSON object with <code>totalNumRows</code> and <code>columns</code> properties such as:</p>
+                        <p>After the request is sent, DataWorker will expect a reply in the form of a JSON object with <code>expectedNumRows</code> and <code>columns</code> properties such as:</p>
                         <pre>
     {
-        totalNumRows : 10,
-        columns      : [ "column_a", "column_b", "column_c" ]
+        expectedNumRows : 10,
+        columns         : [ "column_a", "column_b", "column_c" ]
     }</pre>
-                        <p><code>totalNumRows</code> should be the number of rows to expect in that dataset.</p>
+                        <p><code>expectedNumRows</code> should be the number of rows to expect in that dataset.</p>
                         <p><code>columns</code> should be the columns of the expected dataset. They can be provided as simple column names or as hashes with custom column properties.</p>
                         <p>Note DataWorker cannot proceed without first knowing the columns and the total number of expected rows. That being said, these two properties may be transmitted separately. For example:</p>
                         <pre>
     // First message:
-    { "totalNumRows": 10 }
+    { "expectedNumRows": 10 }
 
     // Second message:
     { columns: [ "column_a", "column_b", "column_c" ] }</pre>
@@ -152,6 +152,21 @@
         [ "banana",      "piano",      "gum" ],
         [ "gummy",       "power",     "star" ]
     ]</pre>
+                        <p>The <code>onReceiveColumns</code> callback will be called when columns and the expected number of rows are received from the Websocket server. This callback can be set with the <code>onReceiveColumns</code> method:</p>
+                        <pre>
+    dw.onReceiveColumns(function () {
+        alert("Columns have been received!");
+    });</pre>
+                        <p>Alternatively, this callback can be passed into the constructor:</p>
+                        <pre>
+    var dw = new DataWorker({
+        datasource       : "ws://127.0.0.1:8888",
+        authenticate     : "{}",
+        request          : "{\"cmd\":\"requestDataset\"}",
+        onReceiveColumns : function (numRows) {
+            alert("Columns have been received!");
+        }
+    });</pre>
                         <p>The <code>onReceiveRows</code> callback will be called whenever rows are received from the Websocket server. This callback can be set with the <code>onReceiveRows</code> method:</p>
                         <pre>
     dw.onReceiveRows(function (numRows) {
@@ -258,7 +273,26 @@
             cancelRequestsAck : "ACK_CANCEL"
         }
     });</pre>
-                        <p>If <code>cancelReqeustsAck</code> has been provided, DataWorker will wait for the server to acknowledge with a reply that matches <code>cancelRequestsAck</code> exactly before proceeding.
+                        <p>If <code>cancelRequestsAck</code> has been provided, DataWorker will wait for the server to acknowledge with a reply that matches <code>cancelRequestsAck</code> exactly before proceeding.
+                        <h5>Triggers</h5>
+                        <p>DataWorker can pass messages to and from the remote server via the <code>postMessage</code> method and triggers:</p>
+                        <pre>
+    dw.onTrigger(function (reply) {
+        alert(reply);
+    }).postMessage("MESSAGE TO SERVER");</pre>
+                        <p>In the above example, the string "MESSAGE TO SERVER" is sent to the server, and any reply will by shown as an alert. Server replies that are triggers should be stringified JSON objects that look like this:</p>
+                        <pre>
+    {
+        trigger: true,
+        msg: "REPLY FROM SERVER"
+    }</pre>
+                        <p>The <code>onTrigger</code> callback can be passed into the constructor as well:</p>
+                        <pre>
+    var dw = new DataWorker({
+        datasource       : "ws://127.0.0.1:8888",
+        authenticate     : "{}",
+        onTrigger: function (reply) { alert(reply) }
+    });</pre>
                     </section>
                     <section id="clone">
                         <h3>Clone</h3>
