@@ -947,19 +947,19 @@
         return self;
     };
 
-
     DataWorker.prototype.requestDatasetForAppend = function (request) {
         return this.requestDataset(request, true);
     };
 
-    DataWorker.prototype.hideColumns = function () {
-        var self = this, msg = { cmd : "hideColumns" },
-            columnNames = _getArray(arguments);
+    DataWorker.prototype._hideShowColumns = function (cmd, columnNames) {
+        var self = this, msg = { cmd: cmd };
 
-        if (columnNames[0] instanceof RegExp) {
-            msg["columnNameRegex"] = columnNames[0];
-        } else {
+        if (typeof(columnNames[0]) === "string") {
             msg["columnNames"] = columnNames;
+        } else if (columnNames[0] instanceof RegExp) {
+            msg["columnNameRegex"] = columnNames[0];
+        } else if ("property" in columnNames[0] && "value" in columnNames[0]) {
+            msg["property"] = columnNames[0];
         }
 
         self._queueNext(function () {
@@ -969,19 +969,18 @@
         return self;
     };
 
+    DataWorker.prototype.hideColumns = function () {
+        var self = this, columnNames = _getArray(arguments);
+
+        self._hideShowColumns("hideColumns", columnNames);
+
+        return self;
+    };
+
     DataWorker.prototype.showColumns = function () {
-        var self = this, msg = { cmd : "showColumns" },
-            columnNames = _getArray(arguments);
+        var self = this, columnNames = _getArray(arguments);
 
-        if (columnNames[0] instanceof RegExp) {
-            msg["columnNameRegex"] = columnNames[0];
-        } else {
-            msg["columnNames"] = columnNames;
-        }
-
-        self._queueNext(function () {
-            self._postMessage(msg);
-        });
+        self._hideShowColumns("showColumns", columnNames);
 
         return self;
     };

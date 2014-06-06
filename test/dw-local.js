@@ -3126,6 +3126,68 @@ asyncTest("hide columns (regex, w/ flags)", function () {
     }).finish();
 });
 
+asyncTest("hide columns (column properties)", function () {
+    expect(2);
+
+    var dataset = [
+        [
+            {
+                name: "column_a",
+                aggType: "max",
+                sortType: "alpha",
+                title: "Column A",
+                shouldHide: "asdf"
+            },
+            {
+                name: "column_b",
+                aggType: "max",
+                sortType: "alpha",
+                title: "Column B",
+                shouldHide: "zxcv"
+            },
+            {
+                name: "column_c",
+                aggType: "min",
+                sortType: "alpha",
+                title: "Column C",
+                shouldHide: "asdf"
+            }
+        ],
+
+        [ "apple",         "violin",    "music" ],
+        [ "cat",           "tissue",      "dog" ],
+        [ "banana",         "piano",      "gum" ],
+        [ "gummy",          "power",     "star" ]
+    ];
+
+    dataset.forceSingleThread = true;
+
+    var d = new DataWorker(dataset).hideColumns({ property: "shouldHide", value: "asdf" });
+
+    d.getColumnsAndRecords(function (columns, records) {
+        deepEqual(columns, {
+            column_b : {
+                sortType   : "alpha",
+                aggType    : "max",
+                title      : "Column B",
+                name       : "column_b",
+                isVisible  : true,
+                index      : 0,
+                shouldHide : "zxcv"
+            }
+        });
+
+        deepEqual(records, [
+            [ "violin" ],
+            [ "tissue" ],
+            [  "piano" ],
+            [  "power" ]
+        ]);
+
+        start();
+    }).finish();
+});
+
 asyncTest("getColumns respects hidden columns", function () {
     expect(1);
 
