@@ -766,6 +766,14 @@
                     self._columns[column]["isVisible"] = isVisible;
                 }
             });
+        } else if ("property" in data) {
+            Object.keys(self._columns).forEach(function (columnName) {
+                var column = self._columns[columnName];
+
+                if (column[data.property.property] === data.property.value) {
+                    column.isVisible = isVisible;
+                }
+            });
         }
     };
 
