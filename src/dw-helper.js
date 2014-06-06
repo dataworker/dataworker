@@ -99,21 +99,12 @@
 
         // Called by DWH; DataWorker uses this to receive replies.
         DWH.prototype._postMessage = function (reply) {
-            var self = this;
-
-            setTimeout(function () {
-                if (!self._isFinished) self.onmessage({ data: reply });
-            });
+            if (!this._isFinished) this.onmessage({ data: reply });
         };
 
         // Called by DataWorker; DWH uses this to receive commands.
         DWH.prototype.postMessage = function () {
-            var self = this,
-                args = arguments;
-
-            setTimeout(function () {
-                self.handleMessage.apply(self, args);
-            });
+            this.handleMessage.apply(this, arguments);
         };
 
         DWH.prototype.terminate = function () {
