@@ -1174,8 +1174,12 @@
     };
 
     DWH.prototype.getPartitioned = function (data) {
-        var self = this;
-        return { rows : self._getVisibleRows(undefined, self._partitionedRows[data.key]) };
+        var self = this, rows = self._partitionedRows[data.key];
+        return {
+            rows: rows
+                ? self._getVisibleRows(undefined, self._partitionedRows[data.key])
+                : []
+        };
     };
 
     DWH.prototype.getDataset = function (data) {

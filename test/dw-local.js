@@ -2468,6 +2468,78 @@ asyncTest("get partitioned (multi-field)", function () {
     setTimeout(wait, 0);
 });
 
+asyncTest('get partition (multi-field w/ nulls)', function () {
+    expect(2);
+
+    var dataset = [
+        [
+            { name: "column_a", sortType: "alpha", aggType: "max" },
+            { name: "column_b", sortType: "alpha", aggType: "min" },
+            { name: "column_c", sortType: "alpha", aggType: "min" },
+        ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",            null,      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ],
+        [ "apple",          null,   "camaro" ],
+        [ "cat",            null,  "blender" ],
+        [ "cat",        "potato",  "blender" ],
+        [ "banana",      "piano",      "tie" ],
+        [ "apple",      "violin",      "key" ]
+    ];
+
+    var d = new DataWorker(dataset).partition("column_a", "column_b");
+
+    d.getPartitionKeys(function (partitionKeys) {
+        deepEqual(partitionKeys.sort(), [
+            [ "apple",       "" ],
+            [ "apple", "violin" ],
+            [ "banana", "piano" ],
+            [ "cat",         "" ],
+            [ "cat",   "potato" ],
+            [ "gummy", "power"  ]
+        ]);
+    })
+
+    d.getPartitioned(function (partition) {
+        deepEqual(partition, [
+            [ "cat", null,     "dog" ],
+            [ "cat", null, "blender" ]
+        ]);
+
+        start();
+    }, "cat", null);
+
+    d.finish();
+});
+
+asyncTest('get partition (empty partition)', function () {
+    expect(1);
+
+    var dataset = [
+        [
+            { name: "column_a", sortType: "alpha", aggType: "max" },
+            { name: "column_b", sortType: "alpha", aggType: "min" },
+            { name: "column_c", sortType: "alpha", aggType: "min" },
+        ],
+
+        [ "apple", "violin", "music" ],
+    ];
+
+    var d = new DataWorker(dataset).partition("column_a", "column_b");
+
+    d.getPartitionKeys(function (partitionKeys) {
+    })
+
+    d.getPartitioned(function (partition) {
+        deepEqual(partition, []);
+        start();
+    }, "non", "existent");
+
+    d.finish();
+});
+
 asyncTest("clone", function () {
     expect(3);
 
