@@ -25,6 +25,7 @@
                         <li><a href="#stream">Streaming Data</a></li>
                         <li><a href="#clone">Clone</a></li>
                         <li><a href="#child-rows">Child Rows</a></li>
+                        <li><a href="#display-values">Display Values</a></li>
                         <li class="nav-header">Manipulate the dataset!</li>
                         <li><a href="#alter-columns">Alter columns</a></li>
                         <li><a href="#append">Append</a></li>
@@ -312,6 +313,38 @@
                             <li><a href="#sort">Sort</a></li>
                             <li><a href="#add-child-rows">Add Child Rows</a></li>
                         </ul>
+                    </section>
+                    <section id="display-values">
+                        <h3>Display Values</h3>
+                        <p>DataWorker can use differing values for display and dataset operations. This enables you to include HTML formatting for cell values but not have to consider them when actually working with the dataset. To take advantage of this feature, simply pass the cell value an object with the <code>display</code> and <code>raw</code> properties defined:</p>
+                        <pre>
+    var dataset = [
+        [ "column_a",                                "column_b", "column_c" ],
+
+        [ { display: "<i>apple</i>", raw: "apple" }, "violin",    "music"   ],
+        [ "cat",                                     "tissue",    "dog"     ],
+        [ "banana",                                  "piano",     "gum"     ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.getRows(function (rows) {
+        // rows is [
+        //      [ "<i>apple</i>" "violin",    "music"   ],
+        //      [ "cat",         "tissue",    "dog"     ],
+        //      [ "banana",      "piano",     "gum"     ]
+        // ]
+    });
+    
+    d.applyFilter(/^apple^/, "column_a"); // Operates on the raw value
+
+    d.getRows(function (rows) {
+        // rows is [
+        //      [ "<i>apple</i>" "violin",    "music"   ],
+        // ]
+    });
+</pre>
+                        <p>The <code>display</code> value will be returned by the methods that allow access to the dataset, while the methods that manipulate the dataset will operate on the <code>raw</code> value. Also note that the two methods of specifying cell values can be mixed.</p>
                     </section>
                     <section id="alter-columns">
                         <h3>Alter columns</h3>
