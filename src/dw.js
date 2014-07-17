@@ -528,11 +528,11 @@
         return self;
     };
 
-    DataWorker.prototype.getAllColumnsAndAllRecords = function (callback) {
+    DataWorker.prototype.getAllColumnsAndAllRecords = function (callback, complexValues) {
         var self = this;
 
         self._queueNext(function () {
-            self._postMessage({ cmd : "refreshAll" });
+            self._postMessage({ cmd: "refreshAll", complexValues: complexValues });
         })._queueNext(function () {
             callback(self._columns, self._rows);
             return self._finishAction();
@@ -552,7 +552,7 @@
                         newColumns : newColumns,
                         newRows    : newRows
                     });
-                });
+                }, true);
             } else {
                 self._postMessage({
                     cmd         : "append",
@@ -917,7 +917,7 @@
             var dataset = [ columnsRow ].concat(records);
 
             callback(new DataWorker(dataset));
-        });
+        }, true);
 
         return self;
     };

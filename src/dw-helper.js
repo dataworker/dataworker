@@ -492,7 +492,7 @@
         requestedRows.forEach(function (row) {
             if (row["isVisible"] || allRows) {
                 var newRow = visibleColumnIdxs.map(function (idx) {
-                    return row["row"][idx];
+                    return self._getCellDisplayValueByIndex(row, idx);
                 });
 
                 newRow.parentRow = row.parentRow;
@@ -615,7 +615,7 @@
                 return filter.indices[filter.matchAll ? "every" : "some"](function (index) {
                     return filter.tests.every(function (test) {
                         return self._testCell(
-                            row["row"][index],
+                            self._getCellRawValueByIndex(row, index),
                             filter,
                             numberCols[index],
                             test
@@ -708,13 +708,12 @@
             });
 
         myRows.forEach(function (row) {
-            var rowValues = row["row"],
-                key = keyIndexes.map(function (i) { return rowValues[i]; }).join("|");
+            var key = keyIndexes.map(function (i) { return self._getCellRawValueByIndex(row, i); }).join("|");
 
             if (key in hash) {
-                hash[key].push(preparedRows ? row : rowValues);
+                hash[key].push(preparedRows ? row : row.row);
             } else {
-                hash[key] = [ preparedRows ? row : rowValues ];
+                hash[key] = [ preparedRows ? row : row.row ];
             }
         });
 
@@ -777,6 +776,38 @@
         }
     };
 
+    DWH.prototype._getCellValue = function (row, index, type) {
+        var self = this, value = row.row[index];
+
+        if (typeof(value) === "object" && value !== null) {
+            if (value[type] !== undefined) {
+                return value[type];
+            } else {
+                throw new Error("Unrecognized cell value format: " + value);
+            }
+        } else {
+            return value;
+        }
+    };
+
+    DWH.prototype._getCellDisplayValueByIndex = function (row, index) {
+        var self = this;
+
+        return self._getCellValue(row, index, "display");
+    };
+
+    DWH.prototype._getCellRawValueByIndex = function (row, index) {
+        var self = this;
+
+        return self._getCellValue(row, index, "raw");
+    };
+
+    DWH.prototype._getCellRawValueByColumn = function (row, columnName) {
+        var self = this;
+
+        return self._getCellRawValueByIndex(row, self._columns[columnName].index);
+    };
+
     /* Public Dataset Operations */
 
     DWH.prototype.sort = function (data) {
@@ -794,11 +825,11 @@
                 sortType   = self._columns[columnName]["sortType"];
 
                 if (reverse) {
-                    valB = a["row"][self._columns[columnName]["index"]];
-                    valA = b["row"][self._columns[columnName]["index"]];
+                    valB = self._getCellRawValueByColumn(a, columnName);
+                    valA = self._getCellRawValueByColumn(b, columnName);
                 } else {
-                    valA = a["row"][self._columns[columnName]["index"]];
-                    valB = b["row"][self._columns[columnName]["index"]];
+                    valA = self._getCellRawValueByColumn(a, columnName);
+                    valB = self._getCellRawValueByColumn(b, columnName);
                 }
 
                 if (sortType === "alpha") {
@@ -897,7 +928,7 @@
 
         self._rows.forEach(function (row) {
             for (i = 0; i < row["row"].length; i++) {
-                column = row["row"][i];
+                column = self._getCellRawValueByIndex(row, i);
 
                 if (
                     (relevantIndexes.length === 0 || relevantIndexes.indexOf(i) !== -1)
@@ -1418,8 +1449,7 @@
             joinIdx = self._columns[data.joinOn].index;
 
         self._rows.forEach(function (row, i) {
-            var rowValues = row.row,
-                children   = rowHash[rowValues[joinIdx]];
+            var children = rowHash[self._getCellRawValueByIndex(row, joinIdx)];
 
             if (children) {
                 self._hasChildElements = true;
@@ -1441,12 +1471,15 @@
     };
 
     DWH.prototype.refreshAll = function (data) {
-        var self = this;
+        var self = this, rows = data.complexValues
+            ? self._rows.map(function (row) { return row.row; })
+            : self._rows.map(function (row) {
+                return row.row.map(function (cell, i) {
+                    return self._getCellDisplayValueByIndex(row, i);
+                });
+            });
 
-        return {
-            columns : self._columns,
-            rows    : self._rows.map(function (row) { return row.row; })
-        };
+        return { columns: self._columns, rows: rows };
     };
 
     DWH.prototype.cancelOngoingRequests = function (data) {
