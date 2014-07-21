@@ -37,6 +37,9 @@
         return self;
     };
 
+    DataWorker.workerPool = new WebWorkerPool(srcPath + "dw-helper.js");
+    DataWorker.prototype.workerPool = DataWorker.workerPool;
+
     DataWorker.prototype._queueNext = function (action) {
         var self = this;
 
@@ -97,7 +100,9 @@
                          ? dataset["onTrigger"]
                          : function () {};
 
-        self._onError = "onError" in dataset ? dataset["onError"] : function () {};
+        self._onError = "onError" in dataset ? dataset["onError"] : function (error) {
+            if (console && console.error) console.error(error);
+        };
 
         return self;
     };
@@ -124,7 +129,7 @@
 
             self._worker = self._isSingleThreaded
                 ? ( new DataWorkerHelper() )
-                : ( new Worker(srcPath + "dw-helper.js") );
+                : self.workerPool.getWorker();
 
             self._worker.onmessage = function (e) {
                 if (!e.data) return;
@@ -166,7 +171,7 @@
 
                 if ("columnsReceived" in e.data) {
                     self._onReceiveColumnsTracker = true;
-                    self._onReceiveColumns(self._columns, self._expectedNumRows);
+                    self._onReceiveColumns();
                     return;
                 }
 
@@ -206,7 +211,7 @@
 
             self._postMessage({ cmd: "finish" });
         })._queueNext(function () {
-            self._worker.terminate();
+            self.workerPool.reclaim(self._worker);
             self._actionQueue.finish();
 
             self._worker.onmessage = null;
@@ -523,11 +528,11 @@
         return self;
     };
 
-    DataWorker.prototype.getAllColumnsAndAllRecords = function (callback) {
+    DataWorker.prototype.getAllColumnsAndAllRecords = function (callback, complexValues) {
         var self = this;
 
         self._queueNext(function () {
-            self._postMessage({ cmd : "refreshAll" });
+            self._postMessage({ cmd: "refreshAll", complexValues: complexValues });
         })._queueNext(function () {
             callback(self._columns, self._rows);
             return self._finishAction();
@@ -547,7 +552,7 @@
                         newColumns : newColumns,
                         newRows    : newRows
                     });
-                });
+                }, true);
             } else {
                 self._postMessage({
                     cmd         : "append",
@@ -912,7 +917,7 @@
             var dataset = [ columnsRow ].concat(records);
 
             callback(new DataWorker(dataset));
-        });
+        }, true);
 
         return self;
     };

@@ -1,9 +1,3 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *                                                                           *
- * Tests for DataWorker                                                      *
- *                                                                           *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 module("DataWorker (Local Data)");
 
 asyncTest("construct (simple columns)", function () {
@@ -1509,6 +1503,7 @@ asyncTest("join (inner join on single field)", function () {
         ]);
 
         start();
+        d2.finish();
     }).finish();
 });
 
@@ -1545,6 +1540,7 @@ asyncTest("join (left outer join on single field)", function () {
             [ "dump", "amsterdam", "drops",       "",          "",      "" ],
         ]);
         start();
+        d2.finish();
     }).finish();
 });
 
@@ -1581,6 +1577,7 @@ asyncTest("join (right outer join on single field", function () {
             [ "cat",     "tissue",   "dog",    "cat",     "bagel", "chips" ]
         ]);
         start();
+        d2.finish();
     }).finish();
 });
 
@@ -1618,6 +1615,7 @@ asyncTest("join (inner join on multiple fields)", function () {
             [ "cat", "tissue", "dog", "cat", "tissue", "drops" ]
         ]);
         start();
+        d2.finish();
     }).finish();
 });
 
@@ -1647,6 +1645,7 @@ asyncTest("failed join (unknown join type)", function () {
         equal(error, "Unknown join type.");
 
         start();
+        d2.finish();
     });
 
     d1.join(d2, "column_a", "column_d", "crazy").finish();
@@ -1678,6 +1677,7 @@ asyncTest("failed join (columns with same name)", function () {
         equal(error, "Column names overlap.");
 
         start();
+        d2.finish();
     });
 
     d1.join(d2, "column_a", "column_d").finish();
@@ -2593,8 +2593,8 @@ asyncTest("clone", function () {
             ]);
 
             start();
-        });
-    });
+        }).finish();
+    }).finish();
 });
 
 asyncTest("get rows (all)", function () {
@@ -4958,4 +4958,285 @@ asyncTest("column filters now support inverse regex (\"!regex\")", function () {
 
         start();
     }).finish();
+});
+
+asyncTest("complex record values", function () {
+    expect(3);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",                                      "violin",   "music"       ],
+        [ { display: "<b>cat</b>", raw: "cat" },        "piano",    "dog"         ],
+        [ { display: "<b>cat</b>", raw: "cat" },        "bike",     "solid"       ],
+        [ "banana",                                     "tissue",   "gum"         ],
+        [ "everything",                                 "is",       "awesome"     ],
+        [ { display: "lion<3", raw: "lionhearted" },    "waves",    "Black Sheep" ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.group("column_a").sort("column_a");
+
+    d.getAllColumnsAndAllRecords(function (columns, rows) {
+        deepEqual(rows, [
+            [ "apple",                                      "violin",   "music"       ],
+            [ "banana",                                     "tissue",   "gum"         ],
+            [ { display: "<b>cat</b>", raw: "cat" },        "piano",    "solid"       ],
+            [ "everything",                                 "is",       "awesome"     ],
+            [ { display: "lion<3", raw: "lionhearted" },    "waves",    "Black Sheep" ]
+        ]);
+    }, true);
+
+    d.filter(/apple|cat|banana|lionhearted/, "column_a");
+
+    d.getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple",      "violin",   "music"       ],
+            [ "banana",     "tissue",   "gum"         ],
+            [ "<b>cat</b>", "piano",    "solid"       ],
+            [ "lion<3",     "waves",    "Black Sheep" ]
+        ]);
+    });
+
+    d.applyFilter(/apple|cat|banana/, "column_a");
+
+    d.getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple",      "violin",   "music"       ],
+            [ "banana",     "tissue",   "gum"         ],
+            [ "<b>cat</b>", "piano",    "solid"       ]
+        ]);
+
+        start();
+    });
+
+    d.finish();
+});
+
+asyncTest("add child rows w/ complex record values", function () {
+    expect(1);
+
+    var parentDataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ]
+    ], childRows = [
+        [ "apple",    "granny smith",  "green"    ],
+        [ "apple",    "honey crisp",   "yellow"   ],
+
+        [ { display: "<b>cat</b>", raw: "cat" }, "siamese", "tall" ]
+    ];
+
+    var d = new DataWorker(parentDataset).addChildRows(childRows, "column_a");
+
+    d.getRows(function (rows) {
+        deepEqual(rows, [
+            [ "apple",      "violin",    "music" ],
+                [ "apple",    "granny smith",  "green"    ],
+                [ "apple",    "honey crisp",   "yellow"   ],
+            [ "cat",        "tissue",      "dog" ],
+                [ "<b>cat</b>",      "siamese",       "tall"     ]
+        ]);
+
+        start();
+    });
+
+    d.finish();
+});
+
+asyncTest("append maintains complex record values", function () {
+    expect(1);
+
+    var dataset1 = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+    var dataset2 = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "gummy",       "power",    "apple" ],
+        [ "car",        "screen",    "phone" ],
+        [ { display: "<i>sign</i>", raw: "sign" },        "bagel",    "chips" ]
+    ];
+
+    var d = new DataWorker(dataset1);
+
+    d.append(dataset2).getAllColumnsAndAllRecords(function (columns, records) {
+        deepEqual(records, [
+            [ "apple",      "violin",    "music" ],
+            [ "cat",        "tissue",      "dog" ],
+            [ "banana",      "piano",      "gum" ],
+            [ "gummy",       "power",    "apple" ],
+            [ "car",        "screen",    "phone" ],
+            [ { display: "<i>sign</i>", raw: "sign" },        "bagel",    "chips" ]
+        ]);
+
+        start();
+    }, true).finish();
+});
+
+asyncTest("clone maintains complex record values", function () {
+    expect(1);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ { display: "<i>sign</i>", raw: "sign" },        "bagel",    "chips" ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.clone(function (clone) {
+        clone.getAllColumnsAndAllRecords(function (columns, records) {
+            deepEqual(records, [
+                [ "apple",      "violin",    "music" ],
+                [ "cat",        "tissue",      "dog" ],
+                [ "banana",      "piano",      "gum" ],
+                [ { display: "<i>sign</i>", raw: "sign" },        "bagel",    "chips" ]
+            ]);
+
+            start();
+        }, true).finish();
+    }).finish();
+});
+
+asyncTest("partition dataset w/ complex record values", function () {
+    expect(2);
+
+    var dataset = [
+        [
+            { name: "column_a", sortType: "alpha", aggType: "max" },
+            { name: "column_b", sortType: "alpha", aggType: "min" },
+            { name: "column_c", sortType: "alpha", aggType: "min" }
+        ],
+
+        [ "banana",      "piano",      "gum" ],
+        [ "apple",      "violin",    "music" ],
+        [ "cat",       "nothing",      "dog" ],
+        [ "banana",   "eyedrops",      "tie" ],
+        [ "apple",         "gum",   "wallet" ],
+        [ { display: "<i>apple</i>", raw: "apple" },         "gum",     "trix" ],
+        [ "gum",           "gun",     "trix" ]
+    ];
+
+    var d = new DataWorker(dataset).partition("column_a");
+
+    d.getPartitioned(function (partition) {
+        deepEqual(
+            partition.sort(function (a, b) {
+                if (a[2] === b[2]) return 0;
+                if (a[2] < b[2]) return -1;
+                if (a[2] > b[2]) return 1;
+            }),
+            [
+                [ "apple",        "violin", "music"  ],
+                [ "<i>apple</i>", "gum",    "trix"   ],
+                [ "apple",        "gum",    "wallet" ]
+            ]
+        );
+    }, "apple");
+
+    d.applyFilter(/^apple$/, "column_a");
+
+    d.getPartitioned(function (partition) {
+        deepEqual(
+            partition.sort(function (a, b) {
+                if (a[2] === b[2]) return 0;
+                if (a[2] < b[2]) return -1;
+                if (a[2] > b[2]) return 1;
+            }),
+            [
+                [ "apple",        "violin", "music"  ],
+                [ "<i>apple</i>", "gum",    "trix"   ],
+                [ "apple",        "gum",    "wallet" ]
+            ]
+        );
+
+        start();
+    }, "apple");
+
+    d.finish();
+});
+
+asyncTest("hash dataset w/ complex record values", function () {
+    expect(1);
+
+    var dataset = [
+        [
+            { name: "column_a", sortType: "alpha", aggType: "max" },
+            { name: "column_b", sortType: "alpha", aggType: "min" },
+            { name: "column_c", sortType: "alpha", aggType: "min" }
+        ],
+
+        [ "banana",      "piano",      "gum" ],
+        [ "apple",      "violin",    "music" ],
+        [ "banana",   "eyedrops",      "tie" ],
+        [ "apple",         "gum",   "wallet" ],
+        [ { display: "<i>apple</i>", raw: "apple" },         "gum",     "trix" ],
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.getHashOfDatasetByKeyColumns(function (hash) {
+        deepEqual(hash, {
+            "apple": [
+                [ "apple",      "violin",    "music" ],
+                [ "apple",         "gum",   "wallet" ],
+                [ { display: "<i>apple</i>", raw: "apple" },         "gum",     "trix" ],
+            ],
+            "banana": [
+                [ "banana",      "piano",      "gum" ],
+                [ "banana",   "eyedrops",      "tie" ],
+            ]
+        });
+
+        start();
+    }, "column_a").finish();
+});
+
+asyncTest("join dataset w/ complex record values", function () {
+    expect(1);
+
+    var dataset1 = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+    ];
+    var dataset2 = [
+        [ "column_d", "column_e", "column_f" ],
+
+        [ "banana",      "power",    "apple" ],
+        [ "apple",      "screen",    "phone" ],
+        [ { display: "<b>cat</b>", raw: "cat" },         "bagel",    "chips" ],
+        [ { display: "<b>cat</b>", raw: "cat" },     "amsterdam",    "drops" ]
+    ];
+
+    var d1 = new DataWorker(dataset1);
+    var d2 = new DataWorker(dataset2);
+
+    d1.join(d2, "column_a", "column_d").sort("column_a", "column_f");
+
+    d1.getAllColumnsAndAllRecords(function (columns, records) {
+        deepEqual(records, [
+            [ "apple", "violin", "music", "apple",    "screen", "phone" ],
+            [ "banana", "piano", "gum",  "banana",     "power", "apple" ],
+            [ "cat",   "tissue", "dog", { display: "<b>cat</b>", raw: "cat" },     "bagel", "chips" ],
+            [ "cat",   "tissue", "dog", { display: "<b>cat</b>", raw: "cat" }, "amsterdam", "drops" ]
+        ]);
+
+        start();
+        d2.finish();
+    }, true);
+
+    d1.finish();
 });

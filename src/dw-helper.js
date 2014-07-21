@@ -1,5 +1,5 @@
 (function (globalWorker) {
-"use strict";
+    "use strict";
 
     var helper;
 
@@ -16,11 +16,11 @@
         self._expectedNumRows;
 
         self._datasources;
+        self._isDatasourceReady = false;
 
         self._wsDatasource;
         self._wsAuthenticate;
         self._socket;
-        self._isWsReady;
 
         self._cancelRequestsCmd;
         self._cancelRequestsAck;
@@ -57,7 +57,7 @@
 
             if (waitToConnect) {
                 var wait = function () {
-                    if (self._isWsReady) {
+                    if (self._isDatasourceReady) {
                         self._postMessage(reply);
                     } else {
                         setTimeout(wait, 500);
@@ -127,9 +127,7 @@
         var self = this;
 
         if (self._socket && self._socket.readyState !== 0 && self._socket.readyState !== 3) {
-            if (typeof(self._onSocketClose) !== "undefined") {
-                self._socket.send(self._onSocketClose);
-            }
+            if (self._onSocketClose !== undefined) self._socket.send(self._onSocketClose);
 
             self._socket.onclose = function () {};
             self._socket.close();
@@ -138,6 +136,7 @@
         self._postMessage({});
 
         self._isFinished = true;
+        helper = null;
     };
 
     /* Initializations */
@@ -180,13 +179,13 @@
             if (typeof(datasource) === "undefined") {
                 self._columns = self._prepareColumns(data.columns);
                 self._rows    = self._prepareRows(data.rows);
-            } else if (/^https?:\/\//.test(datasource.source)) {
+            } else if (/^(?:https?|file):\/\//.test(datasource.source)) {
                 self._ajaxDatasource   = datasource.source;
                 self._ajaxAuthenticate = datasource.authenticate || data.authenticate;
 
-                if (typeof(data.request) !== "undefined") {
-                    self.requestDataset(data);
-                }
+                self._isLocalAjax = /^file/.test(datasource.source);
+
+                waitToConnect = self._verifyAjaxDatasource(data);
             } else if (/^wss?:\/\//.test(datasource.source)) {
                 self._wsDatasource      = datasource.source;
                 self._wsAuthenticate    = stringify(
@@ -214,6 +213,29 @@
         return waitToConnect;
     };
 
+    DWH.prototype._verifyAjaxDatasource = function (data) {
+        var self = this, xmlHttp = new XMLHttpRequest();
+
+        xmlHttp.onreadystatechange = function () {
+            if (this.readyState === 4) {
+                self._isDatasourceReady = true;
+
+                if (self._isLocalAjax ? this.response : this.status === 200) {
+                    if (typeof(data.request) !== "undefined") {
+                        self.requestDataset(data);
+                    }
+                } else {
+                    self.initialize(data, true);
+                }
+            }
+        };
+
+        xmlHttp.open("HEAD", self._ajaxDatasource);
+        xmlHttp.send();
+
+        return true;
+    };
+
     DWH.prototype._getRequestParams = function (params) {
         var queryString = "";
 
@@ -236,10 +258,72 @@
         return queryString;
     };
 
+    DWH.prototype._processInput = function (data, allDataReceived) {
+        var self = this, msg;
+
+        try {
+            msg = typeof(data) === "string" ? JSON.parse(data) : data;
+        } catch (error) {
+            return self._postMessage({ error: "Error " + error.message + ": " + data });
+        }
+
+        if (msg.error) {
+            return self._postMessage({ error : msg.error });
+        }
+
+        if (msg.columns) {
+            if (self._shouldClearDataset) self.clearDataset();
+
+            var error = self._checkColumnsForAppend(msg.columns);
+            if (error) return _postMessage({ error: error });
+        }
+
+        if (msg.expectedNumRows === "INFINITE") {
+            self._expectedNumRows = msg.expectedNumRows;
+        } else if (msg.expectedNumRows !== undefined) {
+            if (self._expectedNumRows === undefined) self._expectedNumRows = 0;
+            self._expectedNumRows += parseInt(msg.expectedNumRows);
+        }
+
+        if (msg.rows) {
+            var preparedRows = self._prepareRows(msg.rows);
+
+            self._rows.push.apply(self._rows, preparedRows);
+
+            if (self._partitionedBy.length > 0) {
+                self._insertIntoPartitionedRows(preparedRows);
+            }
+
+            if (self._expectedNumRows !== "INFINITE" && self._rows.length === self._expectedNumRows) {
+                self._postMessage({ allRowsReceived : true });
+            } else {
+                self._postMessage({ rowsReceived : msg.rows.length });
+            }
+        } else if (
+            self._columns !== undefined
+            && msg.expectedNumRows !== undefined
+            && self._expectedNumRows !== self._rows.length
+        ) {
+            self._postMessage({ columnsReceived: true });
+        }
+
+        if (msg.summaryRows) self._summaryRows.push.apply(self._prepareRows(msg.summaryRows));
+
+        if (
+            parseInt(msg.expectedNumRows) === 0
+            || (self._expectedNumRows === undefined && allDataReceived)
+        ) {
+            self._postMessage({ allRowsReceived : true });
+        }
+
+        if (msg.trigger) self._postMessage({ triggerMsg : msg.msg });
+    };
+
     DWH.prototype._ajax = function (request) {
         var self = this,
             xmlHttp = new XMLHttpRequest(),
             url = self._ajaxDatasource + (/^\?/.test(request) ? "" : "?"),
+            streamIdx = 0,
             requestCount = self._ajaxRequestCounter;
 
         self._ajaxRequests.push(xmlHttp);
@@ -248,39 +332,20 @@
         url += self._getRequestParams(self._ajaxAuthenticate);
 
         xmlHttp.onreadystatechange = function () {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
-                if (requestCount !== self._ajaxRequestCounter) return;
+            if (
+                requestCount === self._ajaxRequestCounter
+                && (self._isLocalAjax ? xmlHttp.response : xmlHttp.status === 200)
+                && xmlHttp.readyState > 2
+            ) {
+                var lines = xmlHttp.responseText.substr(streamIdx).split(/([\r\n]+)/);
 
-                var msg = JSON.parse(xmlHttp.responseText);
+                if (lines[lines.length - 1] && xmlHttp.readyState === 3) lines.pop();
 
-                if (msg.error) {
-                    self._postMessage({ error : msg.error });
-                }
-
-                if (msg.columns) {
-                    if (self._shouldClearDataset) self.clearDataset();
-
-                    var error = self._checkColumnsForAppend(msg.columns);
-                    if (error) return self._postMessage({ error: error });
-                }
-                if (msg.rows) {
-                    if (typeof(self._rows) === "undefined") self._rows = [];
-                    self._rows = self._rows.concat(self._prepareRows(msg.rows));
-                }
-                if (msg.summaryRows) {
-                    if (typeof(self._summaryRows) === "undefined") self._summaryRows = [];
-                    self._summaryRows = self._summaryRows.concat(self._prepareRows(msg.summaryRows));
-                }
-
-                self._postMessage({
-                    columnsReceived : true,
-                    columns         : self._getVisibleColumns(),
-                    exNumRows       : self._getVisibleRows().length
+                lines.forEach(function (line, idx) {
+                    streamIdx += line.length;
+                    if (idx % 2) return;
+                    self._processInput(line || {}, xmlHttp.readyState === 4);
                 });
-
-                self._postMessage({ allRowsReceived : true });
-
-                if (msg.trigger) self._postMessage({ triggerMsg: msg.msg });
             }
         };
 
@@ -292,7 +357,7 @@
         var self = this;
 
         self._socket = new WebSocket(self._wsDatasource);
-        self._isWsReady = false;
+        self._isDatasourceReady = false;
 
         self._socket.onopen  = function () {
             if (self._wsAuthenticate) {
@@ -303,7 +368,7 @@
                 self._socket.send(data.request);
             }
 
-            self._isWsReady = true;
+            self._isDatasourceReady = true;
         };
         self._socket.onclose = function (e) {
             if (
@@ -315,7 +380,7 @@
         };
         self._socket.onerror = function (error) {
             if (error.target.readyState === 0 || error.target.readyState === 3) {
-                self._isWsReady = true;
+                self._isDatasourceReady = true;
                 self._socket = null;
 
                 self.initialize(data, true);
@@ -333,72 +398,10 @@
                 return;
             }
 
-            try {
-                msg = JSON.parse(msg.data);
-            } catch (error) {
-                self._postMessage({ "Error ": error.message + ": " + msg.data });
-            }
-
-            if (msg.error) {
-                self._postMessage({ error : msg.error });
-                return;
-            }
-
-            if (msg.columns) {
-                if (self._shouldClearDataset) self.clearDataset();
-
-                var error = self._checkColumnsForAppend(msg.columns);
-                if (error) return _postMessage({ error: error });
-            }
-
-            if (msg.expectedNumRows === "INFINITE") {
-                self._expectedNumRows = msg.expectedNumRows;
-            } else if (typeof(msg.expectedNumRows) !== "undefined") {
-                if (typeof(expectedNumRows) === "undefined") {
-                    self._expectedNumRows = parseInt(msg.expectedNumRows);
-                } else {
-                    self._expectedNumRows += parseInt(msg.expectedNumRows);
-                }
-            }
-
-            if (msg.rows) {
-                var preparedRows = self._prepareRows(msg.rows);
-
-                if (typeof(self._rows) === "undefined") self._rows = [];
-                self._rows.push.apply(self._rows, preparedRows);
-
-                if (self._partitionedBy.length > 0) {
-                    self._insertIntoPartitionedRows(preparedRows);
-                }
-
-                if (self._expectedNumRows !== "INFINITE" && self._rows.length == self._expectedNumRows) {
-                    self._postMessage({ allRowsReceived : true });
-                } else {
-                    self._postMessage({ rowsReceived : msg.rows.length });
-                }
-            } else if (
-                typeof(self._columns) !== "undefined"
-                && typeof(msg.expectedNumRows) !== "undefined"
-                && self._expectedNumRows != self._rows.length
-            ) {
-                self._postMessage({
-                    columnsReceived : true,
-                    columns         : self._getVisibleColumns(),
-                    exNumRows       : self._expectedNumRows
-                });
-            }
-
-            if (msg.summaryRows) {
-                if (typeof(self._summaryRows) === "undefined") self._summaryRows = [];
-                self._summaryRows = self._summaryRows.concat(self._prepareRows(msg.summaryRows));
-            }
-
-            if (msg.expectedNumRows == 0) self._postMessage({ allRowsReceived : true });
-
-            if (msg.trigger) self._postMessage({ triggerMsg : msg.msg });
-
-            self._onSocketClose = data.onClose;
+            self._processInput(msg.data);
         };
+
+        self._onSocketClose = data.onClose;
 
         return true;
     };
@@ -489,7 +492,7 @@
         requestedRows.forEach(function (row) {
             if (row["isVisible"] || allRows) {
                 var newRow = visibleColumnIdxs.map(function (idx) {
-                    return row["row"][idx];
+                    return self._getCellDisplayValueByIndex(row, idx);
                 });
 
                 newRow.parentRow = row.parentRow;
@@ -612,7 +615,7 @@
                 return filter.indices[filter.matchAll ? "every" : "some"](function (index) {
                     return filter.tests.every(function (test) {
                         return self._testCell(
-                            row["row"][index],
+                            self._getCellRawValueByIndex(row, index),
                             filter,
                             numberCols[index],
                             test
@@ -705,13 +708,12 @@
             });
 
         myRows.forEach(function (row) {
-            var rowValues = row["row"],
-                key = keyIndexes.map(function (i) { return rowValues[i]; }).join("|");
+            var key = keyIndexes.map(function (i) { return self._getCellRawValueByIndex(row, i); }).join("|");
 
             if (key in hash) {
-                hash[key].push(preparedRows ? row : rowValues);
+                hash[key].push(preparedRows ? row : row.row);
             } else {
-                hash[key] = [ preparedRows ? row : rowValues ];
+                hash[key] = [ preparedRows ? row : row.row ];
             }
         });
 
@@ -774,6 +776,38 @@
         }
     };
 
+    DWH.prototype._getCellValue = function (row, index, type) {
+        var self = this, value = row.row[index];
+
+        if (typeof(value) === "object" && value !== null) {
+            if (value[type] !== undefined) {
+                return value[type];
+            } else {
+                throw new Error("Unrecognized cell value format: " + value);
+            }
+        } else {
+            return value;
+        }
+    };
+
+    DWH.prototype._getCellDisplayValueByIndex = function (row, index) {
+        var self = this;
+
+        return self._getCellValue(row, index, "display");
+    };
+
+    DWH.prototype._getCellRawValueByIndex = function (row, index) {
+        var self = this;
+
+        return self._getCellValue(row, index, "raw");
+    };
+
+    DWH.prototype._getCellRawValueByColumn = function (row, columnName) {
+        var self = this;
+
+        return self._getCellRawValueByIndex(row, self._columns[columnName].index);
+    };
+
     /* Public Dataset Operations */
 
     DWH.prototype.sort = function (data) {
@@ -791,11 +825,11 @@
                 sortType   = self._columns[columnName]["sortType"];
 
                 if (reverse) {
-                    valB = a["row"][self._columns[columnName]["index"]];
-                    valA = b["row"][self._columns[columnName]["index"]];
+                    valB = self._getCellRawValueByColumn(a, columnName);
+                    valA = self._getCellRawValueByColumn(b, columnName);
                 } else {
-                    valA = a["row"][self._columns[columnName]["index"]];
-                    valB = b["row"][self._columns[columnName]["index"]];
+                    valA = self._getCellRawValueByColumn(a, columnName);
+                    valB = self._getCellRawValueByColumn(b, columnName);
                 }
 
                 if (sortType === "alpha") {
@@ -894,7 +928,7 @@
 
         self._rows.forEach(function (row) {
             for (i = 0; i < row["row"].length; i++) {
-                column = row["row"][i];
+                column = self._getCellRawValueByIndex(row, i);
 
                 if (
                     (relevantIndexes.length === 0 || relevantIndexes.indexOf(i) !== -1)
@@ -1419,8 +1453,7 @@
             joinIdx = self._columns[data.joinOn].index;
 
         self._rows.forEach(function (row, i) {
-            var rowValues = row.row,
-                children   = rowHash[rowValues[joinIdx]];
+            var children = rowHash[self._getCellRawValueByIndex(row, joinIdx)];
 
             if (children) {
                 self._hasChildElements = true;
@@ -1442,12 +1475,15 @@
     };
 
     DWH.prototype.refreshAll = function (data) {
-        var self = this;
+        var self = this, rows = data.complexValues
+            ? self._rows.map(function (row) { return row.row; })
+            : self._rows.map(function (row) {
+                return row.row.map(function (cell, i) {
+                    return self._getCellDisplayValueByIndex(row, i);
+                });
+            });
 
-        return {
-            columns : self._columns,
-            rows    : self._rows.map(function (row) { return row.row; })
-        };
+        return { columns: self._columns, rows: rows };
     };
 
     DWH.prototype.cancelOngoingRequests = function (data) {

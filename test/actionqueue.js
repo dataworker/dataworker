@@ -1,9 +1,3 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *                                                                           *
- * Tests for ActionQueue                                                     *
- *                                                                           *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 module("ActionQueue");
 
 test("construct", function () {
