@@ -217,7 +217,6 @@
     });</pre>
                         <p><code>datasource</code> should be the base url to send GET requests to.</p>
                         <p><code>request</code> should be the query string to append to the base url. The prepended question mark is optional; if it is missing, one will automatically be inserted. Optionally, <code>request</code> could be a JSON string; DataWorker will convert this into a query string.</p>
-                        <p>The only callback triggered by AJAX datasets is the <code>onAllRowsReceived</code> callback.</p>
                         <h5>Using fallbacks</h5>
                         <p>If multiple data sources exist, it is possible to provide fallbacks when instantiating DataWorker. This can be useful if you have a server down for maintenance or your WebSocket service is not running. Simply provide the possible sources as an array to <code>datasource</code> in priority order:</p>
                         <pre>
@@ -680,8 +679,9 @@
                         <p>The default visibility for a child row depends on its parent. If the parent row was set to hidden then the child row will still be added to the parent, but will be hidden as well.</p>
                         <p>If a parent row cannot be found for the children, those child rows will be ignored. If multiple parent rows exist for a given child row, the result is undefined.</p>
                     </section>
-                    <section id="get-dataset">
+                    <section id="get-dataset" class="muted">
                         <h3>Get dataset</h3>
+                        <p><strong>This function is deprecated as of v2.0 and will be removed in v3.0. Please use <a href="#get-rows">getRows</a> instead.</strong></p>
                         <p>Visible dataset rows can be retrieved for use via the <code>getDataset</code> method.</p>
                         <pre>
     var dataset = [

@@ -241,6 +241,10 @@
             callback = arguments[0],
             columnNames = _getArray(arguments, 1);
 
+        if (console && console.warn) {
+            console.warn("DataWorker.prototype.getDataset is deprecated. Please use getRows instead");
+        }
+
         self._queueNext(function () {
             self._postMessage({
                 cmd         : "getDataset",

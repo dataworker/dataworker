@@ -299,10 +299,11 @@
             } else {
                 self._postMessage({ rowsReceived : msg.rows.length });
             }
-        } else if (
+        }
+
+        if (
             self._columns !== undefined
-            && msg.expectedNumRows !== undefined
-            && self._expectedNumRows !== self._rows.length
+            && (msg.expectedNumRows !== undefined || (msg.rows && msg.columns))
         ) {
             self._postMessage({ columnsReceived: true });
         }

@@ -130,6 +130,45 @@ asyncTest("AJAX as a fallback for when websocket fails", function () {
     });
 });
 
+asyncTest("Can use onReceiveColumns with AJAX", function () {
+    expect(6);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
+    ];
+
+    var d = new DataWorker({
+        datasource: srcPath + "resources/simple-dataset.json"
+    }).requestDataset();
+
+    ok(d instanceof DataWorker);
+
+    d.onReceiveColumns(function () {
+        d.getColumns(function (columns) {
+            equal(Object.keys(columns).length, 3);
+            equal(columns["column_a"].index, 0);
+            equal(columns["column_b"].index, 1);
+            equal(columns["column_c"].index, 2);
+        });
+    }).onAllRowsReceived(function () {
+        d.getRows(function (rows) {
+            deepEqual(rows, [
+                [ "apple",      "violin",    "music" ],
+                [ "cat",        "tissue",      "dog" ],
+                [ "banana",      "piano",      "gum" ],
+                [ "gummy",       "power",     "star" ]
+            ])
+
+            start();
+        }).finish();
+    });
+});
+
 /* resources/streaming-dataset-300-rows.json:
 
 {
