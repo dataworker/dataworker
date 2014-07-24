@@ -308,7 +308,9 @@
             self._postMessage({ columnsReceived: true });
         }
 
-        if (msg.summaryRows) self._summaryRows.push.apply(self._prepareRows(msg.summaryRows));
+        if (msg.summaryRows) {
+            Array.prototype.push.apply(self._summaryRows, self._prepareRows(msg.summaryRows));
+        }
 
         if (
             parseInt(msg.expectedNumRows) === 0
