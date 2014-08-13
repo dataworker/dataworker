@@ -4536,9 +4536,9 @@ asyncTest("two single-threaded dataworkers", function () {
 
             d1.finish();
             d2.finish();
-        });
 
-        start();
+            start();
+        });
     });
 });
 
