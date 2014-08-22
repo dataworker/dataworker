@@ -181,7 +181,7 @@ asyncTest("apply filter (simple, unrestricted)", function () {
 
     d.applyFilter(/apple/);
 
-    d.getDataset(function(result) {
+    d.getRows(function(result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
@@ -202,7 +202,7 @@ asyncTest("apply filter (simple, column-restricted, single column, found)", func
     ];
 
     var d = new DataWorker(dataset);
-    d.applyFilter(/apple/, "column_a").getDataset(function (result) {
+    d.applyFilter(/apple/, "column_a").getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
@@ -223,7 +223,7 @@ asyncTest("apply filter (simple, column-restricted, single column, not found)", 
     ];
 
     var d = new DataWorker(dataset);
-    d.applyFilter(/apple/, "column_b").getDataset(function (result) {
+    d.applyFilter(/apple/, "column_b").getRows(function (result) {
         deepEqual(result, []);
         start();
     }).finish();
@@ -245,7 +245,7 @@ asyncTest("apply filter (simple, column-restricted, multi-column, found)", funct
     var d = new DataWorker(dataset);
     d.applyFilter(/apple/, "column_a", "column_c")
      .sort("column_a")
-     .getDataset(function (result) {
+     .getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "gummy", "power", "apple"  ]
@@ -267,7 +267,7 @@ asyncTest("apply filter (simple, column-restricted, multi-column, not found)", f
     ];
 
     var d = new DataWorker(dataset);
-    d.applyFilter(/piano/, "column_a", "column_c").getDataset(function (result) {
+    d.applyFilter(/piano/, "column_a", "column_c").getRows(function (result) {
         deepEqual(result, []);
         start();
     }).finish();
@@ -291,7 +291,7 @@ asyncTest("apply filter (complex, single)", function () {
             column : "column_a",
             regex  : "^apple$"
         }
-    ).getDataset(function (result) {
+    ).getRows(function (result) {
         deepEqual(result, [
             [ "apple",      "violin",    "music" ],
         ]);
@@ -321,7 +321,7 @@ asyncTest("apply filter (complex, multi)", function () {
             column : "column_c",
             regex  : "^dog|gum$"
         }
-    ).getDataset(function (result) {
+    ).getRows(function (result) {
         deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "cat",         "piano",      "gum" ],
@@ -356,7 +356,7 @@ asyncTest("apply filter (complex, ignores column not found)", function () {
             column : "column_d",
             regex  : "^nothing$"
         }
-    ).getDataset(function (result) {
+    ).getRows(function (result) {
         deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "cat",         "piano",      "gum" ],
@@ -379,13 +379,13 @@ asyncTest("apply filter (simple, multiple filters)", function () {
 
     var d = new DataWorker(dataset);
 
-    d.applyFilter(/m/).getDataset(function (result) {
+    d.applyFilter(/m/).getRows(function (result) {
         deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "banana", "piano",  "gum"   ],
             [ "gummy",  "power",  "star"  ]
         ]);
-    }).applyFilter(/e/).getDataset(function (result) {
+    }).applyFilter(/e/).getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "gummy", "power",  "star"  ]
@@ -425,7 +425,7 @@ asyncTest("apply filter (complex, multiple filters)", function () {
             column : "column_b",
             regex  : "e",
         }
-    ).getDataset(function (result) {
+    ).getRows(function (result) {
         deepEqual(result, [
             [ "cat", "tissue", "dog" ],
         ]);
@@ -459,7 +459,7 @@ asyncTest("apply filter (complex then simple, multiple filters)", function () {
             column : "column_d",
             regex  : "^nothing$"
         }
-    ).applyFilter(/e/).getDataset(function (result) {
+    ).applyFilter(/e/).getRows(function (result) {
         deepEqual(result, [
             [ "cat", "tissue", "dog" ],
         ]);
@@ -493,7 +493,7 @@ asyncTest("apply filter (simple then complex, multiple filters)", function () {
             column : "column_d",
             regex  : "^nothing$"
         }
-    ).getDataset(function (result) {
+    ).getRows(function (result) {
         deepEqual(result, [
             [ "cat", "tissue", "dog" ],
         ]);
@@ -519,7 +519,7 @@ asyncTest("apply filter (complex, single filter, multiple columns)", function ()
             columns : [ "column_a", "column_c" ],
             regex   : "^apple$"
         }
-    ).getDataset(function (result) {
+    ).getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "gummy", "power",  "apple" ]
@@ -544,7 +544,7 @@ asyncTest("clear filter", function () {
 
     d.applyFilter(/apple/).clearFilters();
 
-    d.getDataset(function(result) {
+    d.getRows(function(result) {
         deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
@@ -571,7 +571,7 @@ asyncTest("filter (hard)", function () {
 
     d.filter(/apple/);
 
-    d.getDataset(function(result) {
+    d.getRows(function(result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
@@ -595,13 +595,13 @@ asyncTest("filter (hard, complex)", function () {
 
     d.filter({ column: "column_a", ne: "apple" });
 
-    d.getDataset(function(result) {
+    d.getRows(function(result) {
         deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
             [ "gummy",       "power",     "star" ]
         ]);
-    }).clearFilters().getDataset(function (result) {
+    }).clearFilters().getRows(function (result) {
         deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
@@ -625,7 +625,7 @@ asyncTest("limit", function () {
     ];
 
     var d = new DataWorker(dataset);
-    d.applyLimit(2).getDataset(function (result) {
+    d.applyLimit(2).getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "cat",   "tissue", "dog"   ]
@@ -647,7 +647,7 @@ asyncTest("limit (hard)", function () {
     ];
 
     var d = new DataWorker(dataset);
-    d.limit(2).getDataset(function (result) {
+    d.limit(2).getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "cat",   "tissue", "dog"   ]
@@ -705,7 +705,7 @@ asyncTest("sort (alpha)", function () {
     ];
 
     var d = new DataWorker(dataset);
-    d.sort("column_b").getDataset(function (result) {
+    d.sort("column_b").getRows(function (result) {
         deepEqual(result, [
             [ "banana", "piano",  "gum"   ],
             [ "gummy",  "power",  "apple" ],
@@ -750,7 +750,7 @@ asyncTest("sort (alpha)", function () {
 
 //    var d = new DataWorker(dataset);
 
-//    d.sort("column_a").getDataset(function (result) {
+//    d.sort("column_a").getRows(function (result) {
 //        deepEqual(result, [
 //            [ "banana",      "piano",      "gum" ],
 //            [ "gummy",       "power",     "star" ],
@@ -775,7 +775,7 @@ asyncTest("sort (reverse alpha)", function () {
     ];
 
     var d = new DataWorker(dataset);
-    d.sort("-column_b").getDataset(function (result) {
+    d.sort("-column_b").getRows(function (result) {
         deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
@@ -815,7 +815,7 @@ asyncTest("sort (num)", function () {
     ];
 
     var d = new DataWorker(dataset);
-    d.sort("column_c").getDataset(function (result) {
+    d.sort("column_c").getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin",  8 ],
             [ "banana", "piano", 45 ],
@@ -855,7 +855,7 @@ asyncTest("sort (num w/ decimals)", function () {
     ];
 
     var d = new DataWorker(dataset);
-    d.sort("column_c").getDataset(function (result) {
+    d.sort("column_c").getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin",  "8.0" ],
             [ "banana", "piano", "45.0" ],
@@ -894,7 +894,7 @@ asyncTest("sort (reverse num)", function () {
     ];
 
     var d = new DataWorker(dataset);
-    d.sort("-column_c").getDataset(function (result) {
+    d.sort("-column_c").getRows(function (result) {
         deepEqual(result, [
             [ "cat",   "tissue", 85 ],
             [ "gummy",  "power", 82 ],
@@ -934,7 +934,7 @@ asyncTest("sort (multi-column)", function () {
     ];
 
     var d = new DataWorker(dataset);
-    d.sort("column_a", "column_c").getDataset(function (result) {
+    d.sort("column_a", "column_c").getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin",  5 ],
             [ "banana", "piano", 45 ],
@@ -1343,7 +1343,7 @@ asyncTest("append", function () {
     ];
 
     var d = new DataWorker(dataset1);
-    d.append(dataset2).getDataset(function (result) {
+    d.append(dataset2).getRows(function (result) {
         deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
@@ -1376,7 +1376,7 @@ asyncTest("append DataWorker", function () {
 
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
-    d1.append(d2).getDataset(function (result) {
+    d1.append(d2).getRows(function (result) {
         deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
@@ -1565,7 +1565,7 @@ asyncTest("join (left outer join on single field)", function () {
 
     d1.join(d2, "column_a", "column_d", "left");
 
-    d1.sort("column_a", "column_f").getDataset(function (result) {
+    d1.sort("column_a", "column_f").getRows(function (result) {
         deepEqual(result, [
             [ "apple",   "violin", "music",  "apple",    "screen", "phone" ],
             [ "banana",   "piano",   "gum", "banana",     "power", "apple" ],
@@ -1602,7 +1602,7 @@ asyncTest("join (right outer join on single field", function () {
 
     d1.join(d2, "column_a", "column_d", "right");
 
-    d1.sort("column_a", "column_f").getDataset(function (result) {
+    d1.sort("column_a", "column_f").getRows(function (result) {
         deepEqual(result, [
             [ "",              "",      "",    "car",      "nuts",  "axes" ],
             [ "apple",   "violin", "music",  "apple",    "screen", "phone" ],
@@ -1643,7 +1643,7 @@ asyncTest("join (inner join on multiple fields)", function () {
         [ "column_d", "column_e" ]
     );
 
-    d1.getDataset(function (result) {
+    d1.getRows(function (result) {
         deepEqual(result, [
             [ "cat", "tissue", "dog", "cat", "tissue", "drops" ]
         ]);
@@ -1907,7 +1907,7 @@ asyncTest("group (single field sum)", function () {
 
     var d = new DataWorker(dataset).group("column_a").sort("column_a");
 
-    d.getDataset(function (result) {
+    d.getRows(function (result) {
         deepEqual(result, [
             [ "apple", 576 ],
             [ "cat",   663 ],
@@ -1934,7 +1934,7 @@ asyncTest("group (single field max)", function () {
 
     var d = new DataWorker(dataset).group("column_a").sort("column_a");
 
-    d.getDataset(function (result) {
+    d.getRows(function (result) {
         deepEqual(result, [
             [ "apple", 453 ],
             [ "cat",   663 ],
@@ -1961,7 +1961,7 @@ asyncTest("group (single field min)", function () {
 
     var d = new DataWorker(dataset).group("column_a").sort("column_a");
 
-    d.getDataset(function (result) {
+    d.getRows(function (result) {
         deepEqual(result, [
             [ "apple", 123 ],
             [ "cat",   663 ],
@@ -1991,7 +1991,7 @@ asyncTest("group (multi-field)", function () {
 
     var d = new DataWorker(dataset).group("column_a", "column_b").sort("column_a", "column_b");
 
-    d.getDataset(function (result) {
+    d.getRows(function (result) {
         deepEqual(result, [
             [ "apple",  "piano",  218 ],
             [ "apple",  "violin", 453 ],
@@ -3660,7 +3660,7 @@ asyncTest("add child rows", function () {
         equal(num, 12);
     });
 
-    d.getDataset(function (rows) {
+    d.getRows(function (rows) {
         deepEqual(rows, [
             [ "apple",  "violin",        "music"   ],
                 [ "apple",  "fuji",          "red"     ],
@@ -3714,7 +3714,7 @@ asyncTest("add child rows using another DataWorker object", function () {
         equal(num, 12);
     });
 
-    d.getDataset(function (rows) {
+    d.getRows(function (rows) {
         deepEqual(rows, [
             [ "apple",  "violin",        "music"   ],
                 [ "apple",  "fuji",          "red"     ],
@@ -3766,7 +3766,7 @@ asyncTest("children of invisible parents default to invisible", function () {
         equal(num, 5);
     });
 
-    d.getDataset(function (rows) {
+    d.getRows(function (rows) {
         deepEqual(rows, [
             [ "apple",  "violin",        "music"   ],
                 [ "apple",  "fuji",          "red"     ],
@@ -3810,7 +3810,7 @@ asyncTest("sorts children as subsets of parents, not as part of the whole datase
         equal(num, 12);
     });
 
-    d.sort("column_b").getDataset(function (rows) {
+    d.sort("column_b").getRows(function (rows) {
         deepEqual(rows, [
             [ "banana", "piano",         "gum"     ],
             [ "gummy",  "power",         "star"    ],
@@ -3861,7 +3861,7 @@ asyncTest("sorts children within parents when parents have ties", function () {
         equal(num, 12);
     });
 
-    d.sort("column_b").getDataset(function (rows) {
+    d.sort("column_b").getRows(function (rows) {
         deepEqual(rows, [
             [ "apple",  "parent",        "music"   ],
                 [ "apple",  "fuji",          "red"     ],
@@ -3895,7 +3895,7 @@ asyncTest("multiple column sort with nulls in number columns", function () {
 
     d.alterColumnSortType("numeric_column", "num");
 
-    d.sort("numeric_column", "alpha_column").getDataset(function (rows) {
+    d.sort("numeric_column", "alpha_column").getRows(function (rows) {
         deepEqual(rows, [
             [ null, "abc"   ],
             [ null, "def"   ],
@@ -3943,7 +3943,7 @@ asyncTest("getDistinctConsecutiveRows with child rows just looks at parent data"
     d.alterColumnSortType("rank", "num")
      .alterColumnSortType("amount", "num")
      .sort("-amount", "rank", "side")
-     .getDataset(function (rows) {
+     .getRows(function (rows) {
         deepEqual(rows, [
             [ 1,    "One",   null,     500 ],
                 [ null, "One",   "Left",   400 ],
@@ -3997,7 +3997,7 @@ asyncTest("DataWorker works without Web Worker support (older browsers)", functi
     var d = new DataWorker(dataset);
     delete Worker;
 
-    d.applyFilter(/apple/, "column_a").getDataset(function (result) {
+    d.applyFilter(/apple/, "column_a").getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
@@ -4044,7 +4044,7 @@ asyncTest("clearDataset", function () {
 
     var d = new DataWorker(dataset);
 
-    d.getDataset(function(result) {
+    d.getRows(function(result) {
         deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
@@ -4053,7 +4053,7 @@ asyncTest("clearDataset", function () {
         ]);
     }).clearDataset().getColumns(function (result) {
         deepEqual(result, {});
-    }).getDataset(function (result) {
+    }).getRows(function (result) {
         deepEqual(result, []);
         start();
     }).finish();
@@ -4073,7 +4073,7 @@ asyncTest("appending to empty dataset takes in new columns", function () {
 
     var d = new DataWorker([ [] ]).append(dataset);
 
-    d.getDataset(function(result) {
+    d.getRows(function(result) {
         deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
@@ -4262,7 +4262,7 @@ asyncTest("apply filter (simple, column-restricted, multi-column, found, using a
     var d = new DataWorker(dataset);
     d.applyFilter(/apple/, [ "column_a", "column_c" ])
      .sort("column_a")
-     .getDataset(function (result) {
+     .getRows(function (result) {
         deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "gummy", "power", "apple"  ]
@@ -4289,7 +4289,7 @@ asyncTest("search (simple)", function () {
             [ "apple", "violin", "music" ],
             [ "gummy", "power", "apple"  ]
         ]);
-    }, /APPLE/i).getDataset(function (result) {
+    }, /APPLE/i).getRows(function (result) {
         deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
@@ -4313,7 +4313,7 @@ asyncTest("search (simple, only searches visible rows)", function () {
     ];
 
     var d = new DataWorker(dataset);
-    d.applyFilter(/i/).getDataset(function (result) {
+    d.applyFilter(/i/).getRows(function (result) {
         deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],

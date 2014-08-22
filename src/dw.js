@@ -1037,7 +1037,7 @@
             };
 
             if (data instanceof DataWorker) {
-                data.getDataset(function (rows) {
+                data.getRows(function (rows) {
                     callback(rows);
                 });
             } else {
