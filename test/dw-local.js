@@ -579,6 +579,39 @@ asyncTest("filter (hard)", function () {
     }).finish();
 });
 
+asyncTest("filter (hard, complex)", function () {
+    expect(2);
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",     "star" ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.filter({ column: "column_a", ne: "apple" });
+
+    d.getDataset(function(result) {
+        deepEqual(result, [
+            [ "cat",        "tissue",      "dog" ],
+            [ "banana",      "piano",      "gum" ],
+            [ "gummy",       "power",     "star" ]
+        ]);
+    }).clearFilters().getDataset(function (result) {
+        deepEqual(result, [
+            [ "cat",        "tissue",      "dog" ],
+            [ "banana",      "piano",      "gum" ],
+            [ "gummy",       "power",     "star" ]
+        ]);
+
+        start();
+    }).finish();
+});
+
 asyncTest("limit", function () {
     expect(1);
 

@@ -922,28 +922,9 @@
     };
 
     DWH.prototype.filter = function (data) {
-        var self = this,
-            regex = RegExp(data.regex), relevantColumns = data.relevantColumns,
-            i, column, filteredDataset = [],
-            relevantIndexes = relevantColumns.map(function (column) {
-                return self._columns[column]["index"];
-            });
+        var self = this;
 
-        self._rows.forEach(function (row) {
-            for (i = 0; i < row["row"].length; i++) {
-                column = self._getCellRawValueByIndex(row, i);
-
-                if (
-                    (relevantIndexes.length === 0 || relevantIndexes.indexOf(i) !== -1)
-                    && column !== null && regex.test(column)
-                ) {
-                    filteredDataset.push(row);
-                    break;
-                }
-            }
-        });
-
-        self._rows = filteredDataset;
+        self._rows = self._scanRows(data);
 
         return {};
     };

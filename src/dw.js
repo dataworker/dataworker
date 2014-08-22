@@ -276,13 +276,12 @@
         return self;
     };
 
-    DataWorker.prototype.applyFilter = function () {
-        var self = this,
-            filters = _getArray(arguments);
+    DataWorker.prototype._filter = function (cmd, filters) {
+        var self = this;
 
         self._queueNext(function () {
             self._postMessage({
-                cmd     : "applyFilter",
+                cmd     : cmd,
                 filters : filters
             });
         });
@@ -302,20 +301,18 @@
         return self;
     };
 
+    DataWorker.prototype.applyFilter = function () {
+        var self = this,
+            filters = _getArray(arguments);
+
+        return self._filter("applyFilter", filters);
+    };
+
     DataWorker.prototype.filter = function () {
         var self = this,
-            regex = arguments[0],
-            relevantColumns = _getArray(arguments, 1);
+            filters = _getArray(arguments);
 
-        self._queueNext(function () {
-            self._postMessage({
-                cmd             : "filter",
-                regex           : regex,
-                relevantColumns : relevantColumns
-            });
-        });
-
-        return self;
+        return self._filter("filter", filters);
     };
 
     DataWorker.prototype.applyLimit = function (numRows) {
