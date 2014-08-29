@@ -278,7 +278,7 @@
             if (self._shouldClearDataset) self.clearDataset();
 
             var error = self._checkColumnsForAppend(msg.columns);
-            if (error) return _postMessage({ error: error });
+            if (error) return self._postMessage({ error: error });
         }
 
         if (msg.expectedNumRows === "INFINITE") {
