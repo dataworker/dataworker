@@ -21,10 +21,10 @@ asyncTest("creates webworker out of simple source file", function () {
             worker.terminate();
             start();
         }
-        worker.postMessage();
+        worker.postMessage({});
     };
 
-    worker.postMessage();
+    worker.postMessage({});
 });
 
 asyncTest("creates webworker from Blob, if browser supports Blobs", function () {
@@ -86,8 +86,8 @@ asyncTest("new webworker is created unless one has been reclaimed", function () 
             }
         }
 
-        worker1.postMessage();
-        worker2.postMessage();
+        worker1.postMessage({});
+        worker2.postMessage({});
     }
 
     function step2() {
@@ -108,9 +108,9 @@ asyncTest("new webworker is created unless one has been reclaimed", function () 
             if (++count === 3) finishAll();
         }
 
-        worker1.postMessage();
-        worker2.postMessage();
-        worker3.postMessage();
+        worker1.postMessage({});
+        worker2.postMessage({});
+        worker3.postMessage({});
     }
 
     function finishAll() {
@@ -175,14 +175,14 @@ asyncTest("reuses webworker from Blob, if browser supports Blobs", function () {
                     if (count++) finishAll();
                 };
 
-                worker1.postMessage();
-                worker2.postMessage();
+                worker1.postMessage({});
+                worker2.postMessage({});
             };
 
-            worker2.postMessage();
+            worker2.postMessage({});
         };
 
-        worker1.postMessage();
+        worker1.postMessage({});
     } else {
         expect(0);
         start();
