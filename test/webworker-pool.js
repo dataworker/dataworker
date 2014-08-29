@@ -27,7 +27,7 @@ asyncTest("creates webworker out of simple source file", function () {
     worker.postMessage();
 });
 
-asyncTest("creates webworker from Blob", function () {
+asyncTest("creates webworker from Blob, if browser supports Blobs", function () {
     var url;
 
     try {
@@ -57,6 +57,9 @@ asyncTest("creates webworker from Blob", function () {
         };
 
         worker.postMessage(7);
+    } else {
+        expect(0);
+        start();
     }
 });
 
@@ -121,7 +124,7 @@ asyncTest("new webworker is created unless one has been reclaimed", function () 
     step1();
 });
 
-asyncTest("reuses webworker from Blob", function () {
+asyncTest("reuses webworker from Blob, if browser supports Blobs", function () {
     var url;
 
     try {
@@ -180,5 +183,8 @@ asyncTest("reuses webworker from Blob", function () {
         };
 
         worker1.postMessage();
+    } else {
+        expect(0);
+        start();
     }
 });

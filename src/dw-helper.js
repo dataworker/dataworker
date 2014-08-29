@@ -220,7 +220,10 @@
             if (this.readyState === 4) {
                 self._isDatasourceReady = true;
 
-                if (self._isLocalAjax ? this.response : this.status === 200) {
+                if (
+                    this.readyState > 2
+                    && (self._isLocalAjax ? this.response : this.status === 200)
+                ) {
                     if (typeof(data.request) !== "undefined") {
                         self.requestDataset(data);
                     }
@@ -337,8 +340,8 @@
         xmlHttp.onreadystatechange = function () {
             if (
                 requestCount === self._ajaxRequestCounter
-                && (self._isLocalAjax ? xmlHttp.response : xmlHttp.status === 200)
                 && xmlHttp.readyState > 2
+                && (self._isLocalAjax ? xmlHttp.response : xmlHttp.status === 200)
             ) {
                 var lines = xmlHttp.responseText.substr(streamIdx).split(/([\r\n]+)/);
 
