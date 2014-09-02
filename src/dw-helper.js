@@ -274,6 +274,8 @@
             return self._postMessage({ error : msg.error });
         }
 
+        if (msg.trigger) self._postMessage({ triggerMsg : msg.msg });
+
         if (msg.columns) {
             if (self._shouldClearDataset) self.clearDataset();
 
@@ -321,8 +323,6 @@
         ) {
             self._postMessage({ allRowsReceived : true });
         }
-
-        if (msg.trigger) self._postMessage({ triggerMsg : msg.msg });
     };
 
     DWH.prototype._ajax = function (request) {
