@@ -845,3 +845,50 @@ asyncTest("onSocketClose", function () {
 
     d.getColumns(function (columns) { start(); }).finish();
 });
+
+asyncTest("attempt reconnect after disconnect", function () {
+    expect(1);
+
+    var worker = DataWorker.workerPool.getWorker();
+    worker.postMessage({
+        meta: {
+            interruptAfter  : 100,
+            expectedSource  : "ws://websocket.test.com:8085",
+            expectedReplies : {
+                "REQUEST_DATASET": [
+                    {
+                        expectedNumRows : 4,
+                        columns         : [ "column_a", "column_b", "column_c" ]
+                    },
+                    {
+                        rows: [
+                            [ "apple",      "violin",    "music" ],
+                            [ "cat",        "tissue",      "dog" ]
+                        ]
+                    },
+                    {
+                        rows: [
+                            [ "banana",      "piano",      "gum" ],
+                            [ "gummy",       "power",     "star" ]
+                        ]
+                    }
+                ].map(function (reply) { return JSON.stringify(reply); })
+            }
+        }
+    });
+    DataWorker.workerPool.reclaim(worker);
+
+    var d = new DataWorker({
+        datasource             : "ws://websocket.test.com:8085",
+        shouldAttemptReconnect : true,
+        onAllRowsReceived      : function () {
+            ok(true, 'all rows recieved after interrupted connection');
+            start();
+            d.finish();
+        }
+    });
+
+    setTimeout(function () {
+        d.requestDataset("REQUEST_DATASET");
+    }, 200);
+});

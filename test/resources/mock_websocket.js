@@ -6,10 +6,10 @@
         OPEN       : 1,
         CLOSING    : 2,
         CLOSED     : 3
-    };
+    }, _this;
 
     var MockWebSocket = global.WebSocket = function (source) {
-        var self = this;
+        var self = _this = this;
 
         self.readyState = READY_STATE.CONNECTING;
 
@@ -32,6 +32,10 @@
             self.readyState = READY_STATE.OPEN;
             self.onopen();
         });
+
+        if (self.interruptAfter !== undefined) {
+            setTimeout(function () { self.interrupt(); }, source.interruptAfter);
+        }
 
         return self;
     };
@@ -66,8 +70,15 @@
 
         setTimeout(function () {
             self.readyState = READY_STATE.CLOSED;
-            self.onclose();
+            self.onclose({ code: 1000 });
         });
+    };
+
+    MockWebSocket.setInterrupt = function (interruptAfter) {
+        setTimeout(function () {
+            _this.readyState = READY_STATE.CLOSED;
+            _this.onclose({ code: 4000 });
+        }, interruptAfter);
     };
 
     MockWebSocket.expectedSource  = undefined;
