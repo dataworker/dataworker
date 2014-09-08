@@ -2630,6 +2630,40 @@ asyncTest("clone", function () {
     }).finish();
 });
 
+asyncTest("sort partition", function () {
+    expect(1);
+
+    var dataset = [
+        [
+            { name: "column_a", sortType: "alpha", aggType: "max" },
+            { name: "column_b", sortType: "alpha", aggType: "min" },
+            { name: "column_c", sortType: "alpha", aggType: "min" }
+        ],
+
+        [ "banana",      "piano",      "gum" ],
+        [ "apple",      "violin",    "music" ],
+        [ "cat",       "nothing",      "dog" ],
+        [ "banana",   "eyedrops",      "tie" ],
+        [ "apple",         "gum",   "wallet" ],
+        [ "apple",         "gum",     "trix" ]
+    ];
+
+    var d = new DataWorker(dataset).partition("column_a").sortPartition("apple", "column_c");
+
+    d.getPartitioned(function (partition) {
+        deepEqual(
+            partition,
+            [
+                [ "apple",      "violin",    "music" ],
+                [ "apple",         "gum",     "trix" ],
+                [ "apple",         "gum",   "wallet" ]
+            ]
+        );
+
+        start();
+    }, "apple").finish();
+});
+
 asyncTest("get rows (all)", function () {
     expect(1);
 

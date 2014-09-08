@@ -1214,6 +1214,15 @@
         };
     };
 
+    DWH.prototype.sortPartition = function (data) {
+        var self = this;
+
+        if (data.sortOn === "string") data.sortOn = [ data.sortOn ];
+        self.sort({ rows: self._partitionedRows[data.key], sortOn: data.sortOn });
+
+        return {};
+    };
+
     DWH.prototype.getDataset = function (data) {
         var self = this;
         return { rows : self._getVisibleRows(data.columnNames) };

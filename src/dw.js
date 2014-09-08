@@ -762,6 +762,20 @@
         return self;
     };
 
+    DataWorker.prototype.sortPartition = function () {
+        var self = this, partitionKey = arguments[0], sortColumns = _getArray(arguments, 1);
+
+        self._queueNext(function () {
+            self._postMessage({
+                cmd    : "sortPartition",
+                key    : partitionKey,
+                sortOn : sortColumns
+            });
+        });
+
+        return self;
+    };
+
     DataWorker.prototype.render = function (renderFunction) {
         var self = this;
 
