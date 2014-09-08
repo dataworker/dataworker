@@ -362,6 +362,8 @@
     DWH.prototype._initializeWebsocketConnection = function (data) {
         var self = this;
 
+        if (!self._wsDatasource) return false;
+
         self._socket = new WebSocket(self._wsDatasource);
         self._isDatasourceReady = false;
 
