@@ -922,8 +922,10 @@
 
     dw.partition("column_a");
 
-    dw.getPartitionKeys().forEach(function (key) {
-        dw.getPartitioned(function (result) { partitioned.push(result); }, key);
+    dw.getPartitionKeys(function (keys) {
+        keys.forEach(function (key) {
+            dw.getPartitioned(function (result) { partitioned.push(result); }, key);
+        });
     });</pre>
                         <p>They <code>getPartitioned</code> method returns an array of records.</code>
                         <p>You may also partition by multiple keys:</p>
