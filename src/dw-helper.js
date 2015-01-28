@@ -293,7 +293,7 @@
         if (msg.rows) {
             var preparedRows = self._prepareRows(msg.rows);
 
-            self._rows.push.apply(self._rows, preparedRows);
+            _append(preparedRows, self._rows);
 
             if (self._partitionedBy.length > 0) {
                 self._insertIntoPartitionedRows(preparedRows);
@@ -314,7 +314,7 @@
         }
 
         if (msg.summaryRows) {
-            Array.prototype.push.apply(self._summaryRows, self._prepareRows(msg.summaryRows));
+            _append(self._prepareRows(msg.summaryRows), self._summaryRows);
         }
 
         if (
@@ -482,7 +482,7 @@
             requestedRows.forEach(function (row) {
                 rowsWithChildren.push(row);
                 if (row.hasChildren) {
-                    rowsWithChildren.push.apply(rowsWithChildren, row.children);
+                    _append(row.children, rowsWithChildren);
                 }
             });
 
@@ -1519,4 +1519,15 @@
             self._socket.send(data.message);
         }
     };
+
+    function _append(src, dest) {
+        var srcLength = src.length,
+            srcIndex  = 0,
+            destIndex = dest.length;
+
+        while (srcIndex < srcLength) {
+            dest[destIndex++] = src[srcIndex++];
+        }
+    }
+
 })(this);
