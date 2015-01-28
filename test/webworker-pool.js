@@ -43,14 +43,13 @@ asyncTest("creates webworker from Blob, if browser supports Blobs", function () 
         var wwp = new WebWorkerPool(url),
             worker = wwp.getWorker();
 
-        URL.revokeObjectURL(url);
-
         worker.onmessage = function (a) {
             equal(a.data.square, 49);
             worker.onmessage = function (b) {
                 equal(b.data.square, 1);
 
                 worker.terminate();
+                URL.revokeObjectURL(url);
                 start();
             }
             worker.postMessage(1);
