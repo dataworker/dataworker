@@ -86,6 +86,9 @@ asyncTest("construct (single-thread)", function () {
 asyncTest("AJAX as a fallback for when websocket fails", function () {
     expect(7);
 
+    var workerSource = DataWorker.workerPool._src;
+    DataWorker.workerPool._src = "../src/dw-helper.js";
+
     var d = new DataWorker({
         datasource: [
             "ws://localhost/foo/bar",
@@ -113,6 +116,7 @@ asyncTest("AJAX as a fallback for when websocket fails", function () {
                 [ "acbg", "vtpp", "mdgs" ]
             ]);
 
+            DataWorker.workerPool._src = workerSource;
             start();
         }).finish();
     });

@@ -890,3 +890,27 @@ asyncTest("attempt reconnect after disconnect", function () {
         d.requestDataset("REQUEST_DATASET");
     }, 200);
 });
+
+asyncTest("mock websocket displays unexpected errors correctly in web worker", function () {
+    expect(1);
+
+    var worker = DataWorker.workerPool.getWorker();
+    worker.postMessage({
+        meta: {
+            expectedSource  : "ws://qwer",
+            expectedReplies : { "asdffdsa": '{"trigger":true,"msg":"authenticated"}' }
+        }
+    });
+    DataWorker.workerPool.reclaim(worker);
+
+    var d = new DataWorker({
+        datasource: "ws://zxcv",
+        authenticate: "asdffdsa",
+        onError: function (error) {
+            equal(error, "Unexpected:\n\tExpected: ws://qwer\n\tGot: ws://zxcv");
+
+            d.finish();
+            start();
+        }
+    });
+});

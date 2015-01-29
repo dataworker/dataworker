@@ -8,7 +8,7 @@
 
     WebSocket.unexpected = function (msg) {
         // Pass the message back to the client as an error.
-        this.onmessage({ error: msg })
+        globalWorker.postMessage({ error: msg });
     };
 
     var onmessageHandler = globalWorker.onmessage;

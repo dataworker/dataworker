@@ -21,7 +21,7 @@
         if (source !== MockWebSocket.expectedSource) {
             MockWebSocket.unexpected(
                 "Unexpected:"
-                + "\n\tExpected: " + self.expectedSource
+                + "\n\tExpected: " + MockWebSocket.expectedSource
                 + "\n\tGot: " + source
             );
 
