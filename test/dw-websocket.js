@@ -23,12 +23,12 @@ asyncTest("construct (webworker w/ authenticate)", function () {
         authenticate : "asdfzxcv",
         onTrigger    : function (msg) {
             equal(msg, "authenticated", "authenticated");
+
+            d.getColumns(function (columns) { start(); }).finish();
         }
     });
 
     ok(d instanceof DataWorker);
-
-    d.getColumns(function (columns) { start(); }).finish();
 });
 
 asyncTest("construct (single-threaded w/ authenticate)", function () {
@@ -125,10 +125,9 @@ asyncTest("construct (webworker w/ request)", function () {
                     [ "gummy",       "power",     "star" ]
                 ]);
 
+                d.finish();
                 start();
             });
-
-            d.finish();
         }
     });
 });
@@ -203,10 +202,9 @@ asyncTest("construct (single-threaded w/ request)", function () {
                     [ "gummy",       "power",     "star" ]
                 ]);
 
+                d.finish();
                 start();
             });
-
-            d.finish();
         }
     });
 });
@@ -230,10 +228,10 @@ asyncTest("construct (complex datasource)", function () {
         },
         onTrigger: function (msg) {
             equal(msg, "authenticated", "authenticated");
+
+            d.getColumns(function (columns) { start(); }).finish();
         }
     });
-
-    d.getColumns(function (columns) { start(); }).finish();
 });
 
 asyncTest("construct (fallback to websocket)", function () {

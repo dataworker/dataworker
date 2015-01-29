@@ -32,6 +32,7 @@
         self._actionQueue = new ActionQueue();
 
         self._initializeCallbacks(dataset);
+        self._initializeDatasources(dataset);
         self._initializeWebWorker(dataset);
 
         return self;
@@ -107,19 +108,46 @@
         return self;
     };
 
-    DataWorker.prototype._initializeWebWorker = function (dataset) {
-        var self = this, columns, rows, datasource, request;
+    DataWorker.prototype._initializeDatasources = function (dataset) {
+        var self        = this,
+            settings    = {},
+            datasources = [],
+            columns, rows, request;
 
         if (dataset instanceof Array) {
             columns = dataset.slice(0, 1)[0];
             rows    = dataset.slice(1);
         } else {
-            datasource = dataset.datasource;
+            datasources = (dataset.datasource instanceof Array)
+                ?   dataset.datasource.slice(0)
+                : [ dataset.datasource ];
 
             request = (typeof dataset.request === "string")
                 ? dataset.request
                 : JSON.stringify(dataset.request);
         }
+
+        self._connectionSettings = {
+            index: 0,
+            datasources: datasources,
+            message: {
+                cmd                    : "initialize",
+
+                columns                : columns,
+                rows                   : rows,
+
+                authenticate           : dataset.authenticate,
+                request                : request,
+                onClose                : dataset.onClose,
+                shouldAttemptReconnect : dataset.shouldAttemptReconnect
+            }
+        };
+
+        return self;
+    };
+
+    DataWorker.prototype._initializeWebWorker = function (dataset) {
+        var self = this;
 
         self._queueNext(function () {
             self._isSingleThreaded = (
@@ -134,17 +162,22 @@
             self._worker.onmessage = function (e) {
                 if (!e.data) return;
 
+                if ("connected" in e.data) {
+                    if (e.data.error) self._onError(e.data.error);
+                    if (!e.data.connected) return self._connect(true);
+                }
+
                 if ("rowsReceived" in e.data) {
-                    self._onReceiveRows(e.data.rowsReceived);
+                    if (self._onReceiveRows) self._onReceiveRows(e.data.rowsReceived);
                     return;
                 }
                 if ("triggerMsg" in e.data) {
-                    self._onTrigger(e.data.triggerMsg);
+                    if (self._onTrigger) self._onTrigger(e.data.triggerMsg);
                     return;
                 }
                 if ("allRowsReceived" in e.data) {
                     self._onAllRowsReceivedTracker = true;
-                    self._onAllRowsReceived();
+                    if (self._onAllRowsReceived) self._onAllRowsReceived();
                     return;
                 }
 
@@ -156,7 +189,7 @@
                     self._numberOfPages = e.data.numberOfPages;
                 }
 
-                if ("error"        in e.data) self._onError(e.data.error);
+                if ("error" in e.data && self._onError) self._onError(e.data.error);
 
                 if ("columns"      in e.data) self._columns = e.data.columns;
                 if ("rows"         in e.data) self._rows = e.data.rows;
@@ -171,26 +204,37 @@
 
                 if ("columnsReceived" in e.data) {
                     self._onReceiveColumnsTracker = true;
-                    self._onReceiveColumns();
+                    if (self._onReceiveColumns) self._onReceiveColumns();
                     return;
                 }
 
                 self._finishAction(true);
             };
 
-            self._postMessage({
-                cmd                    : "initialize",
-
-                columns                : columns,
-                rows                   : rows,
-
-                datasource             : datasource,
-                authenticate           : dataset.authenticate,
-                request                : request,
-                onClose                : dataset.onClose,
-                shouldAttemptReconnect : dataset.shouldAttemptReconnect
-            });
+            self._finishAction();
+        })._queueNext(function () {
+            self._connect(false);
         });
+
+        return self;
+    };
+
+    DataWorker.prototype._connect = function (async) {
+        var self          = this,
+            settings      = self._connectionSettings,
+            hasLocalData  = settings.message.columns && settings.message.rows && true,
+            hasRemoteData = settings.datasources.length > settings.index;
+
+        if (hasRemoteData) {
+            settings.message.datasource = settings.datasources[settings.index++];
+        } else if (!hasLocalData) {
+            self._onError("No available datasources.");
+            self._finishAction(async);
+
+            return self;
+        }
+
+        self._postMessage(settings.message);
 
         return self;
     };

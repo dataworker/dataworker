@@ -15,9 +15,6 @@
 
         self._expectedNumRows;
 
-        self._datasources;
-        self._isDatasourceReady = false;
-
         self._wsDatasource;
         self._wsAuthenticate;
         self._socket;
@@ -53,20 +50,7 @@
         if (typeof(data) === "undefined") return;
 
         if (data.cmd === "initialize") {
-            var waitToConnect = self.initialize(data);
-
-            if (waitToConnect) {
-                var wait = function () {
-                    if (self._isDatasourceReady) {
-                        self._postMessage(reply);
-                    } else {
-                        setTimeout(wait, 500);
-                    }
-                };
-                setTimeout(wait, 250);
-
-                return;
-            }
+            return self.initialize(data);
         } else if (data.cmd === "postMessage") {
             self._sendThroughWebSocket(data);
         } else {
@@ -143,49 +127,26 @@
 
     function stringify(o) { return typeof(o) === "string" ? o : JSON.stringify(o); }
 
-    DWH.prototype.initialize = function (data, useBackup) {
-        var self = this,
-            waitToConnect = false,
-            datasource;
-
-        if (typeof(self._datasources) === "undefined") {
-            self._datasources = (data.datasource instanceof Array)
-                        ?   data.datasource.slice(0)
-                        : [ data.datasource ];
-
-            self._datasources = self._datasources.map(function (datasource) {
-                return typeof(datasource) === "string"
-                    ? { source: datasource }
-                    : datasource;
-            });
-        }
+    DWH.prototype.initialize = function (data) {
+        var self       = this,
+            datasource = typeof(data.datasource) === "string"
+                ? { source: data.datasource }
+                : data.datasource
 
         self._wsDatasource = self._socket = self._ajaxDatasource = undefined;
 
         try {
-            if (useBackup) {
-                if (self._datasources.length > 0) {
-                    self._postMessage({
-                        warning: "Datasource failed. Falling back to next datasource."
-                    });
-                } else {
-                    self._postMessage({ error: "Error: No available datasources." });
-                    return false;
-                }
-            }
-
-            datasource = self._datasources.shift();
-
             if (typeof(datasource) === "undefined") {
                 self._columns = self._prepareColumns(data.columns);
                 self._rows    = self._prepareRows(data.rows);
+                self._postMessage({ connected: true });
             } else if (/^(?:https?|file):\/\//.test(datasource.source)) {
                 self._ajaxDatasource   = datasource.source;
                 self._ajaxAuthenticate = datasource.authenticate || data.authenticate;
 
                 self._isLocalAjax = /^file/.test(datasource.source);
 
-                waitToConnect = self._verifyAjaxDatasource(data);
+                self._verifyAjaxDatasource(data);
             } else if (/^wss?:\/\//.test(datasource.source)) {
                 self._wsDatasource      = datasource.source;
                 self._wsAuthenticate    = stringify(
@@ -196,21 +157,15 @@
 
                 self._shouldAttemptReconnect = data.shouldAttemptReconnect;
 
-                waitToConnect = self._initializeWebsocketConnection(data);
+                self._initializeWebsocketConnection(data);
             } else {
-                self._postMessage({
-                    error: "Error: Could not initialize DataWorker; unrecognized datasource."
-                });
+                throw new Error("Could not initialize DataWorker; unrecognized datasource.");
             }
         } catch (error) {
-            if (self._datasources.length) {
-                waitToConnect = self.initialize(data, true);
-            } else {
-                self._postMessage({ error : "Error: " + error });
-            }
+            self._postMessage({ connected: false, error: error.stack || error.message });
         }
 
-        return waitToConnect;
+        return self;
     };
 
     DWH.prototype._verifyAjaxDatasource = function (data) {
@@ -218,17 +173,16 @@
 
         xmlHttp.onreadystatechange = function () {
             if (this.readyState === 4) {
-                self._isDatasourceReady = true;
-
                 if (
                     this.readyState > 2
                     && (self._isLocalAjax ? this.response : this.status === 200)
                 ) {
+                    self._postMessage({ connected: true });
                     if (typeof(data.request) !== "undefined") {
                         self.requestDataset(data);
                     }
                 } else {
-                    self.initialize(data, true);
+                    self._postMessage({ connected: false, status: this.status });
                 }
             }
         };
@@ -365,7 +319,6 @@
         if (!self._wsDatasource) return false;
 
         self._socket = new WebSocket(self._wsDatasource);
-        self._isDatasourceReady = false;
 
         self._socket.onopen  = function () {
             if (self._wsAuthenticate) {
@@ -376,7 +329,7 @@
                 self._socket.send(data.request);
             }
 
-            self._isDatasourceReady = true;
+            self._postMessage({ connected: true });
         };
         self._socket.onclose = function (e) {
             if (
@@ -388,10 +341,8 @@
         };
         self._socket.onerror = function (error) {
             if (error.target.readyState === 0 || error.target.readyState === 3) {
-                self._isDatasourceReady = true;
                 self._socket = null;
-
-                self.initialize(data, true);
+                self._postMessage({ connected: false, error: "Could not connect" });
             } else {
                 self._postMessage({
                     error : "Error: Problem with connection to datasource."
