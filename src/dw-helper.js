@@ -41,6 +41,8 @@
 
         self._isFinished = false;
 
+        self._replyQueue = [];
+
         return self;
     };
 
@@ -67,8 +69,11 @@
     if (typeof(window) === "undefined") {
         // Running in WebWorker.
 
-        DWH.prototype._postMessage = function _postMessage(reply) {
-            if (!this._isFinished) globalWorker.postMessage(reply);
+        DWH.prototype._postMessage = function _postMessage(reply, finish) {
+            if (!this._isFinished) {
+                globalWorker.postMessage(reply);
+                if (finish) this._finish();
+            }
         };
 
         globalWorker.onmessage = function (e) {
@@ -82,11 +87,20 @@
         // Running in main thread.
 
         // Called by DWH; DataWorker uses this to receive replies.
-        DWH.prototype._postMessage = function (reply) {
+        DWH.prototype._postMessage = function (reply, finish) {
             var self = this;
 
+            self._replyQueue.push([ reply, finish ]);
+
             setTimeout(function () {
-                if (!self._isFinished) self.onmessage({ data: reply });
+                var args   = self._replyQueue.shift(),
+                    reply  = args[0],
+                    finish = args[1];
+
+                if (!self._isFinished) {
+                    self.onmessage({ data: reply });
+                    if (finish) self._finish();
+                }
             });
         };
 
@@ -117,7 +131,11 @@
             self._socket.close();
         }
 
-        self._postMessage({});
+        self._postMessage({}, true);
+    };
+
+    DWH.prototype._finish = function () {
+        var self = this;
 
         self._isFinished = true;
         helper = null;
