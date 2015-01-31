@@ -1,7 +1,9 @@
-module("DataWorker (Local Data)");
+QUnit.module("DataWorker (Local Data)");
 
-asyncTest("construct (simple columns)", function () {
-    expect(2);
+QUnit.test("construct (simple columns)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -14,10 +16,10 @@ asyncTest("construct (simple columns)", function () {
 
     var d = new DataWorker(dataset);
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
     d.getColumns(function (columns) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -43,13 +45,13 @@ asyncTest("construct (simple columns)", function () {
                 index     : 2
             }
         });
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("construct (force single-threaded execution)", function () {
-    expect(2);
+QUnit.test("construct (force single-threaded execution)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -64,10 +66,10 @@ asyncTest("construct (force single-threaded execution)", function () {
 
     var d = new DataWorker(dataset);
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
     d.getColumns(function (columns) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -93,13 +95,13 @@ asyncTest("construct (force single-threaded execution)", function () {
                 index     : 2
             }
         });
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("construct (complex columns)", function () {
-    expect(2);
+QUnit.test("construct (complex columns)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -131,10 +133,10 @@ asyncTest("construct (complex columns)", function () {
 
     var d = new DataWorker(dataset);
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
     d.getColumns(function (columns) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -160,13 +162,13 @@ asyncTest("construct (complex columns)", function () {
                 index     : 2
             }
         });
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (simple, unrestricted)", function () {
-    expect(1);
+QUnit.test("apply filter (simple, unrestricted)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -182,15 +184,16 @@ asyncTest("apply filter (simple, unrestricted)", function () {
     d.applyFilter(/apple/);
 
     d.getRows(function(result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (simple, column-restricted, single column, found)", function () {
-    expect(1);
+QUnit.test("apply filter (simple, column-restricted, single column, found)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -203,15 +206,16 @@ asyncTest("apply filter (simple, column-restricted, single column, found)", func
 
     var d = new DataWorker(dataset);
     d.applyFilter(/apple/, "column_a").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (simple, column-restricted, single column, not found)", function () {
-    expect(1);
+QUnit.test("apply filter (simple, column-restricted, single column, not found)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -224,14 +228,15 @@ asyncTest("apply filter (simple, column-restricted, single column, not found)", 
 
     var d = new DataWorker(dataset);
     d.applyFilter(/apple/, "column_b").getRows(function (result) {
-        deepEqual(result, []);
-        start();
-    }).finish();
+        assert.deepEqual(result, []);
+    }).finish(done);
 });
 
 
-asyncTest("apply filter (simple, column-restricted, multi-column, found)", function () {
-    expect(1);
+QUnit.test("apply filter (simple, column-restricted, multi-column, found)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -246,16 +251,17 @@ asyncTest("apply filter (simple, column-restricted, multi-column, found)", funct
     d.applyFilter(/apple/, "column_a", "column_c")
      .sort("column_a")
      .getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "gummy", "power", "apple"  ]
         ]);
-        start();
-     }).finish();
+     }).finish(done);
 });
 
-asyncTest("apply filter (simple, column-restricted, multi-column, not found)", function () {
-    expect(1);
+QUnit.test("apply filter (simple, column-restricted, multi-column, not found)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -268,13 +274,14 @@ asyncTest("apply filter (simple, column-restricted, multi-column, not found)", f
 
     var d = new DataWorker(dataset);
     d.applyFilter(/piano/, "column_a", "column_c").getRows(function (result) {
-        deepEqual(result, []);
-        start();
-    }).finish();
+        assert.deepEqual(result, []);
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex, single)", function () {
-    expect(1);
+QUnit.test("apply filter (complex, single)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -292,15 +299,16 @@ asyncTest("apply filter (complex, single)", function () {
             regex  : "^apple$"
         }
     ).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",      "violin",    "music" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex, multi)", function () {
-    expect(1);
+QUnit.test("apply filter (complex, multi)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -322,16 +330,17 @@ asyncTest("apply filter (complex, multi)", function () {
             regex  : "^dog|gum$"
         }
     ).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "cat",         "piano",      "gum" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex, ignores column not found)", function () {
-    expect(1);
+QUnit.test("apply filter (complex, ignores column not found)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -357,16 +366,17 @@ asyncTest("apply filter (complex, ignores column not found)", function () {
             regex  : "^nothing$"
         }
     ).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "cat",         "piano",      "gum" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (simple, multiple filters)", function () {
-    expect(2);
+QUnit.test("apply filter (simple, multiple filters)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -380,22 +390,23 @@ asyncTest("apply filter (simple, multiple filters)", function () {
     var d = new DataWorker(dataset);
 
     d.applyFilter(/m/).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "banana", "piano",  "gum"   ],
             [ "gummy",  "power",  "star"  ]
         ]);
     }).applyFilter(/e/).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "gummy", "power",  "star"  ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex, multiple filters)", function () {
-    expect(1);
+QUnit.test("apply filter (complex, multiple filters)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -426,15 +437,16 @@ asyncTest("apply filter (complex, multiple filters)", function () {
             regex  : "e",
         }
     ).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat", "tissue", "dog" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex then simple, multiple filters)", function () {
-    expect(1);
+QUnit.test("apply filter (complex then simple, multiple filters)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -460,15 +472,16 @@ asyncTest("apply filter (complex then simple, multiple filters)", function () {
             regex  : "^nothing$"
         }
     ).applyFilter(/e/).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat", "tissue", "dog" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (simple then complex, multiple filters)", function () {
-    expect(1);
+QUnit.test("apply filter (simple then complex, multiple filters)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -494,15 +507,16 @@ asyncTest("apply filter (simple then complex, multiple filters)", function () {
             regex  : "^nothing$"
         }
     ).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat", "tissue", "dog" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex, single filter, multiple columns)", function () {
-    expect(1);
+QUnit.test("apply filter (complex, single filter, multiple columns)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -520,16 +534,17 @@ asyncTest("apply filter (complex, single filter, multiple columns)", function ()
             regex   : "^apple$"
         }
     ).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "gummy", "power",  "apple" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("clear filter", function () {
-    expect(1);
+QUnit.test("clear filter", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -545,18 +560,19 @@ asyncTest("clear filter", function () {
     d.applyFilter(/apple/).clearFilters();
 
     d.getRows(function(result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
             [ "gummy",       "power",     "star" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("filter (hard)", function () {
-    expect(1);
+QUnit.test("filter (hard)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -572,15 +588,16 @@ asyncTest("filter (hard)", function () {
     d.filter(/apple/);
 
     d.getRows(function(result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("filter (hard, complex)", function () {
-    expect(2);
+QUnit.test("filter (hard, complex)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -596,24 +613,24 @@ asyncTest("filter (hard, complex)", function () {
     d.filter({ column: "column_a", ne: "apple" });
 
     d.getRows(function(result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
             [ "gummy",       "power",     "star" ]
         ]);
     }).clearFilters().getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
             [ "gummy",       "power",     "star" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("limit", function () {
-    expect(1);
+QUnit.test("limit", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -626,16 +643,17 @@ asyncTest("limit", function () {
 
     var d = new DataWorker(dataset);
     d.applyLimit(2).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "cat",   "tissue", "dog"   ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("limit (hard)", function () {
-    expect(1);
+QUnit.test("limit (hard)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -648,16 +666,17 @@ asyncTest("limit (hard)", function () {
 
     var d = new DataWorker(dataset);
     d.limit(2).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "cat",   "tissue", "dog"   ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("remove columns", function () {
-    expect(2);
+QUnit.test("remove columns", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -671,7 +690,7 @@ asyncTest("remove columns", function () {
     var d = new DataWorker(dataset);
     d.removeColumns("column_b", "column_c")
      .getColumnsAndRecords(function (columns, rows) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a : {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -681,19 +700,19 @@ asyncTest("remove columns", function () {
                 index     : 0
             }
         });
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple"  ],
             [ "cat"    ],
             [ "banana" ],
             [ "gummy"  ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("sort (alpha)", function () {
-    expect(1);
+QUnit.test("sort (alpha)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -706,20 +725,18 @@ asyncTest("sort (alpha)", function () {
 
     var d = new DataWorker(dataset);
     d.sort("column_b").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "banana", "piano",  "gum"   ],
             [ "gummy",  "power",  "apple" ],
             [ "cat",    "tissue", "dog"   ],
             [ "apple",  "violin", "music" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
 // FIXME: localeCompare doesn"t seem to work properly in Web Worker threads.
-//asyncTest("sort (locale-considering alpha)", function () {
-//    expect(1);
-
+//QUnit.test("sort (locale-considering alpha)", function (assert) {
+//    assert.expect(1);
 //    var dataset = [
 //        [
 //            {
@@ -751,19 +768,19 @@ asyncTest("sort (alpha)", function () {
 //    var d = new DataWorker(dataset);
 
 //    d.sort("column_a").getRows(function (result) {
-//        deepEqual(result, [
+//        assert.deepEqual(result, [
 //            [ "banana",      "piano",      "gum" ],
 //            [ "gummy",       "power",     "star" ],
 //            [ "résumé",     "tissue",      "dog" ],
 //            [ "rip",        "violin",    "music" ]
 //        ]);
-
-//        start();
-//    }).finish();
+//    }).finish(done);
 //});
 
-asyncTest("sort (reverse alpha)", function () {
-    expect(1);
+QUnit.test("sort (reverse alpha)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -776,18 +793,19 @@ asyncTest("sort (reverse alpha)", function () {
 
     var d = new DataWorker(dataset);
     d.sort("-column_b").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
             [ "gummy",  "power",  "apple" ],
             [ "banana", "piano",  "gum"   ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("sort (num)", function () {
-    expect(1);
+QUnit.test("sort (num)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -816,18 +834,19 @@ asyncTest("sort (num)", function () {
 
     var d = new DataWorker(dataset);
     d.sort("column_c").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin",  8 ],
             [ "banana", "piano", 45 ],
             [ "gummy",  "power", 82 ],
             [ "cat",   "tissue", 85 ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("sort (num w/ decimals)", function () {
-    expect(1);
+QUnit.test("sort (num w/ decimals)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -856,18 +875,19 @@ asyncTest("sort (num w/ decimals)", function () {
 
     var d = new DataWorker(dataset);
     d.sort("column_c").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin",  "8.0" ],
             [ "banana", "piano", "45.0" ],
             [ "gummy",  "power", "82.0" ],
             [ "cat",   "tissue", "85.0" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("sort (reverse num)", function () {
-    expect(1);
+QUnit.test("sort (reverse num)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
     var dataset = [
         [
             {
@@ -895,18 +915,19 @@ asyncTest("sort (reverse num)", function () {
 
     var d = new DataWorker(dataset);
     d.sort("-column_c").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",   "tissue", 85 ],
             [ "gummy",  "power", 82 ],
             [ "banana", "piano", 45 ],
             [ "apple", "violin",  8 ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("sort (multi-column)", function () {
-    expect(1);
+QUnit.test("sort (multi-column)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -935,18 +956,19 @@ asyncTest("sort (multi-column)", function () {
 
     var d = new DataWorker(dataset);
     d.sort("column_a", "column_c").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin",  5 ],
             [ "banana", "piano", 45 ],
             [ "cat",   "tissue", 85 ],
             [ "cat",    "power", 98 ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("paginate (set page)", function () {
-    expect(1);
+QUnit.test("paginate (set page)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -962,16 +984,17 @@ asyncTest("paginate (set page)", function () {
     var d = new DataWorker(dataset).paginate(2);
 
     d.setPage(3).getPage(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "car",        "screen",    "phone" ],
             [ "sign",        "bagel",    "chips" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("paginate (set 1st page)", function () {
-    expect(1);
+QUnit.test("paginate (set 1st page)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -987,16 +1010,17 @@ asyncTest("paginate (set 1st page)", function () {
     var d = new DataWorker(dataset).paginate(2);
 
     d.setPage(1).getPage(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("paginate (set 0th page)", function () {
-    expect(1);
+QUnit.test("paginate (set 0th page)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1012,16 +1036,17 @@ asyncTest("paginate (set 0th page)", function () {
     var d = new DataWorker(dataset).paginate(2);
 
     d.setPage(0).getPage(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("paginate (set negative page)", function () {
-    expect(1);
+QUnit.test("paginate (set negative page)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1037,16 +1062,17 @@ asyncTest("paginate (set negative page)", function () {
     var d = new DataWorker(dataset).paginate(2);
 
     d.setPage(-1).getPage(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("paginate (next page)", function () {
-    expect(4);
+QUnit.test("paginate (next page)", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1062,21 +1088,19 @@ asyncTest("paginate (next page)", function () {
     var page1, page2, page3, page4;
 
     var d = new DataWorker(dataset).paginate(2).render(function () {
-        deepEqual(page1, [
+        assert.deepEqual(page1, [
             [ "apple", "violin", "music" ],
             [ "cat",   "tissue",   "dog" ]
         ]);
-        deepEqual(page2, [
+        assert.deepEqual(page2, [
             [ "banana", "piano",   "gum" ],
             [ "gummy",  "power", "apple" ]
         ]);
-        deepEqual(page3, [
+        assert.deepEqual(page3, [
             [ "car", "screen", "phone" ],
             [ "sign", "bagel", "chips" ]
         ]);
-        deepEqual(page4, page3);
-
-        start();
+        assert.deepEqual(page4, page3);
     });
 
     d.getNextPage(function (result) {
@@ -1087,11 +1111,13 @@ asyncTest("paginate (next page)", function () {
         page3 = result;
     }).getNextPage(function (result) {
         page4 = result;
-    }).render().finish();
+    }).render().finish(done);
 });
 
-asyncTest("paginate (previous page)", function () {
-    expect(6);
+QUnit.test("paginate (previous page)", function (assert) {
+    assert.expect(6);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1109,30 +1135,30 @@ asyncTest("paginate (previous page)", function () {
     var d = new DataWorker(dataset).paginate(2).setPage(3);
 
     d.getPreviousPage(function (rows, pageNum) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "banana", "piano",   "gum" ],
             [ "gummy",  "power", "apple" ]
         ]);
-        equal(pageNum, 2);
+        assert.equal(pageNum, 2);
     }).getPreviousPage(function (rows, pageNum) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ],
             [ "cat",   "tissue",   "dog" ]
         ]);
-        equal(pageNum, 1);
+        assert.equal(pageNum, 1);
     }).getPreviousPage(function (rows, pageNum) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ],
             [ "cat",   "tissue",   "dog" ]
         ]);
-        equal(pageNum, 1);
-
-        start();
-    }).finish();
+        assert.equal(pageNum, 1);
+    }).finish(done);
 });
 
-asyncTest("paginate (get current page)", function () {
-    expect(1);
+QUnit.test("paginate (get current page)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1147,16 +1173,17 @@ asyncTest("paginate (get current page)", function () {
 
     var d = new DataWorker(dataset).paginate(2).setPage(2);
     d.getPage(function (page) {
-        deepEqual(page, [
+        assert.deepEqual(page, [
             [ "banana", "piano",   "gum" ],
             [ "gummy",  "power", "apple" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("paginate (get specific page)", function () {
-    expect(1);
+QUnit.test("paginate (get specific page)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1171,16 +1198,17 @@ asyncTest("paginate (get specific page)", function () {
 
     var d = new DataWorker(dataset).paginate(2);
     var page = d.getPage(function (page) {
-        deepEqual(page, [
+        assert.deepEqual(page, [
             [ "banana", "piano",   "gum" ],
             [ "gummy",  "power", "apple" ],
         ]);
-        start();
-    }, 2).finish();
+    }, 2).finish(done);
 });
 
-asyncTest("paginate (getPage passes rows and current page number to callback)", function () {
-    expect(2);
+QUnit.test("paginate (getPage passes rows and current page number to callback)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1195,18 +1223,19 @@ asyncTest("paginate (getPage passes rows and current page number to callback)", 
 
     var d = new DataWorker(dataset).paginate(2);
     var page = d.getPage(function (page, pageNum) {
-        deepEqual(page, [
+        assert.deepEqual(page, [
             [ "banana", "piano",   "gum" ],
             [ "gummy",  "power", "apple" ],
         ]);
 
-        equal(pageNum, 2);
-        start();
-    }, 2).finish();
+        assert.equal(pageNum, 2);
+    }, 2).finish(done);
 });
 
-asyncTest("paginate (request after last page returns last page)", function () {
-    expect(2);
+QUnit.test("paginate (request after last page returns last page)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1221,18 +1250,19 @@ asyncTest("paginate (request after last page returns last page)", function () {
 
     var d = new DataWorker(dataset).paginate(2);
     var page = d.getPage(function (page, pageNum) {
-        deepEqual(page, [
+        assert.deepEqual(page, [
             [ "car",  "screen", "phone" ],
             [ "sign", "bagel",  "chips" ]
         ]);
 
-        equal(pageNum, 3);
-        start();
-    }, 7).finish();
+        assert.equal(pageNum, 3);
+    }, 7).finish(done);
 });
 
-asyncTest("paginate (only returns visible rows)", function () {
-    expect(2);
+QUnit.test("paginate (only returns visible rows)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1247,18 +1277,19 @@ asyncTest("paginate (only returns visible rows)", function () {
 
     var d = new DataWorker(dataset).paginate(2);
     var page = d.applyFilter(/a/, "column_a").getPage(function (page, pageNum) {
-        deepEqual(page, [
+        assert.deepEqual(page, [
             [ "banana", "piano",  "gum"   ],
             [ "car",    "screen", "phone" ],
         ]);
 
-        equal(pageNum, 2);
-        start();
-    }, 2).finish();
+        assert.equal(pageNum, 2);
+    }, 2).finish(done);
 });
 
-asyncTest("paginate (next page when already on last page keeps dataset on last page", function () {
-    expect(8);
+QUnit.test("paginate (next page when already on last page keeps dataset on last page", function (assert) {
+    assert.expect(8);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1274,36 +1305,36 @@ asyncTest("paginate (next page when already on last page keeps dataset on last p
     var d = new DataWorker(dataset).paginate(2);
 
     d.getNextPage(function (rows, pageNum) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ],
             [ "cat",   "tissue",   "dog" ]
         ]);
-        equal(pageNum, 1);
+        assert.equal(pageNum, 1);
     }).getNextPage(function (rows, pageNum) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "banana", "piano",   "gum" ],
             [ "gummy",  "power", "apple" ]
         ]);
-        equal(pageNum, 2);
+        assert.equal(pageNum, 2);
     }).getNextPage(function (rows, pageNum) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "car", "screen", "phone" ],
             [ "sign", "bagel", "chips" ]
         ]);
-        equal(pageNum, 3);
+        assert.equal(pageNum, 3);
     }).getNextPage(function (rows, pageNum) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "car", "screen", "phone" ],
             [ "sign", "bagel", "chips" ]
         ]);
-        equal(pageNum, 3);
-
-        start();
-    }).finish();
+        assert.equal(pageNum, 3);
+    }).finish(done);
 });
 
-asyncTest("paginate (get number of pages)", function () {
-    expect(1);
+QUnit.test("paginate (get number of pages)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1319,13 +1350,14 @@ asyncTest("paginate (get number of pages)", function () {
     var d = new DataWorker(dataset).paginate(2);
 
     d.getNumberOfPages(function (numPages) {
-        equal(numPages, 3);
-        start();
-    }).finish();
+        assert.equal(numPages, 3);
+    }).finish(done);
 });
 
-asyncTest("append", function () {
-    expect(1);
+QUnit.test("append", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -1344,7 +1376,7 @@ asyncTest("append", function () {
 
     var d = new DataWorker(dataset1);
     d.append(dataset2).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
@@ -1352,12 +1384,13 @@ asyncTest("append", function () {
             [ "car",        "screen",    "phone" ],
             [ "sign",        "bagel",    "chips" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("append DataWorker", function () {
-    expect(1);
+QUnit.test("append DataWorker", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -1377,7 +1410,7 @@ asyncTest("append DataWorker", function () {
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
     d1.append(d2).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
@@ -1385,12 +1418,14 @@ asyncTest("append DataWorker", function () {
             [ "car",        "screen",    "phone" ],
             [ "sign",        "bagel",    "chips" ]
         ]);
-        start();
-    }).finish();
+        d2.finish();
+    }).finish(done);
 });
 
-asyncTest("failed append (columns not the same)", function () {
-    expect(1);
+QUnit.test("failed append (columns not the same)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -1408,21 +1443,21 @@ asyncTest("failed append (columns not the same)", function () {
     ];
 
     var d = new DataWorker(dataset1).onError(function (error) {
-        equal(
+        assert.equal(
             error,
             "Cannot append dataset (columns do not match):\n\t"
             + "column_a, column_b, column_c\n\t\t"
             + "VS\n\t"
             + "column_a, column_b, column_d"
         );
-
-        start();
     });
 
-    d.append(dataset2).finish();
+    d.append(dataset2).finish(done);
 });
 
-asyncTest("failed append (different number of columns)", function () {
+QUnit.test("failed append (different number of columns)", function (assert) {
+    var done = assert.async();
+
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
 
@@ -1439,22 +1474,20 @@ asyncTest("failed append (different number of columns)", function () {
     ];
 
     var d = new DataWorker(dataset1).onError(function (error) {
-        equal(
+        assert.equal(
             error,
             "Cannot append dataset (columns do not match):\n\t"
             + "column_a, column_b, column_c\n\t\t"
             + "VS\n\t"
             + "column_a, column_b"
         );
-
-        start();
     });
 
-    d.append(dataset2).finish();
+    d.append(dataset2).finish(done);
 });
 
-asyncTest("join (inner join on single field)", function () {
-    expect(2);
+QUnit.test("join (inner join on single field)", function (assert) {
+    assert.expect(2);
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -1475,10 +1508,13 @@ asyncTest("join (inner join on single field)", function () {
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
 
+    var done1 = assert.async();
+    var done2 = assert.async();
+
     d1.join(d2, "column_a", "column_d");
 
     d1.sort("column_a", "column_f").getColumnsAndRecords(function (columns, rows) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a: {
                 aggType   : "max",
                 sortType  : "alpha",
@@ -1528,20 +1564,19 @@ asyncTest("join (inner join on single field)", function () {
                 index     : 5
             }
         });
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music", "apple",    "screen", "phone" ],
             [ "banana", "piano", "gum",  "banana",     "power", "apple" ],
             [ "cat",   "tissue", "dog",     "cat",     "bagel", "chips" ],
             [ "cat",   "tissue", "dog",     "cat", "amsterdam", "drops" ]
         ]);
 
-        start();
-        d2.finish();
-    }).finish();
+        d2.finish(done2);
+    }).finish(done1);
 });
 
-asyncTest("join (left outer join on single field)", function () {
-    expect(1);
+QUnit.test("join (left outer join on single field)", function (assert) {
+    assert.expect(1);
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -1563,22 +1598,24 @@ asyncTest("join (left outer join on single field)", function () {
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
 
+    var done1 = assert.async();
+    var done2 = assert.async();
+
     d1.join(d2, "column_a", "column_d", "left");
 
     d1.sort("column_a", "column_f").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",   "violin", "music",  "apple",    "screen", "phone" ],
             [ "banana",   "piano",   "gum", "banana",     "power", "apple" ],
             [ "cat",     "tissue",   "dog",    "cat",     "bagel", "chips" ],
             [ "dump", "amsterdam", "drops",       "",          "",      "" ],
         ]);
-        start();
-        d2.finish();
-    }).finish();
+        d2.finish(done2);
+    }).finish(done1);
 });
 
-asyncTest("join (right outer join on single field", function () {
-    expect(1);
+QUnit.test("join (right outer join on single field", function (assert) {
+    assert.expect(1);
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -1600,22 +1637,24 @@ asyncTest("join (right outer join on single field", function () {
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
 
+    var done1 = assert.async();
+    var done2 = assert.async();
+
     d1.join(d2, "column_a", "column_d", "right");
 
     d1.sort("column_a", "column_f").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "",              "",      "",    "car",      "nuts",  "axes" ],
             [ "apple",   "violin", "music",  "apple",    "screen", "phone" ],
             [ "banana",   "piano",   "gum", "banana",     "power", "apple" ],
             [ "cat",     "tissue",   "dog",    "cat",     "bagel", "chips" ]
         ]);
-        start();
-        d2.finish();
-    }).finish();
+        d2.finish(done2);
+    }).finish(done1);
 });
 
-asyncTest("join (inner join on multiple fields)", function () {
-    expect(1);
+QUnit.test("join (inner join on multiple fields)", function (assert) {
+    assert.expect(1);
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -1637,6 +1676,9 @@ asyncTest("join (inner join on multiple fields)", function () {
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
 
+    var done1 = assert.async();
+    var done2 = assert.async();
+
     d1.join(
         d2,
         [ "column_a", "column_b" ],
@@ -1644,16 +1686,15 @@ asyncTest("join (inner join on multiple fields)", function () {
     );
 
     d1.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat", "tissue", "dog", "cat", "tissue", "drops" ]
         ]);
-        start();
-        d2.finish();
-    }).finish();
+        d2.finish(done2);
+    }).finish(done1);
 });
 
-asyncTest("failed join (unknown join type)", function () {
-    expect(1);
+QUnit.test("failed join (unknown join type)", function (assert) {
+    assert.expect(1);
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -1674,18 +1715,21 @@ asyncTest("failed join (unknown join type)", function () {
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
 
-    d1.onError(function (error) {
-        equal(error, "Unknown join type.");
+    var done1 = assert.async();
+    var done2 = assert.async();
 
-        start();
-        d2.finish();
+    d1.onError(function (error) {
+        assert.equal(error, "Unknown join type.");
+
+        d1.finish(done1);
+        d2.finish(done2);
     });
 
-    d1.join(d2, "column_a", "column_d", "crazy").finish();
+    d1.join(d2, "column_a", "column_d", "crazy");
 });
 
-asyncTest("failed join (columns with same name)", function () {
-    expect(1);
+QUnit.test("failed join (columns with same name)", function (assert) {
+    assert.expect(1);
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -1706,18 +1750,23 @@ asyncTest("failed join (columns with same name)", function () {
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
 
-    d1.onError(function (error) {
-        equal(error, "Column names overlap.");
+    var done1 = assert.async();
+    var done2 = assert.async();
 
-        start();
-        d2.finish();
+    d1.onError(function (error) {
+        assert.equal(error, "Column names overlap.");
+
+        d1.finish(done1);
+        d2.finish(done2);
     });
 
-    d1.join(d2, "column_a", "column_d").finish();
+    d1.join(d2, "column_a", "column_d");
 });
 
-asyncTest("prepend column names", function () {
-    expect(1);
+QUnit.test("prepend column names", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -1733,7 +1782,7 @@ asyncTest("prepend column names", function () {
     ];
 
     var d = new DataWorker(dataset).prependColumnNames("p_").getColumns(function (columns) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             p_column_a: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -1759,13 +1808,13 @@ asyncTest("prepend column names", function () {
                 index     : 2
             }
         });
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("alter column name", function () {
-    expect(1);
+QUnit.test("alter column name", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1779,7 +1828,7 @@ asyncTest("alter column name", function () {
     var d = new DataWorker(dataset).alterColumnName("column_a", "a_column");
 
     d.getColumns(function (columns) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             "a_column": {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -1805,12 +1854,13 @@ asyncTest("alter column name", function () {
                 index     : 2
             }
         });
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("alter column name (fails if changing to already existing column name)", function () {
-    expect(1);
+QUnit.test("alter column name (fails if changing to already existing column name)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1822,16 +1872,16 @@ asyncTest("alter column name (fails if changing to already existing column name)
     ];
 
     var d = new DataWorker(dataset).onError(function (error) {
-        equal(error, "Column column_b already exists in the dataset.");
-
-        start();
+        assert.equal(error, "Column column_b already exists in the dataset.");
     });
 
-    d.alterColumnName("column_a", "column_b").finish();
+    d.alterColumnName("column_a", "column_b").finish(done);
 });
 
-asyncTest("alter column sort type", function () {
-    expect(1);
+QUnit.test("alter column sort type", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1845,13 +1895,14 @@ asyncTest("alter column sort type", function () {
     var d = new DataWorker(dataset).alterColumnSortType("column_a", "random");
 
     d.getColumns(function (columns) {
-        equal(columns["column_a"]["sortType"], "random");
-        start();
-    }).finish();
+        assert.equal(columns["column_a"]["sortType"], "random");
+    }).finish(done);
 });
 
-asyncTest("alter column aggregate type", function () {
-    expect(1);
+QUnit.test("alter column aggregate type", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1865,13 +1916,14 @@ asyncTest("alter column aggregate type", function () {
     var d = new DataWorker(dataset).alterColumnAggregateType("column_a", "random");
 
     d.getColumns(function (columns) {
-        equal(columns["column_a"]["aggType"], "random");
-        start();
-    }).finish();
+        assert.equal(columns["column_a"]["aggType"], "random");
+    }).finish(done);
 });
 
-asyncTest("alter column title", function () {
-    expect(1);
+QUnit.test("alter column title", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -1885,13 +1937,14 @@ asyncTest("alter column title", function () {
     var d = new DataWorker(dataset).alterColumnTitle("column_a", "random");
 
     d.getColumns(function (columns) {
-        equal(columns["column_a"]["title"], "random");
-        start();
-    }).finish();
+        assert.equal(columns["column_a"]["title"], "random");
+    }).finish(done);
 });
 
-asyncTest("group (single field sum)", function () {
-    expect(1);
+QUnit.test("group (single field sum)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -1908,17 +1961,18 @@ asyncTest("group (single field sum)", function () {
     var d = new DataWorker(dataset).group("column_a").sort("column_a");
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", 576 ],
             [ "cat",   663 ],
             [ "gummy",  34 ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("group (single field max)", function () {
-    expect(1);
+QUnit.test("group (single field max)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -1935,17 +1989,18 @@ asyncTest("group (single field max)", function () {
     var d = new DataWorker(dataset).group("column_a").sort("column_a");
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", 453 ],
             [ "cat",   663 ],
             [ "gummy",  34 ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("group (single field min)", function () {
-    expect(1);
+QUnit.test("group (single field min)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -1962,17 +2017,18 @@ asyncTest("group (single field min)", function () {
     var d = new DataWorker(dataset).group("column_a").sort("column_a");
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", 123 ],
             [ "cat",   663 ],
             [ "gummy",  34 ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("group (multi-field)", function () {
-    expect(1);
+QUnit.test("group (multi-field)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -1992,18 +2048,19 @@ asyncTest("group (multi-field)", function () {
     var d = new DataWorker(dataset).group("column_a", "column_b").sort("column_a", "column_b");
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",  "piano",  218 ],
             [ "apple",  "violin", 453 ],
             [ "cat",    "tissue", 663 ],
             [ "gummy",   "power", 802 ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter operates on partitioned datasets as well", function () {
-    expect(4);
+QUnit.test("apply filter operates on partitioned datasets as well", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -2026,7 +2083,7 @@ asyncTest("apply filter operates on partitioned datasets as well", function () {
     var applePartition, bananaPartition, catPartition, gumPartition;
 
     d.render(function () {
-        deepEqual(
+        assert.deepEqual(
             applePartition.sort(function (a, b) {
                 if (a[2] === b[2]) return 0;
                 if (a[2] < b[2]) return -1;
@@ -2037,24 +2094,22 @@ asyncTest("apply filter operates on partitioned datasets as well", function () {
                 [ "apple",         "gum",   "wallet" ]
             ]
         );
-        deepEqual(
+        assert.deepEqual(
             bananaPartition,
             [
                 [ "banana",      "piano",      "gum" ],
             ]
         );
-        deepEqual(
+        assert.deepEqual(
             catPartition,
             [ ]
         );
-        deepEqual(
+        assert.deepEqual(
             gumPartition,
             [
                 [ "gum",           "gun",     "trix" ]
             ]
         );
-
-        start();
     });
 
     d.getPartitioned(function (partition) {
@@ -2077,15 +2132,17 @@ asyncTest("apply filter operates on partitioned datasets as well", function () {
             && typeof(catPartition) === "object"
             && typeof(gumPartition) === "object"
         ) {
-            d.render().finish();
+            d.render().finish(done);
         } else {
             setTimeout(wait, 0);
         }
     })();
 });
 
-asyncTest("clear filter operates on partitioned datasets as well", function () {
-    expect(4);
+QUnit.test("clear filter operates on partitioned datasets as well", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -2108,7 +2165,7 @@ asyncTest("clear filter operates on partitioned datasets as well", function () {
     var applePartition, bananaPartition, catPartition, gumPartition;
 
     d.render(function () {
-        deepEqual(
+        assert.deepEqual(
             applePartition.sort(function (a, b) {
                 if (a[2] === b[2]) return 0;
                 if (a[2] < b[2]) return -1;
@@ -2120,27 +2177,25 @@ asyncTest("clear filter operates on partitioned datasets as well", function () {
                 [ "apple",         "gum",   "wallet" ]
             ]
         );
-        deepEqual(
+        assert.deepEqual(
             bananaPartition,
             [
                 [ "banana",      "piano",      "gum" ],
                 [ "banana",   "eyedrops",      "tie" ]
             ]
         );
-        deepEqual(
+        assert.deepEqual(
             catPartition,
             [
                 [ "cat",       "nothing",      "dog" ]
             ]
         );
-        deepEqual(
+        assert.deepEqual(
             gumPartition,
             [
                 [ "gum",           "gun",     "trix" ]
             ]
         );
-
-        start();
     });
 
     d.getPartitioned(function (partition) {
@@ -2163,15 +2218,17 @@ asyncTest("clear filter operates on partitioned datasets as well", function () {
             && typeof(catPartition) === "object"
             && typeof(gumPartition) === "object"
         ) {
-            d.render().finish();
+            d.render().finish(done);
         } else {
             setTimeout(wait, 0);
         }
     })();
 });
 
-asyncTest("partitioned datasets obeys hidden columns", function () {
-    expect(4);
+QUnit.test("partitioned datasets obeys hidden columns", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -2194,7 +2251,7 @@ asyncTest("partitioned datasets obeys hidden columns", function () {
     var applePartition, bananaPartition, catPartition, gumPartition;
 
     d.render(function () {
-        deepEqual(
+        assert.deepEqual(
             applePartition.sort(function (a, b) {
                 if (a[1] === b[1]) return 0;
                 if (a[1] < b[1]) return -1;
@@ -2206,27 +2263,25 @@ asyncTest("partitioned datasets obeys hidden columns", function () {
                 [    "gum",   "wallet" ]
             ]
         );
-        deepEqual(
+        assert.deepEqual(
             bananaPartition,
             [
                 [    "piano",      "gum" ],
                 [ "eyedrops",      "tie" ]
             ]
         );
-        deepEqual(
+        assert.deepEqual(
             catPartition,
             [
                 [ "nothing",      "dog" ]
             ]
         );
-        deepEqual(
+        assert.deepEqual(
             gumPartition,
             [
                 [ "gun",     "trix" ]
             ]
         );
-
-        start();
     });
 
     d.getPartitioned(function (partition) {
@@ -2249,15 +2304,17 @@ asyncTest("partitioned datasets obeys hidden columns", function () {
             && typeof(catPartition) === "object"
             && typeof(gumPartition) === "object"
         ) {
-            d.render().finish();
+            d.render().finish(done);
         } else {
             setTimeout(wait, 0);
         }
     })();
 });
 
-asyncTest("get partitioned (single field)", function () {
-    expect(5);
+QUnit.test("get partitioned (single field)", function (assert) {
+    assert.expect(5);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -2285,14 +2342,14 @@ asyncTest("get partitioned (single field)", function () {
         gummyPartition  = [];
 
     d.render(function () {
-        deepEqual(partitionKeys.sort(), [
+        assert.deepEqual(partitionKeys.sort(), [
             [ "apple"  ],
             [ "banana" ],
             [ "cat"    ],
             [ "gummy"  ]
         ]);
 
-        deepEqual(
+        assert.deepEqual(
             applePartition.sort(function (a, b) {
                 if (a[1] === b[1]) return 0;
                 if (a[1] < b[1]) return -1;
@@ -2305,7 +2362,7 @@ asyncTest("get partitioned (single field)", function () {
             ]
         );
 
-        deepEqual(
+        assert.deepEqual(
             bananaPartition.sort(function (a, b) {
                 if (a[1] === b[1]) return 0;
                 if (a[1] < b[1]) return -1;
@@ -2317,7 +2374,7 @@ asyncTest("get partitioned (single field)", function () {
             ]
         );
 
-        deepEqual(
+        assert.deepEqual(
             catPartition.sort(function (a, b) {
                 if (a[1] === b[1]) return 0;
                 if (a[1] < b[1]) return -1;
@@ -2329,11 +2386,9 @@ asyncTest("get partitioned (single field)", function () {
             ]
         );
 
-        deepEqual(gummyPartition, [
+        assert.deepEqual(gummyPartition, [
             [ "gummy", "power", "star" ]
         ]);
-
-        start();
     });
 
     d.getPartitionKeys(function (keys) {
@@ -2363,7 +2418,7 @@ asyncTest("get partitioned (single field)", function () {
             && catPartition.length > 0
             && gummyPartition.length > 0
         ) {
-            d.render().finish();
+            d.render().finish(done);
         } else {
             setTimeout(wait, 0);
         }
@@ -2372,8 +2427,10 @@ asyncTest("get partitioned (single field)", function () {
     setTimeout(wait, 0);
 });
 
-asyncTest("get partitioned (multi-field)", function () {
-    expect(7);
+QUnit.test("get partitioned (multi-field)", function (assert) {
+    assert.expect(7);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -2403,7 +2460,7 @@ asyncTest("get partitioned (multi-field)", function () {
         gummyPowerPartition  = [];
 
     d.render(function () {
-        deepEqual(partitionKeys.sort(), [
+        assert.deepEqual(partitionKeys.sort(), [
             [ "apple", "trance" ],
             [ "apple", "violin" ],
             [ "banana", "piano" ],
@@ -2412,11 +2469,11 @@ asyncTest("get partitioned (multi-field)", function () {
             [ "gummy", "power"  ]
         ]);
 
-        deepEqual(appleTrancePartition, [
+        assert.deepEqual(appleTrancePartition, [
             [ "apple", "trance", "camaro" ]
         ]);
 
-        deepEqual(
+        assert.deepEqual(
             appleViolinPartition.sort(function (a, b) {
                 if (a[2] === b[2]) return 0;
                 if (a[2] < b[2]) return -1;
@@ -2428,7 +2485,7 @@ asyncTest("get partitioned (multi-field)", function () {
             ]
         );
 
-        deepEqual(
+        assert.deepEqual(
             bananaPianoPartition.sort(function (a, b) {
                 if (a[2] === b[2]) return 0;
                 if (a[2] < b[2]) return -1;
@@ -2440,19 +2497,17 @@ asyncTest("get partitioned (multi-field)", function () {
             ]
         );
 
-        deepEqual(catSoyPartition, [
+        assert.deepEqual(catSoyPartition, [
             [ "cat", "soy",  "blender" ]
         ]);
 
-        deepEqual(catTissuePartition, [
+        assert.deepEqual(catTissuePartition, [
             [ "cat", "tissue", "dog" ]
         ]);
 
-        deepEqual(gummyPowerPartition, [
+        assert.deepEqual(gummyPowerPartition, [
             [ "gummy", "power", "star" ]
         ]);
-
-        start();
     });
 
     d.getPartitionKeys(function (keys) {
@@ -2492,7 +2547,7 @@ asyncTest("get partitioned (multi-field)", function () {
             && catTissuePartition.length > 0
             && gummyPowerPartition.length > 0
         ) {
-            d.render().finish();
+            d.render().finish(done);
         } else {
             setTimeout(wait, 0);
         }
@@ -2501,8 +2556,10 @@ asyncTest("get partitioned (multi-field)", function () {
     setTimeout(wait, 0);
 });
 
-asyncTest('get partition (multi-field w/ nulls)', function () {
-    expect(2);
+QUnit.test('get partition (multi-field w/ nulls)', function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -2525,7 +2582,7 @@ asyncTest('get partition (multi-field w/ nulls)', function () {
     var d = new DataWorker(dataset).partition("column_a", "column_b");
 
     d.getPartitionKeys(function (partitionKeys) {
-        deepEqual(partitionKeys.sort(), [
+        assert.deepEqual(partitionKeys.sort(), [
             [ "apple",       "" ],
             [ "apple", "violin" ],
             [ "banana", "piano" ],
@@ -2536,19 +2593,19 @@ asyncTest('get partition (multi-field w/ nulls)', function () {
     })
 
     d.getPartitioned(function (partition) {
-        deepEqual(partition, [
+        assert.deepEqual(partition, [
             [ "cat", null,     "dog" ],
             [ "cat", null, "blender" ]
         ]);
-
-        start();
     }, "cat", null);
 
-    d.finish();
+    d.finish(done);
 });
 
-asyncTest('get partition (empty partition)', function () {
-    expect(1);
+QUnit.test('get partition (empty partition)', function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -2566,15 +2623,14 @@ asyncTest('get partition (empty partition)', function () {
     })
 
     d.getPartitioned(function (partition) {
-        deepEqual(partition, []);
-        start();
+        assert.deepEqual(partition, []);
     }, "non", "existent");
 
-    d.finish();
+    d.finish(done);
 });
 
-asyncTest("clone", function () {
-    expect(3);
+QUnit.test("clone", function (assert) {
+    assert.expect(3);
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2587,11 +2643,15 @@ asyncTest("clone", function () {
 
     var d = new DataWorker(dataset);
 
+    var done1 = assert.async();
+
     d.clone(function (clone) {
-        ok(clone instanceof DataWorker);
+        assert.ok(clone instanceof DataWorker);
+
+        var done2 = assert.async();
 
         clone.getColumnsAndRecords(function (columns, records) {
-            deepEqual(columns, {
+            assert.deepEqual(columns, {
                 column_a: {
                     sortType  : "alpha",
                     aggType   : "max",
@@ -2618,20 +2678,20 @@ asyncTest("clone", function () {
                 }
             });
 
-            deepEqual(records, [
+            assert.deepEqual(records, [
                 [ "apple",      "violin",    "music" ],
                 [ "cat",        "tissue",      "dog" ],
                 [ "banana",      "piano",      "gum" ],
                 [ "gummy",       "power",     "star" ]
             ]);
-
-            start();
-        }).finish();
-    }).finish();
+        }).finish(done2);
+    }).finish(done1);
 });
 
-asyncTest("sort partition", function () {
-    expect(1);
+QUnit.test("sort partition", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -2651,7 +2711,7 @@ asyncTest("sort partition", function () {
     var d = new DataWorker(dataset).partition("column_a").sortPartition("apple", "column_c");
 
     d.getPartitioned(function (partition) {
-        deepEqual(
+        assert.deepEqual(
             partition,
             [
                 [ "apple",      "violin",    "music" ],
@@ -2659,13 +2719,13 @@ asyncTest("sort partition", function () {
                 [ "apple",         "gum",   "wallet" ]
             ]
         );
-
-        start();
-    }, "apple").finish();
+    }, "apple").finish(done);
 });
 
-asyncTest("get rows (all)", function () {
-    expect(1);
+QUnit.test("get rows (all)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2679,19 +2739,19 @@ asyncTest("get rows (all)", function () {
     var d = new DataWorker(dataset);
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
             [ "gummy",       "power",     "star" ]
         ]);
-
-        start();
-    });
+    }).finish(done);
 });
 
-asyncTest("get rows (specify start)", function () {
-    expect(1);
+QUnit.test("get rows (specify done)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2705,17 +2765,17 @@ asyncTest("get rows (specify start)", function () {
     var d = new DataWorker(dataset);
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "banana",      "piano",      "gum" ],
             [ "gummy",       "power",     "star" ]
         ]);
-
-        start();
-    }, 2);
+    }, 2).finish(done);
 });
 
-asyncTest("get rows (specify end)", function () {
-    expect(1);
+QUnit.test("get rows (specify end)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2729,17 +2789,17 @@ asyncTest("get rows (specify end)", function () {
     var d = new DataWorker(dataset);
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ]
         ]);
-
-        start();
-    }, undefined, 1);
+    }, undefined, 1).finish(done);
 });
 
-asyncTest("get rows (specify start and end)", function () {
-    expect(1);
+QUnit.test("get rows (specify done and end)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2753,17 +2813,17 @@ asyncTest("get rows (specify start and end)", function () {
     var d = new DataWorker(dataset);
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ]
         ]);
-
-        start();
-    }, 1, 2);
+    }, 1, 2).finish(done);
 });
 
-asyncTest("get rows (specify a too-large end)", function () {
-    expect(1);
+QUnit.test("get rows (specify a too-large end)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2777,18 +2837,18 @@ asyncTest("get rows (specify a too-large end)", function () {
     var d = new DataWorker(dataset);
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
             [ "gummy",       "power",     "star" ]
         ]);
-
-        start();
-    }, 1, 10);
+    }, 1, 10).finish(done);
 });
 
-asyncTest("get rows (specify columns)", function () {
-    expect(1);
+QUnit.test("get rows (specify columns)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2802,18 +2862,18 @@ asyncTest("get rows (specify columns)", function () {
     var d = new DataWorker(dataset);
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",     "dog" ],
             [ "banana",  "gum" ],
             [ "gummy",  "star" ]
         ]);
-
-        start();
-    }, 1, 10, "column_a", "column_c");
+    }, 1, 10, "column_a", "column_c").finish(done);
 });
 
-asyncTest("get rows (specify columns as array)", function () {
-    expect(1);
+QUnit.test("get rows (specify columns as array)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2827,18 +2887,18 @@ asyncTest("get rows (specify columns as array)", function () {
     var d = new DataWorker(dataset);
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",     "dog" ],
             [ "banana",  "gum" ],
             [ "gummy",  "star" ]
         ]);
-
-        start();
-    }, 1, 10, [ "column_a", "column_c" ]);
+    }, 1, 10, [ "column_a", "column_c" ]).finish(done);
 });
 
-asyncTest("get rows (specify out-of-order columns)", function () {
-    expect(1);
+QUnit.test("get rows (specify out-of-order columns)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2852,16 +2912,16 @@ asyncTest("get rows (specify out-of-order columns)", function () {
     var d = new DataWorker(dataset);
 
     d.getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "dog", "cat" ]
         ]);
-
-        start();
-    }, 1, 1, "column_c", "column_a");
+    }, 1, 1, "column_c", "column_a").finish(done);
 });
 
-asyncTest("get number of records", function () {
-    expect(1);
+QUnit.test("get number of records", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2875,13 +2935,14 @@ asyncTest("get number of records", function () {
     var d = new DataWorker(dataset);
 
     d.getNumberOfRecords(function (result) {
-        equal(result, 4);
-        start();
-    });
+        assert.equal(result, 4);
+    }).finish(done);
 });
 
-asyncTest("getRows obeys applied filter", function () {
-    expect(1);
+QUnit.test("getRows obeys applied filter", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2897,15 +2958,16 @@ asyncTest("getRows obeys applied filter", function () {
     d.applyFilter(/apple/);
 
     d.getRows(function(result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("getColumnsAndRecords obeys applied filter", function () {
-    expect(1);
+QUnit.test("getColumnsAndRecords obeys applied filter", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -2921,15 +2983,16 @@ asyncTest("getColumnsAndRecords obeys applied filter", function () {
     d.applyFilter(/apple/);
 
     d.getColumnsAndRecords(function(columns, rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("setDecimalMarkCharacter", function () {
-    expect(2);
+QUnit.test("setDecimalMarkCharacter", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a" ],
@@ -2945,7 +3008,7 @@ asyncTest("setDecimalMarkCharacter", function () {
     d.alterColumnSortType("column_a", "num")
      .sort("column_a")
      .getColumnsAndRecords(function (columns, rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "1.435" ],
             [ "4.560" ],
             [ "2,345" ],
@@ -2954,18 +3017,19 @@ asyncTest("setDecimalMarkCharacter", function () {
      }).setDecimalMarkCharacter(",")
      .sort("column_a")
      .getColumnsAndRecords(function (columns, rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "2,345" ],
             [ "3,600" ],
             [ "1.435" ],
             [ "4.560" ]
         ]);
-        start();
-     }).finish();
+     }).finish(done);
 });
 
-asyncTest("getDistinctConsecutiveRows", function () {
-    expect(2);
+QUnit.test("getDistinctConsecutiveRows", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b" ],
@@ -2985,14 +3049,14 @@ asyncTest("getDistinctConsecutiveRows", function () {
     d.alterColumnSortType("column_a", "num")
      .sort("column_a")
      .getDistinctConsecutiveRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "abc", 0, 2 ],
             [ "def", 3, 3 ],
             [ "ghi", 4, 5 ],
             [ "def", 6, 7 ]
         ]);
      }, "column_a").getDistinctConsecutiveRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "123", 0, 0 ],
             [ "456", 1, 1 ],
             [ "789", 2, 2 ],
@@ -3000,12 +3064,13 @@ asyncTest("getDistinctConsecutiveRows", function () {
             [ "456", 5, 6 ],
             [ "789", 7, 7 ]
         ]);
-        start();
-     }, "column_b").finish();
+     }, "column_b").finish(done);
 });
 
-asyncTest("extraColumnInfoGetsPassedAlong", function () {
-    expect(2);
+QUnit.test("extraColumnInfoGetsPassedAlong", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -3028,10 +3093,10 @@ asyncTest("extraColumnInfoGetsPassedAlong", function () {
 
     var d = new DataWorker(dataset);
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
     d.getColumns(function (columns) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a: {
                 sortType    : "alpha",
                 aggType     : "max",
@@ -3052,13 +3117,13 @@ asyncTest("extraColumnInfoGetsPassedAlong", function () {
                 elephants   : "donkeys"
             }
         });
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("hide columns (single)", function () {
-    expect(4);
+QUnit.test("hide columns (single)", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3072,7 +3137,7 @@ asyncTest("hide columns (single)", function () {
     var d = new DataWorker(dataset);
 
     d.hideColumns("column_a").getColumnsAndRecords(function (columns, records) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_b: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -3091,14 +3156,14 @@ asyncTest("hide columns (single)", function () {
             }
         });
 
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "violin",    "music" ],
             [ "tissue",      "dog" ],
             [  "piano",      "gum" ],
             [  "power",     "star" ]
         ]);
     }).getAllColumnsAndAllRecords(function (columns, records) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -3125,19 +3190,19 @@ asyncTest("hide columns (single)", function () {
             }
         });
 
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
             [ "gummy",       "power",     "star" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("hide columns (multi)", function () {
-    expect(2);
+QUnit.test("hide columns (multi)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3151,7 +3216,7 @@ asyncTest("hide columns (multi)", function () {
     var d = new DataWorker(dataset).hideColumns("column_a", "column_c");
 
     d.getColumnsAndRecords(function (columns, records) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_b: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -3162,19 +3227,19 @@ asyncTest("hide columns (multi)", function () {
             }
         });
 
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "violin" ],
             [ "tissue" ],
             [  "piano" ],
             [  "power" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("hide column that does not exist does not error out", function () {
-    expect(0);
+QUnit.test("hide column that does not exist does not error out", function (assert) {
+    assert.expect(0);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3185,14 +3250,15 @@ asyncTest("hide column that does not exist does not error out", function () {
         [ "gummy",       "power",     "star" ]
     ];
 
-    var d = new DataWorker(dataset).render(function () { start(); })
+    var d = new DataWorker(dataset)
                               .hideColumns("column_d")
-                              .render()
-                              .finish();
+                              .finish(done);
 });
 
-asyncTest("hide columns (regex)", function () {
-    expect(2);
+QUnit.test("hide columns (regex)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "notcolumn_b", "column_c" ],
@@ -3206,7 +3272,7 @@ asyncTest("hide columns (regex)", function () {
     var d = new DataWorker(dataset).hideColumns(/^column/);
 
     d.getColumnsAndRecords(function (columns, records) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             notcolumn_b : {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -3217,19 +3283,19 @@ asyncTest("hide columns (regex)", function () {
             }
         });
 
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "violin" ],
             [ "tissue" ],
             [  "piano" ],
             [  "power" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("hide columns (regex, w/ flags)", function () {
-    expect(2);
+QUnit.test("hide columns (regex, w/ flags)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "notcolumn_b", "COLumn_c" ],
@@ -3243,7 +3309,7 @@ asyncTest("hide columns (regex, w/ flags)", function () {
     var d = new DataWorker(dataset).hideColumns(/^column/i);
 
     d.getColumnsAndRecords(function (columns, records) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             notcolumn_b : {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -3254,19 +3320,19 @@ asyncTest("hide columns (regex, w/ flags)", function () {
             }
         });
 
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "violin" ],
             [ "tissue" ],
             [  "piano" ],
             [  "power" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("hide columns (by column property)", function () {
-    expect(2);
+QUnit.test("hide columns (by column property)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -3302,7 +3368,7 @@ asyncTest("hide columns (by column property)", function () {
     var d = new DataWorker(dataset).hideColumns({ property: "shouldHide", value: "asdf" });
 
     d.getColumnsAndRecords(function (columns, records) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_b : {
                 sortType   : "alpha",
                 aggType    : "max",
@@ -3314,21 +3380,21 @@ asyncTest("hide columns (by column property)", function () {
             }
         });
 
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "violin" ],
             [ "tissue" ],
             [  "piano" ],
             [  "power" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest(
+QUnit.test(
     "hide columns (by column property, does not affect columns w/o the property)",
-    function () {
-        expect(2);
+    function (assert) {
+        assert.expect(2);
+
+        var done = assert.async();
 
         var dataset = [
             [
@@ -3363,7 +3429,7 @@ asyncTest(
         var d = new DataWorker(dataset).hideColumns({ property: "shouldHide", value: "asdf" });
 
         d.getColumnsAndRecords(function (columns, records) {
-            deepEqual(columns, {
+            assert.deepEqual(columns, {
                 column_b : {
                     sortType   : "alpha",
                     aggType    : "max",
@@ -3383,20 +3449,20 @@ asyncTest(
                 }
             });
 
-            deepEqual(records, [
+            assert.deepEqual(records, [
                 [ "violin", "music" ],
                 [ "tissue", "dog"   ],
                 [  "piano", "gum"   ],
                 [  "power", "star"  ]
             ]);
-
-            start();
-        }).finish();
+        }).finish(done);
     }
 );
 
-asyncTest("getColumns respects hidden columns", function () {
-    expect(1);
+QUnit.test("getColumns respects hidden columns", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3410,13 +3476,14 @@ asyncTest("getColumns respects hidden columns", function () {
     var d = new DataWorker(dataset);
 
     d.hideColumns("column_b").getColumns(function (columns) {
-        deepEqual(Object.keys(columns), [ "column_a", "column_c" ]);
-        start();
-    }).finish();
+        assert.deepEqual(Object.keys(columns), [ "column_a", "column_c" ]);
+    }).finish(done);
 });
 
-asyncTest("show columns", function () {
-    expect(2);
+QUnit.test("show columns", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3431,7 +3498,7 @@ asyncTest("show columns", function () {
                               .showColumns("column_a");
 
     d.getColumnsAndRecords(function (columns, records) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -3450,19 +3517,19 @@ asyncTest("show columns", function () {
             }
         });
 
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "apple",      "violin" ],
             [ "cat",        "tissue" ],
             [ "banana",      "piano" ],
             [ "gummy",       "power" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("show column that does not exist does not error out", function () {
-    expect(0);
+QUnit.test("show column that does not exist does not error out", function (assert) {
+    assert.expect(0);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3473,14 +3540,15 @@ asyncTest("show column that does not exist does not error out", function () {
         [ "gummy",       "power",     "star" ]
     ];
 
-    var d = new DataWorker(dataset).render(function () { start(); })
+    var d = new DataWorker(dataset)
                               .showColumns("column_d")
-                              .render()
-                              .finish();
+                              .finish(done);
 });
 
-asyncTest("show columns (regex)", function () {
-    expect(2);
+QUnit.test("show columns (regex)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "notcolumn_b", "COLumn_c" ],
@@ -3495,7 +3563,7 @@ asyncTest("show columns (regex)", function () {
                               .showColumns(/^(?:not)?column_/);
 
     d.getColumnsAndRecords(function (columns, records) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -3514,19 +3582,19 @@ asyncTest("show columns (regex)", function () {
             }
         });
 
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "apple",      "violin" ],
             [ "cat",        "tissue" ],
             [ "banana",      "piano" ],
             [ "gummy",       "power" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("hide all columns" , function () {
-    expect(2);
+QUnit.test("hide all columns" , function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3541,15 +3609,15 @@ asyncTest("hide all columns" , function () {
                               .hideAllColumns();
 
     d.getColumnsAndRecords(function (columns, records) {
-        deepEqual(columns, {});
-        deepEqual(records, [ [], [], [], [] ]);
-
-        start();
-    }).finish();
+        assert.deepEqual(columns, {});
+        assert.deepEqual(records, [ [], [], [], [] ]);
+    }).finish(done);
 });
 
-asyncTest("show all columns", function () {
-    expect(2);
+QUnit.test("show all columns", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3564,7 +3632,7 @@ asyncTest("show all columns", function () {
                               .showAllColumns();
 
     d.getColumnsAndRecords(function (columns, records) {
-        deepEqual(columns, {
+        assert.deepEqual(columns, {
             column_a: {
                 sortType  : "alpha",
                 aggType   : "max",
@@ -3591,19 +3659,19 @@ asyncTest("show all columns", function () {
             }
         });
 
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
             [ "gummy",       "power",     "star" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("changes for \"on_\" functions are added to the queue by default", function () {
-    expect(3);
+QUnit.test("changes for \"on_\" functions are added to the queue by default", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3619,22 +3687,23 @@ asyncTest("changes for \"on_\" functions are added to the queue by default", fun
     d._actionQueue._isInAction = true;
 
     d.onError(function (error) {
-        equal(error, "Column column_b already exists in the dataset.");
+        assert.equal(error, "Column column_b already exists in the dataset.");
 
-        d.finish();
-        start();
+        d.finish(done);
     });
 
-    equal(d._actionQueue._queueStack.length, 1);
-    equal(d._actionQueue._queueStack[0].length, 1);
+    assert.equal(d._actionQueue._queueStack.length, 1);
+    assert.equal(d._actionQueue._queueStack[0].length, 1);
 
     d.alterColumnName("column_a", "column_b");
 
     d._finishAction();
 });
 
-asyncTest("changes for \"on_\" functions can happen immediately with a flag", function () {
-    expect(2);
+QUnit.test("changes for \"on_\" functions can happen immediately with a flag", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3650,21 +3719,22 @@ asyncTest("changes for \"on_\" functions can happen immediately with a flag", fu
     d._actionQueue._isInAction = true;
 
     d.onError(function (error) {
-        equal(error, "Column column_b already exists in the dataset.");
+        assert.equal(error, "Column column_b already exists in the dataset.");
 
-        d.finish();
-        start();
+        d.finish(done);
     }, true);
 
-    equal(d._actionQueue._queueStack.length, 0);
+    assert.equal(d._actionQueue._queueStack.length, 0);
 
     d.alterColumnName("column_a", "column_b");
 
     d._finishAction();
 });
 
-asyncTest("add child rows", function () {
-    expect(2);
+QUnit.test("add child rows", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var parentDataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3691,11 +3761,11 @@ asyncTest("add child rows", function () {
     d.addChildRows(childRows, "column_a");
 
     d.getNumberOfRecords(function (num) {
-        equal(num, 12);
+        assert.equal(num, 12);
     });
 
     d.getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",  "violin",        "music"   ],
                 [ "apple",  "fuji",          "red"     ],
                 [ "apple",  "red delicious", "red"     ],
@@ -3709,13 +3779,13 @@ asyncTest("add child rows", function () {
             [ "gummy",  "power",         "star"    ],
                 [ "gummy",  "yummy",         "funny"   ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("add child rows using another DataWorker object", function () {
-    expect(2);
+QUnit.test("add child rows using another DataWorker object", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var parentDataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3745,11 +3815,11 @@ asyncTest("add child rows using another DataWorker object", function () {
     d.addChildRows(d2, "column_a");
 
     d.getNumberOfRecords(function (num) {
-        equal(num, 12);
+        assert.equal(num, 12);
     });
 
     d.getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",  "violin",        "music"   ],
                 [ "apple",  "fuji",          "red"     ],
                 [ "apple",  "red delicious", "red"     ],
@@ -3763,13 +3833,13 @@ asyncTest("add child rows using another DataWorker object", function () {
             [ "gummy",  "power",         "star"    ],
                 [ "gummy",  "yummy",         "funny"   ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("children of invisible parents default to invisible", function () {
-    expect(2);
+QUnit.test("children of invisible parents default to invisible", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var parentDataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3797,24 +3867,24 @@ asyncTest("children of invisible parents default to invisible", function () {
      .addChildRows(childRows, "column_a");
 
     d.getNumberOfRecords(function (num) {
-        equal(num, 5);
+        assert.equal(num, 5);
     });
 
     d.getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",  "violin",        "music"   ],
                 [ "apple",  "fuji",          "red"     ],
                 [ "apple",  "red delicious", "red"     ],
                 [ "apple",  "granny smith",  "green"   ],
                 [ "apple",  "honey crisp",   "yellow"  ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("sorts children as subsets of parents, not as part of the whole dataset", function () {
-    expect(2);
+QUnit.test("sorts children as subsets of parents, not as part of the whole dataset", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var parentDataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3841,11 +3911,11 @@ asyncTest("sorts children as subsets of parents, not as part of the whole datase
     d.addChildRows(childRows, "column_a");
 
     d.getNumberOfRecords(function (num) {
-        equal(num, 12);
+        assert.equal(num, 12);
     });
 
     d.sort("column_b").getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "banana", "piano",         "gum"     ],
             [ "gummy",  "power",         "star"    ],
                 [ "gummy",  "yummy",         "funny"   ],
@@ -3859,13 +3929,13 @@ asyncTest("sorts children as subsets of parents, not as part of the whole datase
                 [ "apple",  "honey crisp",   "yellow"  ],
                 [ "apple",  "red delicious", "red"     ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("sorts children within parents when parents have ties", function () {
-    expect(2);
+QUnit.test("sorts children within parents when parents have ties", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var parentDataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -3892,11 +3962,11 @@ asyncTest("sorts children within parents when parents have ties", function () {
     d.addChildRows(childRows, "column_a");
 
     d.getNumberOfRecords(function (num) {
-        equal(num, 12);
+        assert.equal(num, 12);
     });
 
     d.sort("column_b").getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",  "parent",        "music"   ],
                 [ "apple",  "fuji",          "red"     ],
                 [ "apple",  "granny smith",  "green"   ],
@@ -3910,13 +3980,13 @@ asyncTest("sorts children within parents when parents have ties", function () {
             [ "gummy",  "parent",        "star"    ],
                 [ "gummy",  "yummy",         "funny"   ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("multiple column sort with nulls in number columns", function () {
-    expect(1);
+QUnit.test("multiple column sort with nulls in number columns", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var d = new DataWorker([
         [ "numeric_column", "alpha_column" ],
@@ -3930,19 +4000,19 @@ asyncTest("multiple column sort with nulls in number columns", function () {
     d.alterColumnSortType("numeric_column", "num");
 
     d.sort("numeric_column", "alpha_column").getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ null, "abc"   ],
             [ null, "def"   ],
             [ null, "lmnop" ],
             [ null, "xyz"   ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("getDistinctConsecutiveRows with child rows just looks at parent data", function () {
-    expect(5);
+QUnit.test("getDistinctConsecutiveRows with child rows just looks at parent data", function (assert) {
+    assert.expect(5);
+
+    var done = assert.async();
 
     var dataset = [
         [ "rank", "name",  "side", "amount" ],
@@ -3971,14 +4041,14 @@ asyncTest("getDistinctConsecutiveRows with child rows just looks at parent data"
     d.addChildRows(childRows, "name");
 
     d.getNumberOfRecords(function (num) {
-        equal(num, 14);
+        assert.equal(num, 14);
     });
 
     d.alterColumnSortType("rank", "num")
      .alterColumnSortType("amount", "num")
      .sort("-amount", "rank", "side")
      .getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ 1,    "One",   null,     500 ],
                 [ null, "One",   "Left",   400 ],
                 [ null, "One",   "Right",   50 ],
@@ -3995,28 +4065,29 @@ asyncTest("getDistinctConsecutiveRows with child rows just looks at parent data"
                 [ null, "Three", "Left",    25 ],
         ]);
      }).getDistinctConsecutiveRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "One",    0,  3 ],
             [ "Two",    4,  5 ],
             [ "Four",   6, 10 ],
             [ "Three", 11, 13 ]
         ]);
      }, "name").getDistinctConsecutiveRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ null, 0, 13 ]
         ]);
      }, "side").getDistinctConsecutiveRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ 500,  0,  5 ],
             [ 300,  6, 10 ],
             [ 100, 11, 13 ]
         ]);
-        start();
-     }, "amount").finish();
+     }, "amount").finish(done);
 });
 
-asyncTest("DataWorker works without Web Worker support (older browsers)", function () {
-    expect(1);
+QUnit.test("DataWorker works without Web Worker support (older browsers)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4032,15 +4103,16 @@ asyncTest("DataWorker works without Web Worker support (older browsers)", functi
     delete Worker;
 
     d.applyFilter(/apple/, "column_a").getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("then() function lets you utilize DataWorker\"s action queue", function () {
-    expect(2);
+QUnit.test("then() function lets you utilize DataWorker\"s action queue", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4056,16 +4128,17 @@ asyncTest("then() function lets you utilize DataWorker\"s action queue", functio
     var d = new DataWorker(dataset);
 
     d.getNumberOfRecords(function (numRows) {
-        equal(x, 10);
+        assert.equal(x, 10);
         x = numRows;
     }).then(function () {
-        equal(x, 4);
-        start();
-    }).finish();
+        assert.equal(x, 4);
+    }).finish(done);
 });
 
-asyncTest("clearDataset", function () {
-    expect(3);
+QUnit.test("clearDataset", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4079,22 +4152,23 @@ asyncTest("clearDataset", function () {
     var d = new DataWorker(dataset);
 
     d.getRows(function(result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
             [ "banana", "piano",  "gum"   ],
             [ "gummy",  "power",  "star"  ]
         ]);
     }).clearDataset().getColumns(function (result) {
-        deepEqual(result, {});
+        assert.deepEqual(result, {});
     }).getRows(function (result) {
-        deepEqual(result, []);
-        start();
-    }).finish();
+        assert.deepEqual(result, []);
+    }).finish(done);
 });
 
-asyncTest("appending to empty dataset takes in new columns", function () {
-    expect(1);
+QUnit.test("appending to empty dataset takes in new columns", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4108,18 +4182,19 @@ asyncTest("appending to empty dataset takes in new columns", function () {
     var d = new DataWorker([ [] ]).append(dataset);
 
     d.getRows(function(result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
             [ "banana", "piano",  "gum"   ],
             [ "gummy",  "power",  "star"  ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("getHashedRows base case", function () {
-    expect(1);
+QUnit.test("getHashedRows base case", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4133,7 +4208,7 @@ asyncTest("getHashedRows base case", function () {
     var d = new DataWorker(dataset);
 
     d.getHashedRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             {
                 "column_a": "apple",
                 "column_b": "violin",
@@ -4155,12 +4230,13 @@ asyncTest("getHashedRows base case", function () {
                 "column_c": "star"
             }
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("getPage can ask for specific columns", function () {
-    expect(6);
+QUnit.test("getPage can ask for specific columns", function (assert) {
+    assert.expect(6);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4174,30 +4250,31 @@ asyncTest("getPage can ask for specific columns", function () {
     var d = new DataWorker(dataset);
 
     d.paginate(3).getPage(function (page, pageNum) {
-        deepEqual(page, [
+        assert.deepEqual(page, [
             [ "apple",  "violin" ],
             [ "cat",    "tissue" ],
             [ "banana", "piano"  ]
         ]);
-        equal(pageNum, 1);
+        assert.equal(pageNum, 1);
     }, undefined, "column_a", "column_b").getPage(function (page, pageNum) {
-        deepEqual(page, [
+        assert.deepEqual(page, [
             [ "gummy",  "star" ]
         ]);
-        equal(pageNum, 2);
+        assert.equal(pageNum, 2);
     }, 2, [ "column_a", "column_c" ]).getPage(function (page, pageNum) {
-        deepEqual(page, [
+        assert.deepEqual(page, [
             [ "violin" ],
             [ "tissue" ],
             [ "piano"  ]
         ]);
-        equal(pageNum, 1);
-        start();
-    }, 1, "column_b").finish();
+        assert.equal(pageNum, 1);
+    }, 1, "column_b").finish(done);
 });
 
-asyncTest("get/set summary rows", function () {
-    expect(1);
+QUnit.test("get/set summary rows", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4216,17 +4293,17 @@ asyncTest("get/set summary rows", function () {
     );
 
     d.getSummaryRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "things", "stuffs", "foothings" ],
             [ "things", "stuffs", "foostuffs" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("get/set summary rows (set with an array of summary rows)", function () {
-    expect(1);
+QUnit.test("get/set summary rows (set with an array of summary rows)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4245,16 +4322,16 @@ asyncTest("get/set summary rows (set with an array of summary rows)", function (
     ]);
 
     d.getSummaryRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "things", "stuffs", "foothings" ],
             [ "things", "stuffs", "foostuffs" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("get summary rows (specify columns)", function () {
+QUnit.test("get summary rows (specify columns)", function (assert) {
+    var done = assert.async();
+
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
 
@@ -4272,17 +4349,17 @@ asyncTest("get summary rows (specify columns)", function () {
     );
 
     d.getSummaryRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "foothings", "things" ],
             [ "foostuffs", "things" ]
         ]);
-
-        start();
-    }, "column_c", "column_a").finish();
+    }, "column_c", "column_a").finish(done);
 });
 
-asyncTest("apply filter (simple, column-restricted, multi-column, found, using array for column names)", function () {
-    expect(1);
+QUnit.test("apply filter (simple, column-restricted, multi-column, found, using array for column names)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4297,16 +4374,17 @@ asyncTest("apply filter (simple, column-restricted, multi-column, found, using a
     d.applyFilter(/apple/, [ "column_a", "column_c" ])
      .sort("column_a")
      .getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "gummy", "power", "apple"  ]
         ]);
-        start();
-     }).finish();
+     }).finish(done);
 });
 
-asyncTest("search (simple)", function () {
-    expect(2);
+QUnit.test("search (simple)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4319,23 +4397,24 @@ asyncTest("search (simple)", function () {
 
     var d = new DataWorker(dataset);
     d.search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "gummy", "power", "apple"  ]
         ]);
     }, /APPLE/i).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
             [ "banana", "piano",  "gum"   ],
             [ "gummy",  "power",  "apple" ]
         ]);
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("search (simple, only searches visible rows)", function () {
-    expect(2);
+QUnit.test("search (simple, only searches visible rows)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4348,21 +4427,22 @@ asyncTest("search (simple, only searches visible rows)", function () {
 
     var d = new DataWorker(dataset);
     d.applyFilter(/i/).getRows(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
             [ "banana", "piano",  "gum"   ]
         ]);
     }).search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ]
         ]);
-        start();
-    }, "apple").finish();
+    }, "apple").finish(done);
 });
 
-asyncTest("search (specify columns)", function () {
-    expect(1);
+QUnit.test("search (specify columns)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4376,15 +4456,16 @@ asyncTest("search (specify columns)", function () {
     var d = new DataWorker(dataset);
 
     d.search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin" ]
         ]);
-        start();
-    }, /apple/, { columns: [ "column_a", "column_b" ] }).finish();
+    }, /apple/, { columns: [ "column_a", "column_b" ] }).finish(done);
 });
 
-asyncTest("search (specify columns, single column without array)", function () {
-    expect(1);
+QUnit.test("search (specify columns, single column without array)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4398,16 +4479,17 @@ asyncTest("search (specify columns, single column without array)", function () {
     var d = new DataWorker(dataset);
 
     d.search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "music" ],
             [ "gum"   ]
         ]);
-        start();
-    }, /u/, { columns: "column_c" }).finish();
+    }, /u/, { columns: "column_c" }).finish(done);
 });
 
-asyncTest("search (specify sort order)", function () {
-    expect(1);
+QUnit.test("search (specify sort order)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4421,17 +4503,18 @@ asyncTest("search (specify sort order)", function () {
     var d = new DataWorker(dataset);
 
     d.search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",    "tissue", "dog"   ],
             [ "banana", "piano",  "gum"   ],
             [ "apple",  "violin", "music" ]
         ]);
-        start();
-    }, /i/, { sortOn: [ "-column_a" ] }).finish();
+    }, /i/, { sortOn: [ "-column_a" ] }).finish(done);
 });
 
-asyncTest("search (specify sort order, single column without array)", function () {
-    expect(1);
+QUnit.test("search (specify sort order, single column without array)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4445,17 +4528,18 @@ asyncTest("search (specify sort order, single column without array)", function (
     var d = new DataWorker(dataset);
 
     d.search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "cat",    "tissue", "dog"   ],
             [ "banana", "piano",  "gum"   ],
             [ "apple",  "violin", "music" ]
         ]);
-        start();
-    }, /i/, { sortOn: "-column_a" }).finish();
+    }, /i/, { sortOn: "-column_a" }).finish(done);
 });
 
-asyncTest("search (limit number of results)", function () {
-    expect(1);
+QUnit.test("search (limit number of results)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4469,16 +4553,17 @@ asyncTest("search (limit number of results)", function () {
     var d = new DataWorker(dataset);
 
     d.search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
             [ "cat",   "tissue", "dog"   ]
         ]);
-        start();
-    }, /o/, { limit: 2 }).finish();
+    }, /o/, { limit: 2 }).finish(done);
 });
 
-asyncTest("search (sort on columns that aren't being fetched)", function () {
-    expect(1);
+QUnit.test("search (sort on columns that aren't being fetched)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4496,17 +4581,18 @@ asyncTest("search (sort on columns that aren't being fetched)", function () {
         };
 
     d.search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "banana", "gum"   ],
             [ "gummy",  "apple" ],
             [ "apple",  "music" ]
         ]);
-        start();
-    }, /[mu]{2}/, searchOptions).finish();
+    }, /[mu]{2}/, searchOptions).finish(done);
 });
 
-asyncTest("search (search different columns than those being returned)", function () {
-    expect(1);
+QUnit.test("search (search different columns than those being returned)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4524,17 +4610,18 @@ asyncTest("search (search different columns than those being returned)", functio
         };
 
     d.search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "violin" ],
             [ "piano"  ],
             [ "power"  ]
         ]);
-        start();
-    }, /(?:apple|gum)/, searchOptions).finish();
+    }, /(?:apple|gum)/, searchOptions).finish(done);
 });
 
-asyncTest("search (return different columns than those being searched)", function () {
-    expect(1);
+QUnit.test("search (return different columns than those being searched)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4551,17 +4638,16 @@ asyncTest("search (return different columns than those being searched)", functio
         };
 
     d.search(function (result) {
-        deepEqual(result, [
+        assert.deepEqual(result, [
             [ "apple",  "music" ],
             [ "banana", "gum"   ],
             [ "gummy",  "apple" ]
         ]);
-        start();
-    }, /p/, searchOptions).finish();
+    }, /p/, searchOptions).finish(done);
 });
 
-asyncTest("two single-threaded dataworkers", function () {
-    expect(2);
+QUnit.test("two single-threaded dataworkers", function (assert) {
+    assert.expect(2);
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -4584,33 +4670,33 @@ asyncTest("two single-threaded dataworkers", function () {
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
 
+    var done1 = assert.async();
+    var done2 = assert.async();
+
     d1.sort("column_a");
     d2.sort("column_c");
 
     d1.getRows(function (rows1) {
-        deepEqual(rows1, [
+        assert.deepEqual(rows1, [
             [ "apple",      "violin",    "music" ],
             [ "banana",      "piano",      "gum" ],
             [ "cat",        "tissue",      "dog" ],
         ]);
 
         d2.getRows(function (rows2) {
-            deepEqual(rows2, [
+            assert.deepEqual(rows2, [
                 [ "gummy",       "power",    "apple" ],
                 [ "sign",        "bagel",    "chips" ],
                 [ "car",        "screen",    "phone" ]
             ]);
-
-            d1.finish();
-            d2.finish();
-
-            start();
-        });
-    });
+        }).finish(done2);
+    }).finish(done1);
 });
 
-asyncTest("applying filters to non-existant columns does not break dataworker", function () {
-    expect(3);
+QUnit.test("applying filters to non-existant columns does not break dataworker", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4623,22 +4709,22 @@ asyncTest("applying filters to non-existant columns does not break dataworker", 
     var dw = new DataWorker(dataset);
 
     dw.applyFilter(/violin/, [ "column_b", "column_x" ]).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ]
         ]);
     }).clearDataset().applyFilter(/violin/, "column_b").getRows(function (rows) {
-        deepEqual(rows, []);
+        assert.deepEqual(rows, []);
     }).append(dataset).applyFilter(/violin/, "column_b").getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ]
         ]);
-
-        start();
-    }, /violin/).finish();
+    }, /violin/).finish(done);
 });
 
-asyncTest("searching non-existant columns does not break dataworker", function () {
-    expect(4);
+QUnit.test("searching non-existant columns does not break dataworker", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4651,30 +4737,30 @@ asyncTest("searching non-existant columns does not break dataworker", function (
     var dw = new DataWorker(dataset);
 
     dw.search(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "violin" ]
         ]);
     }, /v/, { columns: [ "column_b", "column_x" ] });
 
     dw.clearDataset().search(function (rows) {
-        deepEqual(rows, []);
+        assert.deepEqual(rows, []);
     }, /v/, { columns: "column_b" });
 
     dw.search(function (rows) {
-        deepEqual(rows, []);
+        assert.deepEqual(rows, []);
     }, /v/);
 
     dw.append(dataset).search(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "violin" ]
         ]);
-
-        start();
-    }, /v/, { columns: "column_b" }).finish();
+    }, /v/, { columns: "column_b" }).finish(done);
 });
 
-asyncTest("allow for blank column titles", function () {
-    expect(2);
+QUnit.test("allow for blank column titles", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ { name: "abc", title: "" }, { name: "123" } ],
@@ -4685,15 +4771,15 @@ asyncTest("allow for blank column titles", function () {
     var dw = new DataWorker(dataset);
 
     dw.getColumns(function (columns) {
-        equal(columns["abc"]["title"], "");
-        equal(columns["123"]["title"], "123");
-
-        start();
-    }).finish();
+        assert.equal(columns["abc"]["title"], "");
+        assert.equal(columns["123"]["title"], "123");
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex, gt/e, lt/e, eq, ne)", function () {
-    expect(3);
+QUnit.test("apply filter (complex, gt/e, lt/e, eq, ne)", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     var numbers = { name: "numbers", sortType: "num" };
 
@@ -4716,7 +4802,7 @@ asyncTest("apply filter (complex, gt/e, lt/e, eq, ne)", function () {
     dw.applyFilter([
         { column: "numbers", gte: 10, lt: "30" }
     ]).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "10", "dog",      "animal"  ],
             [ "20", "calendar", "mineral" ]
         ]);
@@ -4724,7 +4810,7 @@ asyncTest("apply filter (complex, gt/e, lt/e, eq, ne)", function () {
         { column: "category", ne: "mineral" },
         { column: "letters", gt: "b", lte: "dog" }
     ]).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "2",  "banana",       "vegetable" ],
             [ 3,    "cat",          "animal"    ],
             [ "10", "dog",          "animal"    ],
@@ -4734,17 +4820,17 @@ asyncTest("apply filter (complex, gt/e, lt/e, eq, ne)", function () {
         { column: "numbers", regex: /1/ },
         { column: "category", eq: "animal" }
     ]).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "10", "dog",          "animal" ],
             [  100, "bandersnatch", "animal" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex, matchAll)", function () {
-    expect(2);
+QUnit.test("apply filter (complex, matchAll)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4759,7 +4845,7 @@ asyncTest("apply filter (complex, matchAll)", function () {
     dw.applyFilter([
         { columns: [ "column_b", "column_c" ], gte: "gum" }
     ]).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
             [ "banana", "piano",  "gum"   ],
@@ -4767,17 +4853,17 @@ asyncTest("apply filter (complex, matchAll)", function () {
     }).clearFilters().applyFilter([
         { columns: [ "column_b", "column_c" ], gte: "gum", matchAll: true }
     ]).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",  "violin", "music" ],
             [ "banana", "piano",  "gum"   ],
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex, empty filter does nothing)", function () {
-    expect(1);
+QUnit.test("apply filter (complex, empty filter does nothing)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4790,18 +4876,18 @@ asyncTest("apply filter (complex, empty filter does nothing)", function () {
     var dw = new DataWorker(dataset);
 
     dw.applyFilter([ { } ]).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",  "violin", "music" ],
             [ "cat",    "tissue", "dog"   ],
             [ "banana", "piano",  "gum"   ],
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("apply filter (complex, columns can be string or array)", function () {
-    expect(2);
+QUnit.test("apply filter (complex, columns can be string or array)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4816,23 +4902,23 @@ asyncTest("apply filter (complex, columns can be string or array)", function () 
     dw.applyFilter([
         { columns: [ "column_a", "column_b" ], regex: /p/ }
     ]).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",  "violin", "music" ],
             [ "banana", "piano",  "gum"   ],
         ]);
     }).clearFilters().applyFilter([
         { columns: "column_a", regex: /p/ }
     ]).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ],
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("search (apply complex filters)", function () {
-    expect(1);
+QUnit.test("search (apply complex filters)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4845,16 +4931,17 @@ asyncTest("search (apply complex filters)", function () {
     var dw = new DataWorker(dataset);
 
     dw.search(function (rows) {
-        deepEqual(rows, [ [ "dog" ] ]);
-        start();
+        assert.deepEqual(rows, [ [ "dog" ] ]);
     }, [
         { columns: [ "column_b", "column_c" ], regex: /s/ },
         { regex: /at/ }
-    ], { returnColumns: "column_c" }).finish();
+    ], { returnColumns: "column_c" }).finish(done);
 });
 
-asyncTest("search (fromRow)", function () {
-    expect(2);
+QUnit.test("search (fromRow)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4867,20 +4954,20 @@ asyncTest("search (fromRow)", function () {
     var dw = new DataWorker(dataset);
 
     dw.search(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "banana", "piano", "gum" ],
         ]);
     }, /p/, { fromRow: 1, limit: 1 }).search(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ],
         ]);
-
-        start();
-    }, /p/, { limit: 1 }).finish();
+    }, /p/, { limit: 1 }).finish(done);
 });
 
-asyncTest("search (allRows)", function () {
-    expect(3);
+QUnit.test("search (allRows)", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4893,21 +4980,21 @@ asyncTest("search (allRows)", function () {
     var dw = new DataWorker(dataset);
 
     dw.applyFilter(/asdf/).getRows(function (rows) {
-        deepEqual(rows, [ ]);
+        assert.deepEqual(rows, [ ]);
     }).search(function (rows) {
-        deepEqual(rows, [ ]);
+        assert.deepEqual(rows, [ ]);
     }, /p/).search(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",  "violin", "music" ],
             [ "banana", "piano",  "gum"   ],
         ]);
-
-        start();
-    }, /p/, { allRows: true }).finish();
+    }, /p/, { allRows: true }).finish(done);
 });
 
-asyncTest("search (getDistinct)", function () {
-    expect(2);
+QUnit.test("search (getDistinct)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var numbers = { name: "numbers", sortType: "num" };
 
@@ -4928,7 +5015,7 @@ asyncTest("search (getDistinct)", function () {
     var dw = new DataWorker(dataset);
 
     dw.search(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ 1,       "apple",        "vegetable" ],
             [ "2",     "banana",       "vegetable" ],
             [ 3,       "cat",          "animal"    ],
@@ -4940,18 +5027,18 @@ asyncTest("search (getDistinct)", function () {
             [ 300,     "rock",         "mineral"   ]
         ]);
     }, /a/, { getDistinct: true }).search(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "vegetable" ],
             [ "animal"    ],
             [ "mineral"   ]
         ]);
-
-        start();
-    }, /a/, { getDistinct: true, columns: "category" }).finish();
+    }, /a/, { getDistinct: true, columns: "category" }).finish(done);
 });
 
-asyncTest("sort by number allows scientific notation", function () {
-    expect(1);
+QUnit.test("sort by number allows scientific notation", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [ { name: "numbers", sortType: "num" } ],
@@ -4963,17 +5050,17 @@ asyncTest("sort by number allows scientific notation", function () {
     var dw = new DataWorker(dataset);
 
     dw.sort("numbers").getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "2.34e-5" ],
             [ "1.23e5"  ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("removeColumns keeps the isVisible flags", function () {
-    expect(2);
+QUnit.test("removeColumns keeps the isVisible flags", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -4986,22 +5073,22 @@ asyncTest("removeColumns keeps the isVisible flags", function () {
     var dw = new DataWorker(dataset);
 
     dw.applyFilter(/o/, "column_b").getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ],
             [ "cat",   "piano",  "dog"   ]
         ]);
     }).removeColumns("column_c").getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin" ],
             [ "cat",   "piano"  ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("column filters now support inverse regex (\"!regex\")", function () {
-    expect(2);
+QUnit.test("column filters now support inverse regex (\"!regex\")", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -5014,21 +5101,21 @@ asyncTest("column filters now support inverse regex (\"!regex\")", function () {
     var dw = new DataWorker(dataset);
 
     dw.applyFilter({ column: "column_b", regex: /o/ }).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple", "violin", "music" ],
             [ "cat",   "piano",  "dog"   ]
         ]);
     }).clearFilters().applyFilter({ column: "column_b", "!regex": /o/ }).getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "banana", "tissue", "gum" ]
         ]);
-
-        start();
-    }).finish();
+    }).finish(done);
 });
 
-asyncTest("complex record values", function () {
-    expect(3);
+QUnit.test("complex record values", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -5046,7 +5133,7 @@ asyncTest("complex record values", function () {
     d.group("column_a").sort("column_a");
 
     d.getAllColumnsAndAllRecords(function (columns, rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",                                      "violin",   "music"       ],
             [ "banana",                                     "tissue",   "gum"         ],
             [ { display: "<b>cat</b>", raw: "cat" },        "piano",    "solid"       ],
@@ -5058,7 +5145,7 @@ asyncTest("complex record values", function () {
     d.filter(/apple|cat|banana|lionhearted/, "column_a");
 
     d.getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",      "violin",   "music"       ],
             [ "banana",     "tissue",   "gum"         ],
             [ "<b>cat</b>", "piano",    "solid"       ],
@@ -5069,20 +5156,20 @@ asyncTest("complex record values", function () {
     d.applyFilter(/apple|cat|banana/, "column_a");
 
     d.getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",      "violin",   "music"       ],
             [ "banana",     "tissue",   "gum"         ],
             [ "<b>cat</b>", "piano",    "solid"       ]
         ]);
-
-        start();
     });
 
-    d.finish();
+    d.finish(done);
 });
 
-asyncTest("add child rows w/ complex record values", function () {
-    expect(1);
+QUnit.test("add child rows w/ complex record values", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var parentDataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -5099,22 +5186,22 @@ asyncTest("add child rows w/ complex record values", function () {
     var d = new DataWorker(parentDataset).addChildRows(childRows, "column_a");
 
     d.getRows(function (rows) {
-        deepEqual(rows, [
+        assert.deepEqual(rows, [
             [ "apple",      "violin",    "music" ],
                 [ "apple",    "granny smith",  "green"    ],
                 [ "apple",    "honey crisp",   "yellow"   ],
             [ "cat",        "tissue",      "dog" ],
                 [ "<b>cat</b>",      "siamese",       "tall"     ]
         ]);
-
-        start();
     });
 
-    d.finish();
+    d.finish(done);
 });
 
-asyncTest("append maintains complex record values", function () {
-    expect(1);
+QUnit.test("append maintains complex record values", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -5134,7 +5221,7 @@ asyncTest("append maintains complex record values", function () {
     var d = new DataWorker(dataset1);
 
     d.append(dataset2).getAllColumnsAndAllRecords(function (columns, records) {
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "apple",      "violin",    "music" ],
             [ "cat",        "tissue",      "dog" ],
             [ "banana",      "piano",      "gum" ],
@@ -5142,13 +5229,11 @@ asyncTest("append maintains complex record values", function () {
             [ "car",        "screen",    "phone" ],
             [ { display: "<i>sign</i>", raw: "sign" },        "bagel",    "chips" ]
         ]);
-
-        start();
-    }, true).finish();
+    }, true).finish(done);
 });
 
-asyncTest("clone maintains complex record values", function () {
-    expect(1);
+QUnit.test("clone maintains complex record values", function (assert) {
+    assert.expect(1);
 
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -5161,22 +5246,25 @@ asyncTest("clone maintains complex record values", function () {
 
     var d = new DataWorker(dataset);
 
+    var done1 = assert.async();
+
     d.clone(function (clone) {
+        var done2 = assert.async();
         clone.getAllColumnsAndAllRecords(function (columns, records) {
-            deepEqual(records, [
+            assert.deepEqual(records, [
                 [ "apple",      "violin",    "music" ],
                 [ "cat",        "tissue",      "dog" ],
                 [ "banana",      "piano",      "gum" ],
                 [ { display: "<i>sign</i>", raw: "sign" },        "bagel",    "chips" ]
             ]);
-
-            start();
-        }, true).finish();
-    }).finish();
+        }, true).finish(done2);
+    }).finish(done1);
 });
 
-asyncTest("partition dataset w/ complex record values", function () {
-    expect(2);
+QUnit.test("partition dataset w/ complex record values", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -5197,7 +5285,7 @@ asyncTest("partition dataset w/ complex record values", function () {
     var d = new DataWorker(dataset).partition("column_a");
 
     d.getPartitioned(function (partition) {
-        deepEqual(
+        assert.deepEqual(
             partition.sort(function (a, b) {
                 if (a[2] === b[2]) return 0;
                 if (a[2] < b[2]) return -1;
@@ -5214,7 +5302,7 @@ asyncTest("partition dataset w/ complex record values", function () {
     d.applyFilter(/^apple$/, "column_a");
 
     d.getPartitioned(function (partition) {
-        deepEqual(
+        assert.deepEqual(
             partition.sort(function (a, b) {
                 if (a[2] === b[2]) return 0;
                 if (a[2] < b[2]) return -1;
@@ -5226,15 +5314,15 @@ asyncTest("partition dataset w/ complex record values", function () {
                 [ "apple",        "gum",    "wallet" ]
             ]
         );
-
-        start();
     }, "apple");
 
-    d.finish();
+    d.finish(done);
 });
 
-asyncTest("hash dataset w/ complex record values", function () {
-    expect(1);
+QUnit.test("hash dataset w/ complex record values", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var dataset = [
         [
@@ -5253,7 +5341,7 @@ asyncTest("hash dataset w/ complex record values", function () {
     var d = new DataWorker(dataset);
 
     d.getHashOfDatasetByKeyColumns(function (hash) {
-        deepEqual(hash, {
+        assert.deepEqual(hash, {
             "apple": [
                 [ "apple",      "violin",    "music" ],
                 [ "apple",         "gum",   "wallet" ],
@@ -5264,13 +5352,11 @@ asyncTest("hash dataset w/ complex record values", function () {
                 [ "banana",   "eyedrops",      "tie" ],
             ]
         });
-
-        start();
-    }, "column_a").finish();
+    }, "column_a").finish(done);
 });
 
-asyncTest("join dataset w/ complex record values", function () {
-    expect(1);
+QUnit.test("join dataset w/ complex record values", function (assert) {
+    assert.expect(1);
 
     var dataset1 = [
         [ "column_a", "column_b", "column_c" ],
@@ -5291,19 +5377,21 @@ asyncTest("join dataset w/ complex record values", function () {
     var d1 = new DataWorker(dataset1);
     var d2 = new DataWorker(dataset2);
 
+    var done1 = assert.async();
+    var done2 = assert.async();
+
     d1.join(d2, "column_a", "column_d").sort("column_a", "column_f");
 
     d1.getAllColumnsAndAllRecords(function (columns, records) {
-        deepEqual(records, [
+        assert.deepEqual(records, [
             [ "apple", "violin", "music", "apple",    "screen", "phone" ],
             [ "banana", "piano", "gum",  "banana",     "power", "apple" ],
             [ "cat",   "tissue", "dog", { display: "<b>cat</b>", raw: "cat" },     "bagel", "chips" ],
             [ "cat",   "tissue", "dog", { display: "<b>cat</b>", raw: "cat" }, "amsterdam", "drops" ]
         ]);
 
-        start();
-        d2.finish();
+        d2.finish(done2);
     }, true);
 
-    d1.finish();
+    d1.finish(done1);
 });

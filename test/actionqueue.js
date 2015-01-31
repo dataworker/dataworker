@@ -1,12 +1,12 @@
-module("ActionQueue");
+QUnit.module("ActionQueue");
 
-test("construct", function () {
+QUnit.test("construct", function (assert) {
     var q = new ActionQueue();
 
-    ok(q instanceof ActionQueue);
+    assert.ok(q instanceof ActionQueue);
 });
 
-test("queue action (not in action)", function () {
+QUnit.test("queue action (not in action)", function (assert) {
     var q = new ActionQueue(), actionDone = false;
 
     q.queueNext(function () {
@@ -14,10 +14,10 @@ test("queue action (not in action)", function () {
         q.finishAction();
     });
 
-    ok(actionDone);
+    assert.ok(actionDone);
 });
 
-test("queue action (in action)", function () {
+QUnit.test("queue action (in action)", function (assert) {
     var q = new ActionQueue();
 
     function toQ() { q.finishAction(); };
@@ -25,7 +25,7 @@ test("queue action (in action)", function () {
     q._isInAction = true;
     q.queueNext(toQ);
 
-    deepEqual(
+    assert.deepEqual(
         q._queueStack,
         [
             [
@@ -35,7 +35,7 @@ test("queue action (in action)", function () {
     );
 });
 
-test("queue action (named function with args)", function () {
+QUnit.test("queue action (named function with args)", function (assert) {
     var q = new ActionQueue(), toSet = "arghh";
 
     function toQ(arg) {
@@ -45,24 +45,26 @@ test("queue action (named function with args)", function () {
 
     q.queueNext(toQ, "Hello, world!");
 
-    equal(toSet, "Hello, world!");
+    assert.equal(toSet, "Hello, world!");
 });
 
-asyncTest("queue action (within queued action)", function () {
+QUnit.test("queue action (within queued action)", function (assert) {
     expect(6);
+
+    var done = assert.async();
 
     var q = new ActionQueue(), steps = 0;
 
     q._isInAction = true;
 
     q.queueNext(function () {
-        equal(steps++, 0);
+        assert.equal(steps++, 0);
 
         q.queueNext(function () {
-            equal(steps++, 1);
+            assert.equal(steps++, 1);
 
             q.queueNext(function () {
-                equal(steps++, 2);
+                assert.equal(steps++, 2);
                 setTimeout(function () { q.finishAction(); }, 50);
             });
 
@@ -71,38 +73,41 @@ asyncTest("queue action (within queued action)", function () {
 
         q.finishAction();
     }).queueNext(function () {
-        equal(steps++, 3);
+        assert.equal(steps++, 3);
 
         q.queueNext(function () {
-            equal(steps++, 4);
+            assert.equal(steps++, 4);
 
             q.finishAction();
         });
 
         q.finishAction();
     }).queueNext(function () {
-        equal(steps++, 5);
+        assert.equal(steps++, 5);
 
         q.finishAction();
-        start();
+        done();
     });
 
     q.finishAction();
 });
 
-asyncTest(
+QUnit.test(
     "queue an action while an executing action is waiting for async response",
-    function () {
+    function (assert) {
         expect(7);
+
+        var done = assert.async();
 
         var q = new ActionQueue(), steps = 0;
 
         q.queueNext(function () {
-            equal(steps++, 0, "first step");
+            assert.equal(steps++, 0, "first step");
+
 
             q.beginAsynchronous();
             setTimeout(function () {
-                equal(steps++, 1, "second step");
+                assert.equal(steps++, 1, "second step");
 
                 q.finishAsynchronous();
                 q.finishAction();
@@ -110,43 +115,45 @@ asyncTest(
         });
 
         setTimeout(function () {
-            equal(steps++, 3, "fourth step");
+            assert.equal(steps++, 3, "fourth step");
 
             q.queueNext(function () {
-                equal(steps++, 6, "seventh step");
+                assert.equal(steps++, 6, "seventh step");
                 q.finishAction();
-                start();
+                done();
             });
         }, 200);
 
         q.queueNext(function () {
-            equal(steps++, 2, "third step");
+            assert.equal(steps++, 2, "third step");
 
             q.beginAsynchronous();
             setTimeout(function () {
-                equal(steps++, 4, "fifth step");
+                assert.equal(steps++, 4, "fifth step");
 
                 q.finishAsynchronous();
                 q.finishAction();
             }, 400);
         }).queueNext(function () {
-            equal(steps++, 5, "sixth step");
+            assert.equal(steps++, 5, "sixth step");
             q.finishAction();
         });
     }
 );
 
 
-asyncTest(
+QUnit.test(
     "queue an action while executing action awaits async reponse works on stack index > 1",
-    function () {
+    function (assert) {
         expect(9);
+
+        var done = assert.async();
 
         var q = new ActionQueue(), steps = 1;
 
         function one(step) {
             q.queueNext(function () {
-                equal(steps++, step, "step " + step);
+                assert.equal(steps++, step, "step " + step);
 
                 q.beginAsynchronous();
                 setTimeout(function () {
@@ -158,22 +165,22 @@ asyncTest(
 
         function two(step) {
             q.queueNext(function () {
-                equal(steps++, step, "step " + step);
+                assert.equal(steps++, step, "step " + step);
 
                 if (step == 2) three();
                 q.finishAction();
 
-                if (step == 9) start();
+                if (step == 9) done();
             });
         }
 
         function three() {
             q.queueNext(function () {
-                equal(steps++, 3, "step 3");
+                assert.equal(steps++, 3, "step 3");
 
                 q.beginAsynchronous();
                 setTimeout(function () {
-                    equal(steps++, 5, "step 5");
+                    assert.equal(steps++, 5, "step 5");
 
                     q.finishAsynchronous();
                     q.finishAction();
@@ -187,7 +194,7 @@ asyncTest(
         two(7);
 
         setTimeout(function () {
-            equal(steps++, 4, "step 4");
+            assert.equal(steps++, 4, "step 4");
 
             one(8);
             two(9);
@@ -195,7 +202,7 @@ asyncTest(
     }
 );
 
-test("finish action", function () {
+QUnit.test("finish action", function (assert) {
     var q = new ActionQueue(),
         action1Done = false, action2Done = false;
 
@@ -212,11 +219,11 @@ test("finish action", function () {
 
     q.queueNext(toQ1).queueNext(toQ2).finishAction();
 
-    ok(action1Done);
-    ok(action2Done);
+    assert.ok(action1Done);
+    assert.ok(action2Done);
 });
 
-test("do not allow any more inputs after action queue is disposed", function () {
+QUnit.test("do not allow any more inputs after action queue is disposed", function (assert) {
     var q = new ActionQueue(),
         action1Done = false, action2Done = false;
 
@@ -236,6 +243,6 @@ test("do not allow any more inputs after action queue is disposed", function () 
      .queueNext(toQ2)
      .finishAction();
 
-    ok(action1Done);
-    ok(!action2Done);
+    assert.ok(action1Done);
+    assert.ok(!action2Done);
 });

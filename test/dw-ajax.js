@@ -1,4 +1,4 @@
-module("DataWorker (AJAX Data)");
+QUnit.module("DataWorker (AJAX Data)");
 
 /* resources/simple-dataset.json:
 
@@ -17,74 +17,75 @@ module("DataWorker (AJAX Data)");
 
 */
 
-asyncTest("construct (webworker)", function () {
-    expect(7);
+QUnit.test("construct (webworker)", function (assert) {
+    assert.expect(7);
+
+    var done = assert.async();
 
     var d = new DataWorker({
-        forceSingleThread: true,
         datasource: srcPath + "resources/simple-dataset.json"
     }).requestDataset();
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
     d.onAllRowsReceived(function () {
         d.getColumns(function (columns) {
-            equal(Object.keys(columns).length, 3);
-            equal(columns["column_a"].index, 0);
-            equal(columns["column_b"].index, 1);
-            equal(columns["column_c"].index, 2);
+            assert.equal(Object.keys(columns).length, 3);
+            assert.equal(columns["column_a"].index, 0);
+            assert.equal(columns["column_b"].index, 1);
+            assert.equal(columns["column_c"].index, 2);
         }).getRows(function (rows) {
-            deepEqual(rows, [
+            assert.deepEqual(rows, [
                 [ "apple",      "violin",    "music" ],
                 [ "cat",        "tissue",      "dog" ],
                 [ "banana",      "piano",      "gum" ],
                 [ "gummy",       "power",     "star" ]
             ]);
         }).getSummaryRows(function (rows) {
-            deepEqual(rows, [
+            assert.deepEqual(rows, [
                 [ "acbg", "vtpp", "mdgs" ]
             ]);
-
-            start();
-        }).finish();
+        }).finish(done);
     });
 });
 
-asyncTest("construct (single-thread)", function () {
-    expect(7);
+QUnit.test("construct (single-thread)", function (assert) {
+    assert.expect(7);
+
+    var done = assert.async();
 
     var d = new DataWorker({
         forceSingleThread: true,
         datasource: srcPath + "resources/simple-dataset.json"
     }).requestDataset();
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
     d.onAllRowsReceived(function () {
         d.getColumns(function (columns) {
-            equal(Object.keys(columns).length, 3);
-            equal(columns["column_a"].index, 0);
-            equal(columns["column_b"].index, 1);
-            equal(columns["column_c"].index, 2);
+            assert.equal(Object.keys(columns).length, 3);
+            assert.equal(columns["column_a"].index, 0);
+            assert.equal(columns["column_b"].index, 1);
+            assert.equal(columns["column_c"].index, 2);
         }).getRows(function (rows) {
-            deepEqual(rows, [
+            assert.deepEqual(rows, [
                 [ "apple",      "violin",    "music" ],
                 [ "cat",        "tissue",      "dog" ],
                 [ "banana",      "piano",      "gum" ],
                 [ "gummy",       "power",     "star" ]
-            ])
+            ]);
         }).getSummaryRows(function (rows) {
-            deepEqual(rows, [
+            assert.deepEqual(rows, [
                 [ "acbg", "vtpp", "mdgs" ]
             ]);
-
-            start();
-        }).finish();
+        }).finish(done);
     });
 });
 
-asyncTest("AJAX as a fallback for when websocket fails", function () {
-    expect(7);
+QUnit.test("AJAX as a fallback for when websocket fails", function (assert) {
+    assert.expect(7);
+
+    var done = assert.async();
 
     var workerSource = DataWorker.workerPool._src;
     DataWorker.workerPool._src = "../src/dw-helper.js";
@@ -96,63 +97,62 @@ asyncTest("AJAX as a fallback for when websocket fails", function () {
         ]
     }).requestDataset();
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
     d.onAllRowsReceived(function () {
         d.getColumns(function (columns) {
-            equal(Object.keys(columns).length, 3);
-            equal(columns["column_a"].index, 0);
-            equal(columns["column_b"].index, 1);
-            equal(columns["column_c"].index, 2);
+            assert.equal(Object.keys(columns).length, 3);
+            assert.equal(columns["column_a"].index, 0);
+            assert.equal(columns["column_b"].index, 1);
+            assert.equal(columns["column_c"].index, 2);
         }).getRows(function (rows) {
-            deepEqual(rows, [
+            assert.deepEqual(rows, [
                 [ "apple",      "violin",    "music" ],
                 [ "cat",        "tissue",      "dog" ],
                 [ "banana",      "piano",      "gum" ],
                 [ "gummy",       "power",     "star" ]
             ])
         }).getSummaryRows(function (rows) {
-            deepEqual(rows, [
+            assert.deepEqual(rows, [
                 [ "acbg", "vtpp", "mdgs" ]
             ]);
 
             DataWorker.workerPool._src = workerSource;
-            start();
-        }).finish();
+        }).finish(done);
     });
 });
 
-asyncTest("Can use onReceiveColumns with AJAX", function () {
-    expect(7);
+QUnit.test("Can use onReceiveColumns with AJAX", function (assert) {
+    assert.expect(7);
+
+    var done = assert.async();
 
     var d = new DataWorker({
         datasource: srcPath + "resources/simple-dataset.json"
     }).requestDataset();
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
     d.onReceiveColumns(function () {
         d.getColumns(function (columns) {
-            equal(Object.keys(columns).length, 3);
-            equal(columns["column_a"].index, 0);
-            equal(columns["column_b"].index, 1);
-            equal(columns["column_c"].index, 2);
+            assert.equal(Object.keys(columns).length, 3);
+            assert.equal(columns["column_a"].index, 0);
+            assert.equal(columns["column_b"].index, 1);
+            assert.equal(columns["column_c"].index, 2);
         });
     }).onAllRowsReceived(function () {
         d.getRows(function (rows) {
-            deepEqual(rows, [
+            assert.deepEqual(rows, [
                 [ "apple",      "violin",    "music" ],
                 [ "cat",        "tissue",      "dog" ],
                 [ "banana",      "piano",      "gum" ],
                 [ "gummy",       "power",     "star" ]
             ])
         }).getSummaryRows(function (rows) {
-            deepEqual(rows, [
+            assert.deepEqual(rows, [
                 [ "acbg", "vtpp", "mdgs" ]
             ]);
-
-            start();
-        }).finish();
+        }).finish(done);
     });
 });
 
@@ -178,8 +178,10 @@ The remaining 100 lines were generated by running:
 
 */
 
-asyncTest("Streaming ajax", function () {
-    expect(7);
+QUnit.test("Streaming ajax", function (assert) {
+    assert.expect(7);
+
+    var done = assert.async();
 
     var d = new DataWorker({
         datasource: srcPath + "resources/streaming-dataset-300-rows.json"
@@ -187,22 +189,20 @@ asyncTest("Streaming ajax", function () {
 
     d.onAllRowsReceived(function () {
         d.getColumns(function (columns) {
-            equal(Object.keys(columns).length, 2);
+            assert.equal(Object.keys(columns).length, 2);
 
-            equal(columns.numbers.index, 0);
-            equal(columns.numbers.sortType, "num");
+            assert.equal(columns.numbers.index, 0);
+            assert.equal(columns.numbers.sortType, "num");
 
-            equal(columns.words.index, 1);
-            equal(columns.words.sortType, "alpha");
+            assert.equal(columns.words.index, 1);
+            assert.equal(columns.words.sortType, "alpha");
         }).getNumberOfRecords(function (numRecords) {
-            equal(numRecords, 300);
+            assert.equal(numRecords, 300);
         }).getSummaryRows(function (rows) {
-            deepEqual(rows, [
+            assert.deepEqual(rows, [
                 [ 12345, "Total" ],
                 [ 54321, "latoT" ]
             ]);
-
-            start();
-        }).finish();
+        }).finish(done);
     });
 });

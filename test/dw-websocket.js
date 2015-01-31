@@ -1,13 +1,15 @@
-module("DataWorker (Streaming via Websockets)");
+QUnit.module("DataWorker (Streaming via Websockets)");
 
 DataWorker.workerPool._src = "resources/dw-helper.test.js";
 
 WebSocket.unexpected = function (msg) {
-    ok(false, msg);
+    assert.ok(false, msg);
 };
 
-asyncTest("construct (webworker w/ authenticate)", function () {
-    expect(2);
+QUnit.test("construct (webworker w/ authenticate)", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -22,21 +24,23 @@ asyncTest("construct (webworker w/ authenticate)", function () {
         datasource   : "ws://websocket.test.com:8085",
         authenticate : "asdfzxcv",
         onTrigger    : function (msg) {
-            equal(msg, "authenticated", "authenticated");
+            assert.equal(msg, "authenticated", "authenticated");
 
-            d.getColumns(function (columns) { start(); }).finish();
+            d.getColumns(function (columns) { assert.ok(true); }).finish(done);
         }
     });
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 });
 
-asyncTest("construct (single-threaded w/ authenticate)", function () {
-    expect(2);
+QUnit.test("construct (single-threaded w/ authenticate)", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     WebSocket.expectedSource  = "ws://websocket.test.com:8085";
     WebSocket.expectedReplies = {
-        "asdfzxcv": function () { ok(true, "authenticate received"); }
+        "asdfzxcv": function () { assert.ok(true, "authenticate received"); }
     };
 
     var d = new DataWorker({
@@ -45,13 +49,15 @@ asyncTest("construct (single-threaded w/ authenticate)", function () {
         forceSingleThread : true
     });
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
-    d.getColumns(function (columns) { start(); }).finish();
+    d.getColumns(function (columns) { assert.ok(true) }).finish(done);
 });
 
-asyncTest("construct (webworker w/ request)", function () {
-    expect(3);
+QUnit.test("construct (webworker w/ request)", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -86,12 +92,12 @@ asyncTest("construct (webworker w/ request)", function () {
         request          : "REQUEST_DATASET",
         onReceiveColumns: function () {
             d.getExpectedNumberOfRecords(function (expected) {
-                equal(expected, 4, "expected number of records");
+                assert.equal(expected, 4, "expected number of records");
             });
         },
         onAllRowsReceived: function () {
             d.getAllColumnsAndAllRecords(function (columns, records) {
-                deepEqual(columns, {
+                assert.deepEqual(columns, {
                     column_a: {
                         sortType  : "alpha",
                         aggType   : "max",
@@ -118,22 +124,23 @@ asyncTest("construct (webworker w/ request)", function () {
                     }
                 });
 
-                deepEqual(records, [
+                assert.deepEqual(records, [
                     [ "apple",      "violin",    "music" ],
                     [ "cat",        "tissue",      "dog" ],
                     [ "banana",      "piano",      "gum" ],
                     [ "gummy",       "power",     "star" ]
                 ]);
 
-                d.finish();
-                start();
+                d.finish(done);
             });
         }
     });
 });
 
-asyncTest("construct (single-threaded w/ request)", function () {
-    expect(3);
+QUnit.test("construct (single-threaded w/ request)", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
 
     WebSocket.expectedSource = "ws://websocket.test.com:8085";
     WebSocket.expectedReplies = {
@@ -163,12 +170,12 @@ asyncTest("construct (single-threaded w/ request)", function () {
         request          : "REQUEST_DATASET",
         onReceiveColumns: function () {
             d.getExpectedNumberOfRecords(function (expected) {
-                equal(expected, 4, "expected number of records");
+                assert.equal(expected, 4, "expected number of records");
             });
         },
         onAllRowsReceived: function () {
             d.getAllColumnsAndAllRecords(function (columns, records) {
-                deepEqual(columns, {
+                assert.deepEqual(columns, {
                     column_a: {
                         sortType  : "alpha",
                         aggType   : "max",
@@ -195,22 +202,23 @@ asyncTest("construct (single-threaded w/ request)", function () {
                     }
                 });
 
-                deepEqual(records, [
+                assert.deepEqual(records, [
                     [ "apple",      "violin",    "music" ],
                     [ "cat",        "tissue",      "dog" ],
                     [ "banana",      "piano",      "gum" ],
                     [ "gummy",       "power",     "star" ]
                 ]);
 
-                d.finish();
-                start();
+                d.finish(done);
             });
         }
     });
 });
 
-asyncTest("construct (complex datasource)", function () {
-    expect(1);
+QUnit.test("construct (complex datasource)", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -227,15 +235,17 @@ asyncTest("construct (complex datasource)", function () {
             authenticate : "asdfzxcv"
         },
         onTrigger: function (msg) {
-            equal(msg, "authenticated", "authenticated");
+            assert.equal(msg, "authenticated", "authenticated");
 
-            d.getColumns(function (columns) { start(); }).finish();
+            d.getColumns(function (columns) { assert.ok(true); }).finish(done);
         }
     });
 });
 
-asyncTest("construct (fallback to websocket)", function () {
-    expect(1);
+QUnit.test("construct (fallback to websocket)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -257,16 +267,17 @@ asyncTest("construct (fallback to websocket)", function () {
             }
         ],
         onTrigger: function (msg) {
-            equal(msg, "authenticated", "authenticated");
+            assert.equal(msg, "authenticated", "authenticated");
 
-            d.finish();
-            start();
+            d.finish(done);
         }
     });
 });
 
-asyncTest("requestDataset", function () {
-    expect(4);
+QUnit.test("requestDataset", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -320,7 +331,7 @@ asyncTest("requestDataset", function () {
         onAllRowsReceived: function () {
             d.getAllColumnsAndAllRecords(function (columns, records) {
                 if (datasetNum++ === 0) {
-                    deepEqual(columns, {
+                    assert.deepEqual(columns, {
                         column_a: {
                             sortType  : "alpha",
                             aggType   : "max",
@@ -347,7 +358,7 @@ asyncTest("requestDataset", function () {
                         }
                     });
 
-                    deepEqual(records, [
+                    assert.deepEqual(records, [
                         [ "apple",      "violin",    "music" ],
                         [ "cat",        "tissue",      "dog" ],
                         [ "banana",      "piano",      "gum" ],
@@ -356,7 +367,7 @@ asyncTest("requestDataset", function () {
 
                     d.requestDataset("REQUEST_DATASET_2");
                 } else {
-                    deepEqual(columns, {
+                    assert.deepEqual(columns, {
                         column_d: {
                             sortType  : "alpha",
                             aggType   : "max",
@@ -383,22 +394,23 @@ asyncTest("requestDataset", function () {
                         }
                     });
 
-                    deepEqual(records, [
+                    assert.deepEqual(records, [
                         [ "trilogy",    "shakespeare", "soul"   ],
                         [ "motorcycle", "tire",        "tissue" ],
                         [ "almonds",    "kodaline",    "body"   ]
                     ]);
 
-                    d.finish();
-                    start();
+                    d.finish(done);
                 }
             });
         }
     }).requestDataset("REQUEST_DATASET_1");
 });
 
-asyncTest("requestDataset w/ cancelRequests", function () {
-    expect(4);
+QUnit.test("requestDataset w/ cancelRequests", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -455,7 +467,7 @@ asyncTest("requestDataset w/ cancelRequests", function () {
         onAllRowsReceived: function () {
             d.getAllColumnsAndAllRecords(function (columns, records) {
                 if (datasetNum++ === 0) {
-                    deepEqual(columns, {
+                    assert.deepEqual(columns, {
                         column_a: {
                             sortType  : "alpha",
                             aggType   : "max",
@@ -482,7 +494,7 @@ asyncTest("requestDataset w/ cancelRequests", function () {
                         }
                     });
 
-                    deepEqual(records, [
+                    assert.deepEqual(records, [
                         [ "apple",      "violin",    "music" ],
                         [ "cat",        "tissue",      "dog" ],
                         [ "banana",      "piano",      "gum" ],
@@ -491,7 +503,7 @@ asyncTest("requestDataset w/ cancelRequests", function () {
 
                     d.requestDataset("REQUEST_DATASET_2");
                 } else {
-                    deepEqual(columns, {
+                    assert.deepEqual(columns, {
                         column_d: {
                             sortType  : "alpha",
                             aggType   : "max",
@@ -518,22 +530,23 @@ asyncTest("requestDataset w/ cancelRequests", function () {
                         }
                     });
 
-                    deepEqual(records, [
+                    assert.deepEqual(records, [
                         [ "trilogy",    "shakespeare", "soul"   ],
                         [ "motorcycle", "tire",        "tissue" ],
                         [ "almonds",    "kodaline",    "body"   ]
                     ]);
 
-                    d.finish();
-                    start();
+                    d.finish(done);
                 }
             });
         }
     }).requestDataset("REQUEST_DATASET_1");
 });
 
-asyncTest("requestDatasetForAppend", function () {
-    expect(4);
+QUnit.test("requestDatasetForAppend", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -587,7 +600,7 @@ asyncTest("requestDatasetForAppend", function () {
         onAllRowsReceived: function () {
             d.getAllColumnsAndAllRecords(function (columns, records) {
                 if (datasetNum++ === 0) {
-                    deepEqual(columns, {
+                    assert.deepEqual(columns, {
                         column_a: {
                             sortType  : "alpha",
                             aggType   : "max",
@@ -614,7 +627,7 @@ asyncTest("requestDatasetForAppend", function () {
                         }
                     });
 
-                    deepEqual(records, [
+                    assert.deepEqual(records, [
                         [ "apple",      "violin",    "music" ],
                         [ "cat",        "tissue",      "dog" ],
                         [ "banana",      "piano",      "gum" ],
@@ -623,7 +636,7 @@ asyncTest("requestDatasetForAppend", function () {
 
                     d.requestDatasetForAppend("REQUEST_DATASET_2");
                 } else {
-                    deepEqual(columns, {
+                    assert.deepEqual(columns, {
                         column_a: {
                             sortType  : "alpha",
                             aggType   : "max",
@@ -650,7 +663,7 @@ asyncTest("requestDatasetForAppend", function () {
                         }
                     });
 
-                    deepEqual(records, [
+                    assert.deepEqual(records, [
                         [ "apple",      "violin",      "music"  ],
                         [ "cat",        "tissue",      "dog"    ],
                         [ "banana",     "piano",       "gum"    ],
@@ -660,16 +673,17 @@ asyncTest("requestDatasetForAppend", function () {
                         [ "almonds",    "kodaline",    "body"   ]
                     ]);
 
-                    d.finish();
-                    start();
+                    d.finish(done);
                 }
             });
         }
     }).requestDataset("REQUEST_DATASET_1");
 });
 
-asyncTest("clearDataset", function () {
-    expect(4);
+QUnit.test("clearDataset", function (assert) {
+    assert.expect(4);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -704,7 +718,7 @@ asyncTest("clearDataset", function () {
         request           : "REQUEST_DATASET",
         onAllRowsReceived : function () {
             d.getAllColumnsAndAllRecords(function (columns, records) {
-                deepEqual(columns, {
+                assert.deepEqual(columns, {
                     column_a: {
                         sortType  : "alpha",
                         aggType   : "max",
@@ -731,7 +745,7 @@ asyncTest("clearDataset", function () {
                     }
                 });
 
-                deepEqual(records, [
+                assert.deepEqual(records, [
                     [ "apple",      "violin",    "music" ],
                     [ "cat",        "tissue",      "dog" ],
                     [ "banana",      "piano",      "gum" ],
@@ -742,18 +756,17 @@ asyncTest("clearDataset", function () {
             d.clearDataset();
 
             d.getAllColumnsAndAllRecords(function (columns, records) {
-                deepEqual(columns, {});
-                deepEqual(records, []);
-
-                d.finish();
-                start();
-            });
+                assert.deepEqual(columns, {});
+                assert.deepEqual(records, []);
+            }).finish(done);
         }
     });
 });
 
-asyncTest("cancelOngoingRequests", function () {
-    expect(1);
+QUnit.test("cancelOngoingRequests", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -771,14 +784,15 @@ asyncTest("cancelOngoingRequests", function () {
         cancelRequestsCmd: "CANCEL",
         cancelRequestsAck: "CANCEL_ACK",
     }).cancelOngoingRequests().getColumns(function () {
-        ok(true, "reached this point");
-        d.finish();
-        start();
+        assert.ok(true, "reached this point");
+        d.finish(done);
     });
 });
 
-asyncTest("onReceiveRows callback", function () {
-    expect(1);
+QUnit.test("onReceiveRows callback", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -817,20 +831,21 @@ asyncTest("onReceiveRows callback", function () {
         onAllRowsReceived : function () {
             rowsReceived++; // onAllRowsReceived gets fired *instead of* onReceiveRows
 
-            equal(rowsReceived, 2);
+            assert.equal(rowsReceived, 2);
 
-            start();
-            d.finish();
+            d.finish(done);
         }
     });
 });
 
-asyncTest("onSocketClose", function () {
-    expect(1);
+QUnit.test("onSocketClose", function (assert) {
+    assert.expect(2);
+
+    var done = assert.async();
 
     WebSocket.expectedSource  = "ws://websocket.test.com:8085";
     WebSocket.expectedReplies = {
-        "CLOSE": function () { ok(true, "CLOSE command received"); }
+        "CLOSE": function () { assert.ok(true, "CLOSE command received"); }
     };
 
     var d = new DataWorker({
@@ -839,13 +854,15 @@ asyncTest("onSocketClose", function () {
         onSocketClose     : "CLOSE"
     });
 
-    ok(d instanceof DataWorker);
+    assert.ok(d instanceof DataWorker);
 
-    d.getColumns(function (columns) { start(); }).finish();
+    d.getColumns(function (columns) { assert.ok(true) }).finish(done);
 });
 
-asyncTest("attempt reconnect after disconnect", function () {
-    expect(1);
+QUnit.test("attempt reconnect after disconnect", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -880,9 +897,8 @@ asyncTest("attempt reconnect after disconnect", function () {
         datasource             : "ws://websocket.test.com:8085",
         shouldAttemptReconnect : true,
         onAllRowsReceived      : function () {
-            ok(true, 'all rows recieved after interrupted connection');
-            start();
-            d.finish();
+            assert.ok(true, 'all rows recieved after interrupted connection');
+            d.finish(done);
         }
     });
 
@@ -891,8 +907,10 @@ asyncTest("attempt reconnect after disconnect", function () {
     }, 200);
 });
 
-asyncTest("mock websocket displays unexpected errors correctly in web worker", function () {
-    expect(1);
+QUnit.test("mock websocket displays unexpected errors correctly in web worker", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
 
     var worker = DataWorker.workerPool.getWorker();
     worker.postMessage({
@@ -907,10 +925,9 @@ asyncTest("mock websocket displays unexpected errors correctly in web worker", f
         datasource: "ws://zxcv",
         authenticate: "asdffdsa",
         onError: function (error) {
-            equal(error, "Unexpected:\n\tExpected: ws://qwer\n\tGot: ws://zxcv");
+            assert.equal(error, "Unexpected:\n\tExpected: ws://qwer\n\tGot: ws://zxcv");
 
-            d.finish();
-            start();
+            d.finish(done);
         }
     });
 });

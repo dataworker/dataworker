@@ -1,25 +1,21 @@
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *                                                                           *
- * Tests for WebWorkerPool                                                   *
- *                                                                           *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+QUnit.module("WebWorkerPool");
 
-module("WebWorkerPool");
+QUnit.test("creates webworker out of simple source file", function (assert) {
+    assert.expect(2);
 
-asyncTest("creates webworker out of simple source file", function () {
-    expect(2);
+    var done = assert.async();
 
     var wwp    = new WebWorkerPool("resources/counting-webworker.js"),
         worker = wwp.getWorker(),
         count  = 0;
 
     worker.onmessage = function (a) {
-        equal(a.data.numMessages, 1);
+        assert.equal(a.data.numMessages, 1);
         worker.onmessage = function (b) {
-            equal(b.data.numMessages, 2);
+            assert.equal(b.data.numMessages, 2);
 
             worker.terminate();
-            start();
+            done();
         }
         worker.postMessage({});
     };
@@ -27,8 +23,10 @@ asyncTest("creates webworker out of simple source file", function () {
     worker.postMessage({});
 });
 
-asyncTest("creates webworker from Blob, if browser supports Blobs", function () {
+QUnit.test("creates webworker from Blob, if browser supports Blobs", function (assert) {
     var url;
+
+    var done = assert.async();
 
     try {
         var response = "this.onmessage=function (e) { postMessage({ square: e.data * e.data }) }",
@@ -38,34 +36,35 @@ asyncTest("creates webworker from Blob, if browser supports Blobs", function () 
     } catch (ignore) { }
 
     if (url) {
-        expect(2);
+        assert.expect(2);
 
         var wwp = new WebWorkerPool(url),
             worker = wwp.getWorker();
 
         worker.onmessage = function (a) {
-            equal(a.data.square, 49);
+            assert.equal(a.data.square, 49);
             worker.onmessage = function (b) {
-                equal(b.data.square, 1);
+                assert.equal(b.data.square, 1);
 
                 worker.terminate();
                 URL.revokeObjectURL(url);
-                start();
+                done();
             }
             worker.postMessage(1);
         };
 
         worker.postMessage(7);
     } else {
-        expect(0);
-        start();
+        assert.expect(0);
+        done();
     }
 });
 
-asyncTest("new webworker is created unless one has been reclaimed", function () {
-    expect(5);
+QUnit.test("new webworker is created unless one has been reclaimed", function (assert) {
+    assert.expect(5);
 
     var wwp = new WebWorkerPool("resources/counting-webworker.js"),
+        done = assert.async(),
         worker1, worker2, worker3;
 
     function step1() {
@@ -75,7 +74,7 @@ asyncTest("new webworker is created unless one has been reclaimed", function () 
         worker2 = wwp.getWorker();
 
         worker1.onmessage = worker2.onmessage = function (e) {
-            equal(e.data.numMessages, 1);
+            assert.equal(e.data.numMessages, 1);
 
             if (++count === 2) {
                 wwp.reclaim(worker2);
@@ -96,13 +95,13 @@ asyncTest("new webworker is created unless one has been reclaimed", function () 
         worker3 = wwp.getWorker();
 
         worker1.onmessage = worker2.onmessage = function (e) {
-            equal(e.data.numMessages, 2);
+            assert.equal(e.data.numMessages, 2);
 
             if (++count === 3) finishAll();
         }
 
         worker3.onmessage = function (e) {
-            equal(e.data.numMessages, 1);
+            assert.equal(e.data.numMessages, 1);
 
             if (++count === 3) finishAll();
         }
@@ -117,14 +116,16 @@ asyncTest("new webworker is created unless one has been reclaimed", function () 
         worker2.terminate();
         worker3.terminate();
 
-        start();
+        done();
     }
 
     step1();
 });
 
-asyncTest("reuses webworker from Blob, if browser supports Blobs", function () {
+QUnit.test("reuses webworker from Blob, if browser supports Blobs", function (assert) {
     var url;
+
+    var done = assert.async();
 
     try {
         var response = "var count = 0; this.onmessage=function (e) { postMessage(++count) }",
@@ -134,7 +135,7 @@ asyncTest("reuses webworker from Blob, if browser supports Blobs", function () {
     } catch (ignore) { }
 
     if (url) {
-        expect(4);
+        assert.expect(4);
 
         var wwp     = new WebWorkerPool(url),
             worker1 = wwp.getWorker(),
@@ -146,17 +147,17 @@ asyncTest("reuses webworker from Blob, if browser supports Blobs", function () {
 
             URL.revokeObjectURL(url);
 
-            start();
+            done();
         }
 
         worker1.onmessage = function (a) {
-            equal(a.data, 1);
+            assert.equal(a.data, 1);
 
             wwp.reclaim(worker1);
             worker2 = wwp.getWorker();
 
             worker2.onmessage = function (b) {
-                equal(b.data, 2);
+                assert.equal(b.data, 2);
 
                 var count = 0;
 
@@ -165,12 +166,12 @@ asyncTest("reuses webworker from Blob, if browser supports Blobs", function () {
                 worker2 = wwp.getWorker();
 
                 worker1.onmessage = function (c) {
-                    equal(c.data, 3);
+                    assert.equal(c.data, 3);
                     if (count++) finishAll();
                 };
 
                 worker2.onmessage = function (c) {
-                    equal(c.data, 1);
+                    assert.equal(c.data, 1);
                     if (count++) finishAll();
                 };
 
@@ -183,7 +184,7 @@ asyncTest("reuses webworker from Blob, if browser supports Blobs", function () {
 
         worker1.postMessage({});
     } else {
-        expect(0);
-        start();
+        assert.expect(0);
+        done();
     }
 });
