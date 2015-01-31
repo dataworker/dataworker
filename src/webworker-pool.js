@@ -12,7 +12,7 @@
 
     if (typeof(window) === "undefined" || window.Worker === undefined) return WWP;
 
-    WWP.prototype.getWorker = function (sourceList) {
+    WWP.prototype.getWorker = function (sourceList, onlyReclaimed) {
         var self    = this,
             sources = [].concat(sourceList || self._src || []),
             worker;
@@ -22,6 +22,7 @@
             if (workers === "ignore") return false;
 
             if (worker = workers && workers.length && workers.pop()) return true;
+            if (onlyReclaimed) return false;
 
             try {
                 worker = new Worker(src);

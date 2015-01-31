@@ -1,12 +1,21 @@
+var wwp = new WebWorkerPool();
+
 QUnit.module("WebWorkerPool");
+QUnit.moduleDone(function (details) {
+    if (details.name === "WebWorkerPool") {
+        var worker;
+        while (worker = wwp.getWorker("resources/counting-webworker.js", true)) {
+            worker.terminate();
+        }
+    }
+});
 
 QUnit.test("creates webworker out of simple source file", function (assert) {
     assert.expect(2);
 
     var done = assert.async();
 
-    var wwp    = new WebWorkerPool("resources/counting-webworker.js"),
-        worker = wwp.getWorker(),
+    var worker = wwp.getWorker("resources/counting-webworker.js"),
         count  = 0;
 
     worker.onmessage = function (a) {
@@ -14,7 +23,8 @@ QUnit.test("creates webworker out of simple source file", function (assert) {
         worker.onmessage = function (b) {
             assert.equal(b.data.numMessages, 2);
 
-            worker.terminate();
+            worker.postMessage("reset");
+            wwp.reclaim(worker);
             done();
         }
         worker.postMessage({});
@@ -38,8 +48,7 @@ QUnit.test("creates webworker from Blob, if browser supports Blobs", function (a
     if (url) {
         assert.expect(2);
 
-        var wwp = new WebWorkerPool(url),
-            worker = wwp.getWorker();
+        var worker = wwp.getWorker(url);
 
         worker.onmessage = function (a) {
             assert.equal(a.data.square, 49);
@@ -63,15 +72,15 @@ QUnit.test("creates webworker from Blob, if browser supports Blobs", function (a
 QUnit.test("new webworker is created unless one has been reclaimed", function (assert) {
     assert.expect(5);
 
-    var wwp = new WebWorkerPool("resources/counting-webworker.js"),
+    var url = "resources/counting-webworker.js",
         done = assert.async(),
         worker1, worker2, worker3;
 
     function step1() {
         var count = 0;
 
-        worker1 = wwp.getWorker();
-        worker2 = wwp.getWorker();
+        worker1 = wwp.getWorker(url);
+        worker2 = wwp.getWorker(url);
 
         worker1.onmessage = worker2.onmessage = function (e) {
             assert.equal(e.data.numMessages, 1);
@@ -91,8 +100,8 @@ QUnit.test("new webworker is created unless one has been reclaimed", function (a
     function step2() {
         var count = 0;
 
-        worker2 = wwp.getWorker();
-        worker3 = wwp.getWorker();
+        worker2 = wwp.getWorker(url);
+        worker3 = wwp.getWorker(url);
 
         worker1.onmessage = worker2.onmessage = function (e) {
             assert.equal(e.data.numMessages, 2);
@@ -112,9 +121,13 @@ QUnit.test("new webworker is created unless one has been reclaimed", function (a
     }
 
     function finishAll() {
-        worker1.terminate();
-        worker2.terminate();
-        worker3.terminate();
+        worker1.postMessage("reset");
+        worker2.postMessage("reset");
+        worker3.postMessage("reset");
+
+        wwp.reclaim(worker1);
+        wwp.reclaim(worker2);
+        wwp.reclaim(worker3);
 
         done();
     }
@@ -137,8 +150,7 @@ QUnit.test("reuses webworker from Blob, if browser supports Blobs", function (as
     if (url) {
         assert.expect(4);
 
-        var wwp     = new WebWorkerPool(url),
-            worker1 = wwp.getWorker(),
+        var worker1 = wwp.getWorker(url),
             worker2;
 
         function finishAll() {
@@ -154,7 +166,7 @@ QUnit.test("reuses webworker from Blob, if browser supports Blobs", function (as
             assert.equal(a.data, 1);
 
             wwp.reclaim(worker1);
-            worker2 = wwp.getWorker();
+            worker2 = wwp.getWorker(url);
 
             worker2.onmessage = function (b) {
                 assert.equal(b.data, 2);
@@ -162,8 +174,8 @@ QUnit.test("reuses webworker from Blob, if browser supports Blobs", function (as
                 var count = 0;
 
                 wwp.reclaim(worker2);
-                worker1 = wwp.getWorker();
-                worker2 = wwp.getWorker();
+                worker1 = wwp.getWorker(url);
+                worker2 = wwp.getWorker(url);
 
                 worker1.onmessage = function (c) {
                     assert.equal(c.data, 3);

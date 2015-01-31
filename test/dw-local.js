@@ -734,48 +734,50 @@ QUnit.test("sort (alpha)", function (assert) {
     }).finish(done);
 });
 
-// FIXME: localeCompare doesn"t seem to work properly in Web Worker threads.
-//QUnit.test("sort (locale-considering alpha)", function (assert) {
-//    assert.expect(1);
-//    var dataset = [
-//        [
-//            {
-//                name: "column_a",
-//                aggType: "max",
-//                sortType: "localeAlpha",
-//                title: "Column A"
-//            },
-//            {
-//                name: "column_b",
-//                aggType: "max",
-//                sortType: "alpha",
-//                title: "Column B"
-//            },
-//            {
-//                name: "column_c",
-//                aggType: "min",
-//                sortType: "alpha",
-//                title: "Column C"
-//            }
-//        ],
+QUnit.test("sort (locale-considering alpha)", function (assert) {
+    assert.expect(1);
 
-//        [ "rip",        "violin",    "music" ],
-//        [ "résumé",     "tissue",      "dog" ],
-//        [ "gummy",       "power",     "star" ],
-//        [ "banana",      "piano",      "gum" ]
-//    ];
+    var done = assert.async();
 
-//    var d = new DataWorker(dataset);
+    var dataset = [
+        [
+            {
+                name: "column_a",
+                aggType: "max",
+                sortType: "localeAlpha",
+                title: "Column A"
+            },
+            {
+                name: "column_b",
+                aggType: "max",
+                sortType: "alpha",
+                title: "Column B"
+            },
+            {
+                name: "column_c",
+                aggType: "min",
+                sortType: "alpha",
+                title: "Column C"
+            }
+        ],
 
-//    d.sort("column_a").getRows(function (result) {
-//        assert.deepEqual(result, [
-//            [ "banana",      "piano",      "gum" ],
-//            [ "gummy",       "power",     "star" ],
-//            [ "résumé",     "tissue",      "dog" ],
-//            [ "rip",        "violin",    "music" ]
-//        ]);
-//    }).finish(done);
-//});
+        [ "rip",        "violin",    "music" ],
+        [ "résumé",     "tissue",      "dog" ],
+        [ "gummy",       "power",     "star" ],
+        [ "banana",      "piano",      "gum" ]
+    ];
+
+    var d = new DataWorker(dataset);
+
+    d.sort("column_a").getRows(function (result) {
+        assert.deepEqual(result, [
+            [ "banana",      "piano",      "gum" ],
+            [ "gummy",       "power",     "star" ],
+            [ "résumé",     "tissue",      "dog" ],
+            [ "rip",        "violin",    "music" ]
+        ]);
+    }).finish(done);
+});
 
 QUnit.test("sort (reverse alpha)", function (assert) {
     assert.expect(1);
@@ -3669,7 +3671,7 @@ QUnit.test("show all columns", function (assert) {
 });
 
 QUnit.test("changes for \"on_\" functions are added to the queue by default", function (assert) {
-    assert.expect(3);
+    assert.expect(1);
 
     var done = assert.async();
 
@@ -3682,26 +3684,20 @@ QUnit.test("changes for \"on_\" functions are added to the queue by default", fu
         [ "gummy",       "power",     "star" ]
     ];
 
+    dataset.onError = function (error) {
+        assert.equal(error, "Column column_b already exists in the dataset.");
+    };
+
     var d = new DataWorker(dataset);
 
-    d._actionQueue._isInAction = true;
-
-    d.onError(function (error) {
-        assert.equal(error, "Column column_b already exists in the dataset.");
-
-        d.finish(done);
-    });
-
-    assert.equal(d._actionQueue._queueStack.length, 1);
-    assert.equal(d._actionQueue._queueStack[0].length, 1);
-
-    d.alterColumnName("column_a", "column_b");
-
-    d._finishAction();
+    d.alterColumnName("column_a", "column_b").onError(function (error) {
+        // This shouldn't get called since it will be added after the error occurs
+        assert.ok(false);
+    }).finish(done);
 });
 
 QUnit.test("changes for \"on_\" functions can happen immediately with a flag", function (assert) {
-    assert.expect(2);
+    assert.expect(1);
 
     var done = assert.async();
 
@@ -3714,21 +3710,16 @@ QUnit.test("changes for \"on_\" functions can happen immediately with a flag", f
         [ "gummy",       "power",     "star" ]
     ];
 
+    dataset.onError = function (error) {
+        // This shouldn't get called since it will be overwritten before the error is thrown
+        assert.ok(false);
+    };
+
     var d = new DataWorker(dataset);
 
-    d._actionQueue._isInAction = true;
-
-    d.onError(function (error) {
+    d.alterColumnName("column_a", "column_b").onError(function (error) {
         assert.equal(error, "Column column_b already exists in the dataset.");
-
-        d.finish(done);
-    }, true);
-
-    assert.equal(d._actionQueue._queueStack.length, 0);
-
-    d.alterColumnName("column_a", "column_b");
-
-    d._finishAction();
+    }, true).finish(done);
 });
 
 QUnit.test("add child rows", function (assert) {
@@ -4098,15 +4089,19 @@ QUnit.test("DataWorker works without Web Worker support (older browsers)", funct
         [ "gummy",       "power",     "star" ]
     ];
 
+    var workerClass = Worker;
+
     Worker = undefined;
     var d = new DataWorker(dataset);
-    delete Worker;
 
     d.applyFilter(/apple/, "column_a").getRows(function (result) {
         assert.deepEqual(result, [
             [ "apple", "violin", "music" ],
         ]);
-    }).finish(done);
+    }).finish(function () {
+        window.Worker = workerClass;
+        done();
+    });
 });
 
 QUnit.test("then() function lets you utilize DataWorker\"s action queue", function (assert) {

@@ -1,4 +1,4 @@
-(function (globalWorker) {
+function DataWorkerHelperCreator(globalWorker) {
     "use strict";
 
     var helper;
@@ -180,7 +180,13 @@
                 throw new Error("Could not initialize DataWorker; unrecognized datasource.");
             }
         } catch (error) {
-            self._postMessage({ connected: false, error: error.stack || error.message });
+            var message     = error.message,
+                stack       = error.stack,
+                unsupported = self._wsDatasource && !self._socket;
+
+            if (stack) message += "\n\n" + stack;
+
+            self._postMessage({ connected: false, error: message, unsupported: unsupported });
         }
 
         return self;
@@ -191,16 +197,13 @@
 
         xmlHttp.onreadystatechange = function () {
             if (this.readyState === 4) {
-                if (
-                    this.readyState > 2
-                    && (self._isLocalAjax ? this.response : this.status === 200)
-                ) {
+                if (self._isLocalAjax ? this.response : this.status === 200) {
                     self._postMessage({ connected: true });
                     if (typeof(data.request) !== "undefined") {
                         self.requestDataset(data);
                     }
                 } else {
-                    self._postMessage({ connected: false, status: this.status });
+                    self._postMessage({ connected: false, unsupported: this.status === 0 });
                 }
             }
         };
@@ -360,7 +363,7 @@
         self._socket.onerror = function (error) {
             if (error.target.readyState === 0 || error.target.readyState === 3) {
                 self._socket = null;
-                self._postMessage({ connected: false, error: "Could not connect" });
+                self._postMessage({ connected: false });
             } else {
                 self._postMessage({
                     error : "Error: Problem with connection to datasource."
@@ -1498,5 +1501,6 @@
             dest[destIndex++] = src[srcIndex++];
         }
     }
+}
 
-})(this);
+DataWorkerHelperCreator(this);

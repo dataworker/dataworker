@@ -87,9 +87,6 @@ QUnit.test("AJAX as a fallback for when websocket fails", function (assert) {
 
     var done = assert.async();
 
-    var workerSource = DataWorker.workerPool._src;
-    DataWorker.workerPool._src = "../src/dw-helper.js";
-
     var d = new DataWorker({
         datasource: [
             "ws://localhost/foo/bar",
@@ -116,8 +113,6 @@ QUnit.test("AJAX as a fallback for when websocket fails", function (assert) {
             assert.deepEqual(rows, [
                 [ "acbg", "vtpp", "mdgs" ]
             ]);
-
-            DataWorker.workerPool._src = workerSource;
         }).finish(done);
     });
 });

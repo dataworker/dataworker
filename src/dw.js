@@ -32,13 +32,18 @@
         self._actionQueue = new ActionQueue();
 
         self._initializeCallbacks(dataset);
+        self._initializeSettings(dataset);
         self._initializeDatasources(dataset);
-        self._initializeWebWorker(dataset);
+        self._queueNext(function () {
+            self._initializeWebWorker();
+        });
 
         return self;
     };
 
-    DataWorker.workerPool = new WebWorkerPool(srcPath + "dw-helper.js");
+    DataWorker.ignoreProtocols = {};
+
+    DataWorker.workerPool = new WebWorkerPool();
     DataWorker.prototype.workerPool = DataWorker.workerPool;
 
     DataWorker.prototype._queueNext = function (action) {
@@ -102,8 +107,57 @@
                          : function () {};
 
         self._onError = "onError" in dataset ? dataset["onError"] : function (error) {
-            if (console && console.error) console.error(error);
+            if (typeof console !== "undefined" && console.error) console.error(error);
         };
+
+        return self;
+    };
+
+    DataWorker.prototype._initializeSettings = function (dataset) {
+        var self    = this,
+            sources = self._workerSources = [];
+
+        if (dataset.forceSingleThread || typeof Worker === "undefined") {
+            self._isSingleThreaded = true;
+            return self;
+        }
+
+        if ("workerSource" in dataset) {
+            sources.push(dataset["workerSource"]);
+        }
+
+        if (!DataWorker.helperBlob) {
+            try {
+                var code = DataWorkerHelperCreator + "; DataWorkerHelperCreator(this);";
+
+                DataWorker.helperBlob = new Blob([ code ], { type: "application/javascript" });
+                DataWorker.helperBlobUrl = URL.createObjectURL(DataWorker.helperBlob);
+            } catch (error) {
+                DataWorker.helperBlob = error;
+            }
+        }
+
+        if (DataWorker.helperBlobUrl) {
+            sources.push(DataWorker.helperBlobUrl)
+        }
+
+        if ("backupWorkerSource" in dataset) {
+            sources.push(dataset["backupWorkerSource"]);
+        }
+
+        sources.push(srcPath + "dw-helper.js");
+
+        self._workerSources = sources.filter(function (source) {
+            var ignore       = DataWorker.ignoreProtocols[source] || {},
+                datasource   = [].concat(dataset.datasource || []),
+                hasPotential = datasource.some(function (address) {
+                    return !ignore[(/^(wss?|https?|file):/.exec(address) || [])[1]];
+                });
+
+            DataWorker.ignoreProtocols[source] = ignore;
+
+            return hasPotential;
+        });
 
         return self;
     };
@@ -146,25 +200,26 @@
         return self;
     };
 
-    DataWorker.prototype._initializeWebWorker = function (dataset) {
+    DataWorker.prototype._initializeWebWorker = function () {
         var self = this;
 
-        self._queueNext(function () {
-            self._isSingleThreaded = (
-                typeof(Worker) === "undefined"
-                || dataset.forceSingleThread
-            );
-
-            self._worker = self._isSingleThreaded
-                ? ( new DataWorkerHelper() )
-                : self.workerPool.getWorker();
+            if (!(self._worker = self.workerPool.getWorker(self._workerSources))) {
+                self._isSingleThreaded = true;
+                self._worker = new DataWorkerHelper();
+            }
 
             self._worker.onmessage = function (e) {
                 if (!e.data) return;
 
+                if (self._resettingWebworker) {
+                    self._resettingWebworker = false;
+                    self.workerPool.reclaim(self._worker);
+                    self._worker.onmessage = null;
+                    return self._initializeWebWorker();
+                }
+
                 if ("connected" in e.data) {
-                    if (e.data.error) self._onError(e.data.error);
-                    if (!e.data.connected) return self._connect(true);
+                    if (!e.data.connected) return self._connect(true, e.data);
                 }
 
                 if ("rowsReceived" in e.data) {
@@ -189,7 +244,7 @@
                     self._numberOfPages = e.data.numberOfPages;
                 }
 
-                if ("error" in e.data && self._onError) self._onError(e.data.error);
+                if ("error" in e.data) self._onError(e.data.error);
 
                 if ("columns"      in e.data) self._columns = e.data.columns;
                 if ("rows"         in e.data) self._rows = e.data.rows;
@@ -211,25 +266,44 @@
                 self._finishAction(true);
             };
 
-            self._finishAction();
-        })._queueNext(function () {
             self._connect(false);
-        });
 
         return self;
     };
 
-    DataWorker.prototype._connect = function (async) {
+    DataWorker.prototype._connect = function (async, data) {
         var self          = this,
             settings      = self._connectionSettings,
+            error         = data && data.error,
+            unsupported   = data && data.unsupported,
             hasLocalData  = settings.message.columns && settings.message.rows && true,
             hasRemoteData = settings.datasources.length > settings.index;
+
+        if (unsupported && self._worker.source) {
+            var datasource = settings.datasources[settings.index - 1],
+                protocol   = (/^(wss?|https?|file):/.exec(datasource) || [])[1];
+
+            DataWorker.ignoreProtocols[self._worker.source][protocol];
+        } else if (error) {
+            self._onError(error);
+        }
 
         if (hasRemoteData) {
             settings.message.datasource = settings.datasources[settings.index++];
         } else if (!hasLocalData) {
-            self._onError("No available datasources.");
-            self._finishAction(async);
+            if (self._worker.source) {
+                self._workerSources = self._workerSources.filter(function (source) {
+                    return self._worker.source !== source;
+                });
+
+                settings.index = 0;
+
+                self._resettingWebworker = true;
+                self._postMessage({ cmd: "finish" });
+            } else {
+                self._onError("No available datasources.");
+                self._finishAction(async);
+            }
 
             return self;
         }

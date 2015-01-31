@@ -40,3 +40,25 @@ function outputRowsForStreaming(dataset, rowsPerLine) {
 
     console.log(output.join("\n"));
 }
+
+function websocketExpectations(data, source) {
+    if (source) {
+        var worker = DataWorker.workerPool.getWorker(source);
+        worker.postMessage({ meta: data });
+        DataWorker.workerPool.reclaim(worker);
+    }
+
+    WebSocket.interruptAfter  = data.interruptAfter;
+    WebSocket.expectedSource  = data.expectedSource;
+    WebSocket.expectedReplies = data.expectedReplies;
+}
+
+QUnit.begin(function () {
+    WebSocket.unexpected = function (msg) {
+        QUnit.assert.ok(false, msg);
+    };
+});
+
+QUnit.testStart(function () {
+    websocketExpectations({});
+});

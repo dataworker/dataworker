@@ -1,26 +1,25 @@
 QUnit.module("DataWorker (Streaming via Websockets)");
-
-DataWorker.workerPool._src = "resources/dw-helper.test.js";
-
-WebSocket.unexpected = function (msg) {
-    assert.ok(false, msg);
-};
+QUnit.moduleDone(function (details) {
+    if (details.name === "DataWorker (Streaming via Websockets)") {
+        var worker;
+        while (worker = DataWorker.workerPool.getWorker("resources/dw-helper.test.js", true)) {
+            worker.terminate();
+        }
+    }
+});
 
 QUnit.test("construct (webworker w/ authenticate)", function (assert) {
     assert.expect(3);
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : { "asdfzxcv": '{"trigger":true,"msg":"authenticated"}' }
-        }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : { "asdfzxcv": '{"trigger":true,"msg":"authenticated"}' }
+    }, "resources/dw-helper.test.js");
 
     var d = new DataWorker({
+        workerSource : "resources/dw-helper.test.js",
         datasource   : "ws://websocket.test.com:8085",
         authenticate : "asdfzxcv",
         onTrigger    : function (msg) {
@@ -38,12 +37,15 @@ QUnit.test("construct (single-threaded w/ authenticate)", function (assert) {
 
     var done = assert.async();
 
-    WebSocket.expectedSource  = "ws://websocket.test.com:8085";
-    WebSocket.expectedReplies = {
-        "asdfzxcv": function () { assert.ok(true, "authenticate received"); }
-    };
+    websocketExpectations({
+        expectedSource: "ws://websocket.test.com:8085",
+        expectedReplies: {
+            "asdfzxcv": function () { assert.ok(true, "authenticate received"); }
+        }
+    });
 
     var d = new DataWorker({
+        workerSource      : "resources/dw-helper.test.js",
         datasource        : "ws://websocket.test.com:8085",
         authenticate      : "asdfzxcv",
         forceSingleThread : true
@@ -59,35 +61,32 @@ QUnit.test("construct (webworker w/ request)", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : {
-                "REQUEST_DATASET": [
-                    {
-                        expectedNumRows : 4,
-                        columns         : [ "column_a", "column_b", "column_c" ]
-                    },
-                    {
-                        rows: [
-                            [ "apple",      "violin",    "music" ],
-                            [ "cat",        "tissue",      "dog" ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "banana",      "piano",      "gum" ],
-                            [ "gummy",       "power",     "star" ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); })
-            }
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "REQUEST_DATASET": [
+                {
+                    expectedNumRows : 4,
+                    columns         : [ "column_a", "column_b", "column_c" ]
+                },
+                {
+                    rows: [
+                        [ "apple",      "violin",    "music" ],
+                        [ "cat",        "tissue",      "dog" ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "banana",      "piano",      "gum" ],
+                        [ "gummy",       "power",     "star" ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); })
         }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    }, "resources/dw-helper.test.js");
 
     var d = new DataWorker({
+        workerSource     : "resources/dw-helper.test.js",
         datasource       : "ws://websocket.test.com:8085",
         request          : "REQUEST_DATASET",
         onReceiveColumns: function () {
@@ -142,27 +141,29 @@ QUnit.test("construct (single-threaded w/ request)", function (assert) {
 
     var done = assert.async();
 
-    WebSocket.expectedSource = "ws://websocket.test.com:8085";
-    WebSocket.expectedReplies = {
-        "REQUEST_DATASET": [
-            {
-                expectedNumRows : 4,
-                columns         : [ "column_a", "column_b", "column_c" ]
-            },
-            {
-                rows: [
-                    [ "apple",      "violin",    "music" ],
-                    [ "cat",        "tissue",      "dog" ]
-                ]
-            },
-            {
-                rows: [
-                    [ "banana",      "piano",      "gum" ],
-                    [ "gummy",       "power",     "star" ]
-                ]
-            }
-        ].map(function (reply) { return JSON.stringify(reply); })
-    };
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "REQUEST_DATASET": [
+                {
+                    expectedNumRows : 4,
+                    columns         : [ "column_a", "column_b", "column_c" ]
+                },
+                {
+                    rows: [
+                        [ "apple",      "violin",    "music" ],
+                        [ "cat",        "tissue",      "dog" ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "banana",      "piano",      "gum" ],
+                        [ "gummy",       "power",     "star" ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); })
+        }
+    });
 
     var d = new DataWorker({
         forceSingleThread: true,
@@ -220,16 +221,13 @@ QUnit.test("construct (complex datasource)", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : { "asdfzxcv": '{"trigger":true,"msg":"authenticated"}' }
-        }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : { "asdfzxcv": '{"trigger":true,"msg":"authenticated"}' }
+    }, "resources/dw-helper.test.js");
 
     var d = new DataWorker({
+        workerSource: "resources/dw-helper.test.js",
         datasource: {
             source       : "ws://websocket.test.com:8085",
             authenticate : "asdfzxcv"
@@ -247,16 +245,13 @@ QUnit.test("construct (fallback to websocket)", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : { "asdfzxcv": '{"trigger":true,"msg":"authenticated"}' }
-        }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : { "asdfzxcv": '{"trigger":true,"msg":"authenticated"}' }
+    }, "resources/dw-helper.test.js");
 
     var d = new DataWorker({
+        workerSource: "resources/dw-helper.test.js",
         datasource: [
             {
                 source       : srcPath + "foo/bar"
@@ -279,54 +274,51 @@ QUnit.test("requestDataset", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : {
-                "REQUEST_DATASET_1": [
-                    {
-                        expectedNumRows : 4,
-                        columns         : [ "column_a", "column_b", "column_c" ]
-                    },
-                    {
-                        rows: [
-                            [ "apple",      "violin",    "music" ],
-                            [ "cat",        "tissue",      "dog" ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "banana",      "piano",      "gum" ],
-                            [ "gummy",       "power",     "star" ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); }),
-                "REQUEST_DATASET_2": [
-                    {
-                        expectedNumRows : 3,
-                        columns         : [ "column_d", "column_e", "column_f" ]
-                    },
-                    {
-                        rows: [
-                            [ "trilogy",    "shakespeare", "soul"   ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "motorcycle", "tire",        "tissue" ],
-                            [ "almonds",    "kodaline",    "body"   ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); })
-            }
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "REQUEST_DATASET_1": [
+                {
+                    expectedNumRows : 4,
+                    columns         : [ "column_a", "column_b", "column_c" ]
+                },
+                {
+                    rows: [
+                        [ "apple",      "violin",    "music" ],
+                        [ "cat",        "tissue",      "dog" ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "banana",      "piano",      "gum" ],
+                        [ "gummy",       "power",     "star" ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); }),
+            "REQUEST_DATASET_2": [
+                {
+                    expectedNumRows : 3,
+                    columns         : [ "column_d", "column_e", "column_f" ]
+                },
+                {
+                    rows: [
+                        [ "trilogy",    "shakespeare", "soul"   ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "motorcycle", "tire",        "tissue" ],
+                        [ "almonds",    "kodaline",    "body"   ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); })
         }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    }, "resources/dw-helper.test.js");
 
     var datasetNum = 0;
 
     var d = new DataWorker({
+        workerSource: "resources/dw-helper.test.js",
         datasource: "ws://websocket.test.com:8085",
         onAllRowsReceived: function () {
             d.getAllColumnsAndAllRecords(function (columns, records) {
@@ -412,55 +404,52 @@ QUnit.test("requestDataset w/ cancelRequests", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : {
-                "REQUEST_DATASET_1": [
-                    {
-                        expectedNumRows : 4,
-                        columns         : [ "column_a", "column_b", "column_c" ]
-                    },
-                    {
-                        rows: [
-                            [ "apple",      "violin",    "music" ],
-                            [ "cat",        "tissue",      "dog" ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "banana",      "piano",      "gum" ],
-                            [ "gummy",       "power",     "star" ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); }),
-                "REQUEST_DATASET_2": [
-                    {
-                        expectedNumRows : 3,
-                        columns         : [ "column_d", "column_e", "column_f" ]
-                    },
-                    {
-                        rows: [
-                            [ "trilogy",    "shakespeare", "soul"   ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "motorcycle", "tire",        "tissue" ],
-                            [ "almonds",    "kodaline",    "body"   ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); }),
-                "CANCEL": JSON.stringify({ trigger: true, msg: "CANCEL_ACK" })
-            }
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "REQUEST_DATASET_1": [
+                {
+                    expectedNumRows : 4,
+                    columns         : [ "column_a", "column_b", "column_c" ]
+                },
+                {
+                    rows: [
+                        [ "apple",      "violin",    "music" ],
+                        [ "cat",        "tissue",      "dog" ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "banana",      "piano",      "gum" ],
+                        [ "gummy",       "power",     "star" ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); }),
+            "REQUEST_DATASET_2": [
+                {
+                    expectedNumRows : 3,
+                    columns         : [ "column_d", "column_e", "column_f" ]
+                },
+                {
+                    rows: [
+                        [ "trilogy",    "shakespeare", "soul"   ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "motorcycle", "tire",        "tissue" ],
+                        [ "almonds",    "kodaline",    "body"   ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); }),
+            "CANCEL": JSON.stringify({ trigger: true, msg: "CANCEL_ACK" })
         }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    }, "resources/dw-helper.test.js");
 
     var datasetNum = 0;
 
     var d = new DataWorker({
+        workerSource: "resources/dw-helper.test.js",
         datasource: "ws://websocket.test.com:8085",
         cancelRequestsCmd: "CANCEL",
         cancelRequestsAck: "CANCEL_ACK",
@@ -548,54 +537,51 @@ QUnit.test("requestDatasetForAppend", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : {
-                "REQUEST_DATASET_1": [
-                    {
-                        expectedNumRows : 4,
-                        columns         : [ "column_a", "column_b", "column_c" ]
-                    },
-                    {
-                        rows: [
-                            [ "apple",      "violin",    "music" ],
-                            [ "cat",        "tissue",      "dog" ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "banana",      "piano",      "gum" ],
-                            [ "gummy",       "power",     "star" ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); }),
-                "REQUEST_DATASET_2": [
-                    {
-                        expectedNumRows : 3,
-                        columns         : [ "column_a", "column_b", "column_c" ]
-                    },
-                    {
-                        rows: [
-                            [ "trilogy",    "shakespeare", "soul"   ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "motorcycle", "tire",        "tissue" ],
-                            [ "almonds",    "kodaline",    "body"   ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); }),
-            }
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "REQUEST_DATASET_1": [
+                {
+                    expectedNumRows : 4,
+                    columns         : [ "column_a", "column_b", "column_c" ]
+                },
+                {
+                    rows: [
+                        [ "apple",      "violin",    "music" ],
+                        [ "cat",        "tissue",      "dog" ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "banana",      "piano",      "gum" ],
+                        [ "gummy",       "power",     "star" ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); }),
+            "REQUEST_DATASET_2": [
+                {
+                    expectedNumRows : 3,
+                    columns         : [ "column_a", "column_b", "column_c" ]
+                },
+                {
+                    rows: [
+                        [ "trilogy",    "shakespeare", "soul"   ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "motorcycle", "tire",        "tissue" ],
+                        [ "almonds",    "kodaline",    "body"   ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); }),
         }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    }, "resources/dw-helper.test.js");
 
     var datasetNum = 0;
 
     var d = new DataWorker({
+        workerSource: "resources/dw-helper.test.js",
         datasource: "ws://websocket.test.com:8085",
         onAllRowsReceived: function () {
             d.getAllColumnsAndAllRecords(function (columns, records) {
@@ -685,35 +671,32 @@ QUnit.test("clearDataset", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : {
-                "REQUEST_DATASET": [
-                    {
-                        expectedNumRows : 4,
-                        columns         : [ "column_a", "column_b", "column_c" ]
-                    },
-                    {
-                        rows: [
-                            [ "apple",      "violin",    "music" ],
-                            [ "cat",        "tissue",      "dog" ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "banana",      "piano",      "gum" ],
-                            [ "gummy",       "power",     "star" ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); })
-            }
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "REQUEST_DATASET": [
+                {
+                    expectedNumRows : 4,
+                    columns         : [ "column_a", "column_b", "column_c" ]
+                },
+                {
+                    rows: [
+                        [ "apple",      "violin",    "music" ],
+                        [ "cat",        "tissue",      "dog" ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "banana",      "piano",      "gum" ],
+                        [ "gummy",       "power",     "star" ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); })
         }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    }, "resources/dw-helper.test.js");
 
     var d = new DataWorker({
+        workerSource      : "resources/dw-helper.test.js",
         datasource        : "ws://websocket.test.com:8085",
         request           : "REQUEST_DATASET",
         onAllRowsReceived : function () {
@@ -768,18 +751,15 @@ QUnit.test("cancelOngoingRequests", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : {
-                "CANCEL": JSON.stringify({ trigger: true, msg: "CANCEL_ACK" })
-            }
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "CANCEL": JSON.stringify({ trigger: true, msg: "CANCEL_ACK" })
         }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    }, "resources/dw-helper.test.js");
 
     var d = new DataWorker({
+        workerSource: "resources/dw-helper.test.js",
         datasource: "ws://websocket.test.com:8085",
         cancelRequestsCmd: "CANCEL",
         cancelRequestsAck: "CANCEL_ACK",
@@ -794,37 +774,34 @@ QUnit.test("onReceiveRows callback", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : {
-                "REQUEST_DATASET": [
-                    {
-                        expectedNumRows : 4,
-                        columns         : [ "column_a", "column_b", "column_c" ]
-                    },
-                    {
-                        rows: [
-                            [ "apple",      "violin",    "music" ],
-                            [ "cat",        "tissue",      "dog" ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "banana",      "piano",      "gum" ],
-                            [ "gummy",       "power",     "star" ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); })
-            }
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "REQUEST_DATASET": [
+                {
+                    expectedNumRows : 4,
+                    columns         : [ "column_a", "column_b", "column_c" ]
+                },
+                {
+                    rows: [
+                        [ "apple",      "violin",    "music" ],
+                        [ "cat",        "tissue",      "dog" ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "banana",      "piano",      "gum" ],
+                        [ "gummy",       "power",     "star" ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); })
         }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    }, "resources/dw-helper.test.js");
 
     var rowsReceived = 0;
 
     var d = new DataWorker({
+        workerSource      : "resources/dw-helper.test.js",
         datasource        : "ws://websocket.test.com:8085",
         request           : "REQUEST_DATASET",
         onReceiveRows     : function (numRows) { rowsReceived++; },
@@ -843,12 +820,15 @@ QUnit.test("onSocketClose", function (assert) {
 
     var done = assert.async();
 
-    WebSocket.expectedSource  = "ws://websocket.test.com:8085";
-    WebSocket.expectedReplies = {
-        "CLOSE": function () { assert.ok(true, "CLOSE command received"); }
-    };
+    websocketExpectations({
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "CLOSE": function () { assert.ok(true, "CLOSE command received"); }
+        }
+    });
 
     var d = new DataWorker({
+        workerSource      : "resources/dw-helper.test.js",
         datasource        : "ws://websocket.test.com:8085",
         forceSingleThread : true,
         onSocketClose     : "CLOSE"
@@ -864,36 +844,33 @@ QUnit.test("attempt reconnect after disconnect", function (assert) {
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            interruptAfter  : 100,
-            expectedSource  : "ws://websocket.test.com:8085",
-            expectedReplies : {
-                "REQUEST_DATASET": [
-                    {
-                        expectedNumRows : 4,
-                        columns         : [ "column_a", "column_b", "column_c" ]
-                    },
-                    {
-                        rows: [
-                            [ "apple",      "violin",    "music" ],
-                            [ "cat",        "tissue",      "dog" ]
-                        ]
-                    },
-                    {
-                        rows: [
-                            [ "banana",      "piano",      "gum" ],
-                            [ "gummy",       "power",     "star" ]
-                        ]
-                    }
-                ].map(function (reply) { return JSON.stringify(reply); })
-            }
+    websocketExpectations({
+        interruptAfter  : 100,
+        expectedSource  : "ws://websocket.test.com:8085",
+        expectedReplies : {
+            "REQUEST_DATASET": [
+                {
+                    expectedNumRows : 4,
+                    columns         : [ "column_a", "column_b", "column_c" ]
+                },
+                {
+                    rows: [
+                        [ "apple",      "violin",    "music" ],
+                        [ "cat",        "tissue",      "dog" ]
+                    ]
+                },
+                {
+                    rows: [
+                        [ "banana",      "piano",      "gum" ],
+                        [ "gummy",       "power",     "star" ]
+                    ]
+                }
+            ].map(function (reply) { return JSON.stringify(reply); })
         }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    }, "resources/dw-helper.test.js");
 
     var d = new DataWorker({
+        workerSource           : "resources/dw-helper.test.js",
         datasource             : "ws://websocket.test.com:8085",
         shouldAttemptReconnect : true,
         onAllRowsReceived      : function () {
@@ -912,16 +889,13 @@ QUnit.test("mock websocket displays unexpected errors correctly in web worker", 
 
     var done = assert.async();
 
-    var worker = DataWorker.workerPool.getWorker();
-    worker.postMessage({
-        meta: {
-            expectedSource  : "ws://qwer",
-            expectedReplies : { "asdffdsa": '{"trigger":true,"msg":"authenticated"}' }
-        }
-    });
-    DataWorker.workerPool.reclaim(worker);
+    websocketExpectations({
+        expectedSource  : "ws://qwer",
+        expectedReplies : { "asdffdsa": '{"trigger":true,"msg":"authenticated"}' }
+    }, "resources/dw-helper.test.js");
 
     var d = new DataWorker({
+        workerSource: "resources/dw-helper.test.js",
         datasource: "ws://zxcv",
         authenticate: "asdffdsa",
         onError: function (error) {

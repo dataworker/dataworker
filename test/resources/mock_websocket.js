@@ -33,7 +33,7 @@
             self.onopen();
         });
 
-        if (self.interruptAfter !== undefined) {
+        if ((self.interruptAfter || MockWebSocket.interruptAfter) !== undefined) {
             setTimeout(function () { self.interrupt(); }, source.interruptAfter);
         }
 
@@ -81,6 +81,7 @@
         }, interruptAfter);
     };
 
+    MockWebSocket.interruptAfter  = undefined;
     MockWebSocket.expectedSource  = undefined;
     MockWebSocket.expectedReplies = undefined;
 
