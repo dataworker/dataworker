@@ -31,8 +31,7 @@ function generateRandomDataset(columnTypes, numRows) {
 }
 
 function outputRowsForStreaming(dataset, rowsPerLine) {
-    var dataset = generateRandomDataset([ "num", "alpha" ], 300),
-        output  = [];
+    var output = [];
 
     while (dataset.length) {
         output.push(JSON.stringify({ rows: dataset.splice(0, rowsPerLine) }));

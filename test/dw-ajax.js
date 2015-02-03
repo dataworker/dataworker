@@ -201,3 +201,17 @@ QUnit.test("Streaming ajax", function (assert) {
         }).finish(done);
     });
 });
+
+QUnit.test("large, incoming datasets do not crash dataworker", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
+
+    var d = new DataWorker({
+        datasource: srcPath + "resources/million-row-dataset.json"
+    }).requestDataset().onAllRowsReceived(function () {
+        d.getRows(function (records) {
+            assert.equal(records.length, 1000000, "has a million records");
+        }).finish(done);
+    });
+});
