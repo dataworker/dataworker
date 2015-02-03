@@ -18,6 +18,8 @@
         self.onerror   = function () {};
         self.onmessage = function () {};
 
+        self._replyMessages = [];
+
         if (source !== MockWebSocket.expectedSource) {
             MockWebSocket.unexpected(
                 "Unexpected:"
@@ -53,8 +55,9 @@
 
             reply.forEach(function (replyMsg) {
                 if (replyMsg !== undefined) {
+                    self._replyMessages.push(replyMsg);
                     setTimeout(function () {
-                        self.onmessage({ data: replyMsg });
+                        self.onmessage({ data: self._replyMessages.shift() });
                     });
                 }
             });
