@@ -21,8 +21,10 @@
                     <ul class="nav" data-spy="affix" data-offset-top="85">
                         <li><a href="#top">DataWorker</a></li>
                         <li class="nav-header">Get started!</li>
-                        <li><a href="#construct">Construct</a></li>
+                        <li><a href="#include-source">Including Source Files</a></li>
+                        <li><a href="#local-data">Local Data</a></li>
                         <li><a href="#stream">Streaming Data</a></li>
+                        <li><a href="#webworkers">Web Workers</a></li>
                         <li><a href="#clone">Clone</a></li>
                         <li><a href="#child-rows">Child Rows</a></li>
                         <li><a href="#display-values">Display Values</a></li>
@@ -55,8 +57,21 @@
                     </ul>
                 </div>
                 <div class="span9">
-                    <section id="construct">
-                        <h3>Construct</h3>
+                    <section>
+                        <p>DataWorker is designed to manage large datasets client-side, using modern web technologies such as Web Workers and WebSockets. DataWorker allows users to perform expensive operations (such as sorting, joining, searching, filtering, grouping, and much more) in a multi-threaded environment to maintain responsiveness. Data can be provided locally as an array, or remotely via AJAX or WebSockets. DataWorker has no dependencies on external libraries, but works well with others.</p>
+                        <p>Not all browsers fully support all of the provided features (such as using a WebSocket from within a Web Worker) because some of the technology is quite new, so fallbacks are in place to make sure data can still be accessed across the most amount of devices possible.</p>
+                    </section>
+                    <section id="include-source">
+                        <h3>Including Source Files</h3>
+                        <p>To get started, you will need to include four source files. In the future DataWorker will come with distribution files so that you can simply include one minified or unminified file. For now, these are the files you will need:</p>
+                        <pre>
+    &lt;script src="src/actionqueue.js"&gt;&lt;/script&gt;
+    &lt;script src="src/dw-helper.js"&gt;&lt;/script&gt;
+    &lt;script src="src/webworker-pool.js"&gt;&lt;/script&gt;
+    &lt;script src="src/dw.js"&gt;&lt;/script&gt;</pre>
+                    </section>
+                    <section id="local-data">
+                        <h3>Local Data</h3>
                         <p>DataWorker takes an array of records to construct the initial dataset. The first record defines column properties.</p>
                         <pre>
     var dataset = [
@@ -106,7 +121,11 @@
                             <li><code>aggType</code>: "max"</li>
                             <li><code>sortType</code>: "alpha"</li>
                         </ul>
-                        <p>Additionally, you should give DataWorker an error handler (otherwise DataWorker will just fail silently) using the <code>onError</code> method:</p>
+                        <p>Additionally, you should give DataWorker an error handler (by default DataWorker uses <code>console.error</code>) using the <code>onError</code> method or by adding it as a property on the dataset object:</p>
+                        <pre>
+    dataset.onError = function (msg) { alert(msg) };
+    new DataWorker(dataset);</pre>
+                        <p>or</p>
                         <pre>
     var dw = new DataWorker(dataset).onError(function (errorMsg) {
         alert(errorMsg);
@@ -216,12 +235,12 @@
         }
     });</pre>
                         <p><code>datasource</code> should be the base url to send GET requests to.</p>
-                        <p><code>request</code> should be the query string to append to the base url. The prepended question mark is optional; if it is missing, one will automatically be inserted. Optionally, <code>request</code> could be a JSON string; DataWorker will convert this into a query string.</p>
+                        <p><code>request</code> should be the query string to append to the base url. The prepended question mark is optional; if it is missing, one will automatically be inserted. Optionally, <code>request</code> could be a javascript object or a JSON string; DataWorker will convert this into a query string.</p>
                         <h5>Using fallbacks</h5>
                         <p>If multiple data sources exist, it is possible to provide fallbacks when instantiating DataWorker. This can be useful if you have a server down for maintenance or your WebSocket service is not running. Simply provide the possible sources as an array to <code>datasource</code> in priority order:</p>
                         <pre>
     var dw = new DataWorker({
-        request    : "{\"cmd\":\"requestDataset\"}",
+        request    : { cmd: "requestDataset" },
         datasource : [
             "http://example.com",
             "ws://127.0.0.1:8888",
@@ -294,6 +313,24 @@
         datasource       : "ws://127.0.0.1:8888",
         authenticate     : "{}",
         onTrigger: function (reply) { alert(reply) }
+    });</pre>
+                    </section>
+                    <section id="webworkers">
+                        <h3>Web Workers</h3>
+                        <p>Web Workers are enabled by default, to get the most performance out of DataWorker. Without any extra configuration, a Blob will be used to create the Web Worker. However, some browsers do not support remote data from within a Web Worker created in that fashion, though they work fine when created using a standard URL. DataWorker will detect these errors and look for a file named <code>dw-helper.js</code> in the same folder as <code>dw.js</code>. THe method used to determine the source path does not work well in some circumstances, for example when a module loader like RequireJS. To provide alternative sources, extra options can be provided when instantiating DataWorker.</p>
+                        <p>If <code>workerSource</code> is provided, it will be used first. If that source fails to create a Web Worker, or an error occurs on connection to the datasource, a Blob will be created next to try again. If the Blob fails, then <code>backupWorkerSource</code> will be used next. If that fails, or wasn't provided, DataWorker will make it's best guess as to the location of <code>dw-helper.js</code>. When all else fails, DataWorker will revert to a single-threaded environment. Finally, an error will be thrown if a connection still cannot be made and no local dataset is provided.</p>
+                        <pre>
+    new DataWorker({
+        datasource: "http://example.com/dataset.json",
+        workerSource: "/path/to/dw-helper.js",
+        backupWorkerSource: "/other/path/to/dw-helper.js"
+    });</pre>
+                        <p>There is an initial cost to creating a Web Worker, and they are meant to stay alive as long as possible. This can be important for avoiding memory leaks in single page applications. Rather than terminating a Web Worker, DataWorkerHelper is designed to idle when not in use and be reused when needed. To clean up an instance of DataWorker, simply call <code>finish(optionalCallback)</code> on the instance. If a callback is included it will be called once the Web Worker has responded that it is ready to be reused. Simply creating a new DataWorker will reuse that Web Worker.</p>
+                        <p>Web Workers are still an experimental technology, and may have some issues. If you prefer to avoid using Web Workers at all, you may pass in a flag to force it to be single-threaded.</p>
+                        <pre>
+    new DataWorker({
+        datasource: "http://example.com/dataset.json",
+        forceSingleThread: true
     });</pre>
                     </section>
                     <section id="clone">
