@@ -162,23 +162,26 @@
         return self;
     };
 
-    DataWorker.prototype._initializeDatasources = function (dataset) {
+    DataWorker.prototype._initializeDatasources = function (settings) {
         var self        = this,
-            settings    = {},
             datasources = [],
+            dataset     = settings.dataset || settings,
             columns, rows, request;
 
         if (dataset instanceof Array) {
             columns = dataset.slice(0, 1)[0];
             rows    = dataset.slice(1);
+        } else if ((settings.columns instanceof Array) && (settings.rows instanceof Array)) {
+            columns = settings.columns;
+            rows    = settings.rows;
         } else {
-            datasources = (dataset.datasource instanceof Array)
-                ?   dataset.datasource.slice(0)
-                : [ dataset.datasource ];
+            datasources = (settings.datasource instanceof Array)
+                ?   settings.datasource.slice(0)
+                : [ settings.datasource ];
 
-            request = (typeof dataset.request === "string")
-                ? dataset.request
-                : JSON.stringify(dataset.request);
+            request = (typeof settings.request === "string")
+                ? settings.request
+                : JSON.stringify(settings.request);
         }
 
         self._connectionSettings = {
@@ -190,10 +193,10 @@
                 columns                : columns,
                 rows                   : rows,
 
-                authenticate           : dataset.authenticate,
+                authenticate           : settings.authenticate,
                 request                : request,
-                onClose                : dataset.onClose,
-                shouldAttemptReconnect : dataset.shouldAttemptReconnect
+                onClose                : settings.onClose,
+                shouldAttemptReconnect : settings.shouldAttemptReconnect
             }
         };
 

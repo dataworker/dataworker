@@ -5390,3 +5390,56 @@ QUnit.test("join dataset w/ complex record values", function (assert) {
 
     d1.finish(done1);
 });
+
+QUnit.test("allow option to pass in dataset as initial settings properties", function (assert) {
+    assert.expect(5);
+
+    var done = assert.async();
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ]
+    ];
+
+    new DataWorker({
+        dataset: dataset
+    }).getColumns(function (fetchedColumns) {
+        var columns = dataset[0];
+
+        assert.equal(Object.keys(fetchedColumns).length, 3);
+        assert.ok(fetchedColumns[columns[0]]);
+        assert.ok(fetchedColumns[columns[1]]);
+        assert.ok(fetchedColumns[columns[2]]);
+    }).getRows(function (fetchedRows) {
+        var rows = dataset.slice(1);
+        assert.deepEqual(fetchedRows, rows);
+    }).finish(done);
+});
+
+QUnit.test("allow option to pass in rows & columns as initial settings properties", function (assert) {
+    assert.expect(5);
+
+    var done = assert.async();
+
+    var columns = [ "column_a", "column_b", "column_c" ];
+    var rows = [
+        [ "apple",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ]
+    ];
+
+    new DataWorker({
+        columns: columns,
+        rows: rows
+    }).getColumns(function (fetchedColumns) {
+        assert.equal(Object.keys(fetchedColumns).length, 3);
+        assert.ok(fetchedColumns[columns[0]]);
+        assert.ok(fetchedColumns[columns[1]]);
+        assert.ok(fetchedColumns[columns[2]]);
+    }).getRows(function (fetchedRows) {
+        assert.deepEqual(fetchedRows, rows);
+    }).finish(done);
+});
