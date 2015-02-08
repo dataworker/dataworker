@@ -357,28 +357,6 @@
         return self;
     };
 
-    DataWorker.prototype.getDataset = function () {
-        var self = this,
-            callback = arguments[0],
-            columnNames = _getArray(arguments, 1);
-
-        if (console && console.warn) {
-            console.warn("DataWorker.prototype.getDataset is deprecated. Please use getRows instead");
-        }
-
-        self._queueNext(function () {
-            self._postMessage({
-                cmd         : "getDataset",
-                columnNames : columnNames
-            });
-        })._queueNext(function () {
-            callback.call(self, self._rows);
-            return self._finishAction();
-        });
-
-        return self;
-    };
-
     DataWorker.prototype.getDistinctConsecutiveRows = function () {
         var self = this,
             callback = arguments[0],
@@ -1178,17 +1156,6 @@
             } else {
                 callback.call(self, data);
             }
-        });
-
-        return self;
-    };
-
-    DataWorker.prototype.then = function (callback) {
-        var self = this;
-
-        self._queueNext(function () {
-            callback.call(self);
-            return self._finishAction();
         });
 
         return self;

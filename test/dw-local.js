@@ -4104,32 +4104,6 @@ QUnit.test("DataWorker works without Web Worker support (older browsers)", funct
     });
 });
 
-QUnit.test("then() function lets you utilize DataWorker\"s action queue", function (assert) {
-    assert.expect(2);
-
-    var done = assert.async();
-
-    var dataset = [
-        [ "column_a", "column_b", "column_c" ],
-
-        [ "apple",      "violin",    "music" ],
-        [ "cat",        "tissue",      "dog" ],
-        [ "banana",      "piano",      "gum" ],
-        [ "gummy",       "power",     "star" ]
-    ];
-
-    var x = 10;
-
-    var d = new DataWorker(dataset);
-
-    d.getNumberOfRecords(function (numRows) {
-        assert.equal(x, 10);
-        x = numRows;
-    }).then(function () {
-        assert.equal(x, 4);
-    }).finish(done);
-});
-
 QUnit.test("clearDataset", function (assert) {
     assert.expect(3);
 
