@@ -350,7 +350,7 @@
         self._queueNext(function () {
             self._postMessage({ cmd : "getColumns" });
         })._queueNext(function () {
-            callback(self._columns);
+            callback.call(self, self._columns);
             return self._finishAction();
         });
 
@@ -372,7 +372,7 @@
                 columnNames : columnNames
             });
         })._queueNext(function () {
-            callback(self._rows);
+            callback.call(self, self._rows);
             return self._finishAction();
         });
 
@@ -390,7 +390,7 @@
                 columnName : columnName
             });
         })._queueNext(function () {
-            callback(self._distinctRows);
+            callback.call(self, self._distinctRows);
             return self._finishAction();
         });
 
@@ -522,7 +522,7 @@
         self._queueNext(function () {
             self._getPage(undefined, true, false, columnNames);
         })._queueNext(function() {
-            callback(self._rows, self._currentPage);
+            callback.call(self, self._rows, self._currentPage);
             return self._finishAction();
         });
 
@@ -536,7 +536,7 @@
         self._queueNext(function () {
             self._getPage(undefined, false, true, columnNames);
         })._queueNext(function () {
-            callback(self._rows, self._currentPage);
+            callback.call(self, self._rows, self._currentPage);
             return self._finishAction();
         });
 
@@ -551,7 +551,7 @@
                 cmd : "getNumberOfPages"
             });
         })._queueNext(function () {
-            callback(self._numberOfPages);
+            callback.call(self, self._numberOfPages);
             return self._finishAction();
         });
 
@@ -579,7 +579,7 @@
         self._queueNext(function () {
             self._getPage(pageNum, undefined, undefined, columnNames);
         })._queueNext(function () {
-            callback(self._rows, self._currentPage);
+            callback.call(self, self._rows, self._currentPage);
             self._finishAction();
         });
 
@@ -611,7 +611,7 @@
                 columnNames : columnNames
             });
         })._queueNext(function () {
-            callback(self._rows);
+            callback.call(self, self._rows);
             self._finishAction();
         });
 
@@ -630,7 +630,7 @@
                 columnNames : columnNames
             });
         })._queueNext(function () {
-            callback(self._rows);
+            callback.call(self, self._rows);
             self._finishAction();
         });
 
@@ -643,7 +643,7 @@
         self._queueNext(function () {
             self._postMessage({ cmd : "refresh" });
         })._queueNext(function () {
-            callback(self._columns, self._rows);
+            callback.call(self, self._columns, self._rows);
             return self._finishAction();
         });
 
@@ -656,7 +656,7 @@
         self._queueNext(function () {
             self._postMessage({ cmd: "refreshAll", complexValues: complexValues });
         })._queueNext(function () {
-            callback(self._columns, self._rows);
+            callback.call(self, self._columns, self._rows);
             return self._finishAction();
         });
 
@@ -748,7 +748,7 @@
                 keyColumns : keyColumns
             });
         })._queueNext(function () {
-            callback(self._hash);
+            callback.call(self, self._hash);
             return self._finishAction();
         });
 
@@ -858,7 +858,7 @@
         self._queueNext(function () {
             self._postMessage({ cmd : "getPartitionKeys" });
         })._queueNext(function () {
-            callback(self._keys);
+            callback.call(self, self._keys);
             self._finishAction();
         });
 
@@ -876,7 +876,7 @@
                 key : keys.join("|")
             });
         })._queueNext(function () {
-            callback(self._rows);
+            callback.call(self, self._rows);
             return self._finishAction();
         });
 
@@ -944,14 +944,14 @@
                 self._onReceiveColumns = wrappedCallback;
 
                 if (self._onReceiveColumnsTracker) {
-                    callback(self._columns, self._expectedNumRows);
+                    callback.call(self, self._columns, self._expectedNumRows);
                 }
             } else {
                 self._queueNext(function () {
                     self._onReceiveColumns = wrappedCallback;
 
                     if (self._onReceiveColumnsTracker) {
-                        callback(self._columns, self._expectedNumRows);
+                        callback.call(self, self._columns, self._expectedNumRows);
                     }
 
                     return self._finishAction();
@@ -1009,14 +1009,14 @@
                 self._onAllRowsReceived = wrappedCallback;
 
                 if (self._onAllRowsReceivedTracker) {
-                    callback();
+                    callback.call(self);
                 }
             } else {
                 self._queueNext(function () {
                     self._onAllRowsReceived = wrappedCallback;
 
                     if (self._onAllRowsReceivedTracker) {
-                        callback();
+                        callback.call(self);
                     }
 
                     return self._finishAction();
@@ -1033,7 +1033,7 @@
         self._queueNext(function () {
             self._postMessage({ cmd : "getNumberOfRecords" });
         })._queueNext(function () {
-            callback(self._numRows);
+            callback.call(self, self._numRows);
             return self._finishAction();
         });
 
@@ -1052,7 +1052,7 @@
 
             var dataset = [ columnsRow ].concat(records);
 
-            callback(new DataWorker(dataset));
+            callback.call(self, new DataWorker(dataset));
         }, true);
 
         return self;
@@ -1064,7 +1064,7 @@
         self._queueNext(function () {
             self._postMessage({ cmd : "getExpectedNumRows" });
         })._queueNext(function () {
-            callback(self._expectedNumRows);
+            callback.call(self, self._expectedNumRows);
             return self._finishAction();
         });
 
@@ -1152,7 +1152,7 @@
         self._queueNext(function () {
             self._postMessage({ cmd : "getAllColumns" });
         })._queueNext(function () {
-            callback(self._columns);
+            callback.call(self, self._columns);
             return self._finishAction();
         });
 
@@ -1173,10 +1173,10 @@
 
             if (data instanceof DataWorker) {
                 data.getRows(function (rows) {
-                    callback(rows);
+                    callback.call(self, rows);
                 });
             } else {
-                callback(data);
+                callback.call(self, data);
             }
         });
 
@@ -1187,7 +1187,7 @@
         var self = this;
 
         self._queueNext(function () {
-            callback();
+            callback.call(self);
             return self._finishAction();
         });
 
@@ -1217,7 +1217,7 @@
                 columnNames : columnNames
             });
         })._queueNext(function () {
-            callback(self._summaryRows);
+            callback.call(self, self._summaryRows);
             return self._finishAction();
         });
 
@@ -1285,7 +1285,7 @@
                 limit         : options.limit
             });
         })._queueNext(function () {
-            callback(self._rows);
+            callback.call(self, self._rows);
             self._finishAction();
         });
 

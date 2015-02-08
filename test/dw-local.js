@@ -5443,3 +5443,18 @@ QUnit.test("allow option to pass in rows & columns as initial settings propertie
         assert.deepEqual(fetchedRows, rows);
     }).finish(done);
 });
+
+QUnit.test("callbacks bind current DataWorker instance to \"this\" keyword", function (assert) {
+    assert.expect(3);
+
+    var done = assert.async();
+
+    var dw = new DataWorker([
+    ]).getColumns(function (columns) {
+        assert.equal(this, dw);
+    }).getRows(function (rows) {
+        assert.equal(this, dw);
+    }).getAllColumnsAndAllRecords(function (columns, records) {
+        assert.equal(this, dw);
+    }).finish(done);
+});
