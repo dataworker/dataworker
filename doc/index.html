@@ -42,7 +42,6 @@
                         <li><a href="#sort">Sort</a></li>
                         <li><a href="#add-child-rows">Add Child Rows</a></li>
                         <li class="nav-header">Access the dataset!</li>
-                        <li><a href="#get-dataset">Get dataset</a></li>
                         <li><a href="#get-rows">Get rows</a></li>
                         <li><a href="#get-hashed-rows">Get hashed rows</a></li>
                         <li><a href="#get-columns">Get columns</a></li>
@@ -703,7 +702,7 @@
     var d2 = DataWorker([[ "letters", "numbers" ]].concat(childRows), "letters");
 
     dw.addChildRows(d2);</pre>
-                        <p>In either case, the result passed into the callback for <code>getDataset</code> will be the same:</p>
+                        <p>In either case, the result passed into the callback for <code>getRows</code> will be the same:</p>
                         <pre>
     [
         [ "abc", 123 ],
@@ -716,10 +715,10 @@
                         <p>The default visibility for a child row depends on its parent. If the parent row was set to hidden then the child row will still be added to the parent, but will be hidden as well.</p>
                         <p>If a parent row cannot be found for the children, those child rows will be ignored. If multiple parent rows exist for a given child row, the result is undefined.</p>
                     </section>
-                    <section id="get-dataset" class="muted">
-                        <h3>Get dataset</h3>
-                        <p><strong>This function is deprecated as of v2.0 and will be removed in v3.0. Please use <a href="#get-rows">getRows</a> instead.</strong></p>
-                        <p>Visible dataset rows can be retrieved for use via the <code>getDataset</code> method.</p>
+                    <section id="get-rows">
+                        <h3>Get rows</h3>
+                        <p>Visible dataset rows can be retrieved for use via the <code>getRows</code> method.</p>
+                        <p>If called with just the callback function, <code>getRows</code> will get all rows. The next two arguments are the start and end of the range. If unspecified, they are the start and end of the dataset. These arguments are 0-based, so a dataset with 15 rows will have rows 0 - 14. If a number larger than the last row is used DataWorker will simply return anything in the range <i>up to</i> (and including) the last row.</p>
                         <pre>
     var dataset = [
         [ "column_a", "column_b", "column_c" ],
@@ -733,7 +732,7 @@
     var dw = new DataWorker(dataset);
     var records;
 
-    dw.getDataset(function (result) { records = result; });</pre>
+    dw.getRows(function (result) { records = result; });</pre>
                         <p>The following is the contents of <code>records</code>:</p>
                         <pre>
     [
@@ -742,29 +741,7 @@
         [ "banana",      "piano",      "gum" ],
         [ "gummy",       "power",     "star" ]
     ]</pre>
-                        <p>The <code>getDataset</code> method can also grab only specified rows:</p>
-                        <pre>
-    dw.getDataset(function (result) { records = result; }, "column_a", "column_b");</pre>
-                        <p>The following would be the contents of <code>records</code>:</p>
-                        <pre>
-    [
-        [ "apple",      "violin" ],
-        [ "cat",        "tissue" ],
-        [ "banana",      "piano" ],
-        [ "gummy",       "power" ]
-    ]</pre>
-                        <p>Note that the following does the same thing as the preceding sample:</p>
-                        <pre>
-    dw.getDataset(
-        function (result) { records = result; },
-        [ "column_a", "column_b" ]
-    );</pre>
-                    </section>
-                    <section id="get-rows">
-                        <h3>Get rows</h3>
-                        <p>Another function to fetch rows is <code>getRows</code>. This function works the same as <code>getDataset</code> except that it allows for a range of rows</p>
-                        <p>If called with just the callback function, <code>getRows</code> will get all rows. The next two arguments are the start and end of the range. If unspecified, they are the start and end of the dataset. These arguments are 0-based, so a dataset with 15 rows will have rows 0 - 14. If a number larger than the last row is used DataWorker will simply return anything in the range <i>up to</i> (and including) the last row.</p>
-                        <p>Like <code>getDataset</code>, <code>getRows</code> may also specify the columns. All of the following calls to getRows are valid examples:</p>
+                        <p>If you would only like certain columns, you may provide those columns after the range of rows, either as an array or as extra arguments. All of the following calls to getRows are valid examples:</p>
                         <pre>
     var callback = function (rows) { /* Do something */ };
 
@@ -835,7 +812,7 @@
         // Do something.
     });</pre>
                         <p>Columns will be given as a dictionary with the <code>columnName</code> as the key and its properties (also in a dictionary) as the value.</p>
-                        <p>Records will be returned the same as in <code>getDataset</code>.</p>
+                        <p>Records will be returned the same as in <code>getRows</code>.</p>
                     </section>
                     <section id="get-number-of-records">
                         <h3>Get number of records</h3>
