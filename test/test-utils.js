@@ -1,9 +1,7 @@
 var srcPath = (function () {
-    var scripts = document.getElementsByTagName("script"),
-        srcFile = scripts[scripts.length - 1].src;
+    var srcFile = (document.currentScript || document._currentScript() || {}).src;
 
     return srcFile.replace(/(.*[\/\\]).*$/, "$1");
-    return srcFile.substr(0, srcFile.lastIndexOf("/") + 1);
 })();
 
 function getRandomWord() {

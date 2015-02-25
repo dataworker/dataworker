@@ -10,13 +10,24 @@ module.exports = function(grunt) {
         concat: {
             options: {
                 banner: "<%= banner %>",
-                stripBanners: false
+                stripBanners: false,
+                process: function (src, filepath) {
+                    if (filepath === "lib/document.currentScript/dist/document.currentScript.js") {
+                        return src.replace("{", "{\n" +
+                            "\"use strict\";\n\n" +
+                            "if (typeof window === \"undefined\") { return; }"
+                        );
+                    } else {
+                        return src;
+                    }
+                },
             },
             dataworker: {
                 src: [
                     "src/webworker-pool.js",
                     "src/actionqueue.js",
                     "src/dw-helper.js",
+                    "lib/document.currentScript/dist/document.currentScript.js",
                     "src/dw.js"
                 ],
                 dest: "dist/<%= pkg.name %>.js"
@@ -28,7 +39,8 @@ module.exports = function(grunt) {
         },
         uglify: {
             options: {
-                preserveComments: "some"
+                preserveComments: "some",
+                sourceMap: true
             },
             build: {
                 files: {

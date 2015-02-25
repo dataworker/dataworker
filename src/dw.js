@@ -5,16 +5,6 @@
         return;
     }
 
-    var srcPath = (function () {
-        var scripts = document.getElementsByTagName("script"),
-            srcFile = scripts[scripts.length - 1].src;
-
-        return srcFile.replace(
-            /(https?:\/\/)?.*?(\/(.*\/)?).*/,
-            function () { return arguments[2]; }
-        );
-    })();
-
     var DataWorker = window.DataWorker = function DataWorker (dataset) {
         var self = this instanceof DataWorker ? this : Object.create(DataWorker.prototype);
 
@@ -44,6 +34,8 @@
 
         return self;
     };
+
+    DataWorker.currentScript = (document.currentScript || document._currentScript() || {}).src;
 
     DataWorker.ignoreProtocols = {};
 
@@ -149,7 +141,9 @@
             sources.push(dataset["backupWorkerSource"]);
         }
 
-        sources.push(srcPath + "dw-helper.js");
+        if (DataWorker.currentScript) {
+            sources.push(DataWorker.currentScript);
+        }
 
         self._workerSources = sources.filter(function (source) {
             var ignore       = DataWorker.ignoreProtocols[source] || {},

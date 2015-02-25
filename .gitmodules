@@ -1,0 +1,3 @@
+[submodule "lib/document.currentScript"]
+	path = lib/document.currentScript
+	url = git@github.com:JamesMGreene/document.currentScript.git
