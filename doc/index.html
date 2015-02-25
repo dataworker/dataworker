@@ -21,7 +21,6 @@
                     <ul class="nav" data-spy="affix" data-offset-top="85">
                         <li><a href="#top">DataWorker</a></li>
                         <li class="nav-header">Get started!</li>
-                        <li><a href="#include-source">Including Source Files</a></li>
                         <li><a href="#local-data">Local Data</a></li>
                         <li><a href="#stream">Streaming Data</a></li>
                         <li><a href="#webworkers">Web Workers</a></li>
@@ -51,6 +50,8 @@
                         <li><a href="#pagination">Pagination</a></li>
                         <li><a href="#partition">Partition</a></li>
                         <li><a href="#render">Render</a></li>
+                        <li class="nav-header">Contribute!</li>
+                        <li><a href="#compile">Compile Code</a></li>
                         <li class="nav-header"></li>
                         <li><small><a href="#top">Back to top</a></small></li>
                     </ul>
@@ -59,15 +60,9 @@
                     <section>
                         <p>DataWorker is designed to manage large datasets client-side, using modern web technologies such as Web Workers and WebSockets. DataWorker allows users to perform expensive operations (such as sorting, joining, searching, filtering, grouping, and much more) in a multi-threaded environment to maintain responsiveness. Data can be provided locally as an array, or remotely via AJAX or WebSockets. DataWorker has no dependencies on external libraries, but works well with others.</p>
                         <p>Not all browsers fully support all of the provided features (such as using a WebSocket from within a Web Worker) because some of the technology is quite new, so fallbacks are in place to make sure data can still be accessed across the most amount of devices possible.</p>
-                    </section>
-                    <section id="include-source">
-                        <h3>Including Source Files</h3>
-                        <p>To get started, you will need to include four source files. In the future DataWorker will come with distribution files so that you can simply include one minified or unminified file. For now, these are the files you will need:</p>
+                        <p>To get started, you will need to include one of the distribution files in the <code>dist/</code> folder: <code>dataworker.js</code> for development/testing, and <code>dataworker.min.js</code> for production. For example: </p>
                         <pre>
-    &lt;script src="src/actionqueue.js"&gt;&lt;/script&gt;
-    &lt;script src="src/dw-helper.js"&gt;&lt;/script&gt;
-    &lt;script src="src/webworker-pool.js"&gt;&lt;/script&gt;
-    &lt;script src="src/dw.js"&gt;&lt;/script&gt;</pre>
+    &lt;script src="dist/dataworker.min.js"&gt;&lt;/script&gt;</pre>
                     </section>
                     <section id="local-data">
                         <h3>Local Data</h3>
@@ -961,6 +956,10 @@
     /* Make some changes to the dataset. */
 
     dw.render(); // Renders the new dataset according to the user-defined function.</pre>
+                    </section>
+                    <section id="compile">
+                        <h3>Compile</h3>
+                        <p>To generate the distribution files, we use the node module <code>grunt</code>. If you would like to play around with the source and create your own distribution files, you must first have <a href="http://nodejs.org">node.js</a> and <a href="http://npmjs.com">NPM</a> installed on your machine. From the DataWorker's root directory, run the command <code>npm install</code> in order to get the latest dev dependencies for the package. Then type <code>grunt dist</code> to generate the distribution files. You may also type <code>grunt watch</code> instead, which will automatically generate new distribution files whenever you change one of the source files.</p>
                     </section>
                 </div>
             </div>

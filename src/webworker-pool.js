@@ -1,6 +1,10 @@
 (function () {
     "use strict";
 
+    if (typeof window === "undefined") {
+        return;
+    }
+
     var WWP = window.WebWorkerPool = function WebWorkerPool(optionalSource) {
         var self = this instanceof WWP ? this : Object.create(WWP.prototype);
 

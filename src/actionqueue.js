@@ -1,6 +1,10 @@
 (function () {
     "use strict";
 
+    if (typeof window === "undefined") {
+        return;
+    }
+
     var ActionQueue = window.ActionQueue = function () {
         var self = this instanceof ActionQueue ? this : Object.create(ActionQueue.prototype);
 

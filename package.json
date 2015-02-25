@@ -1,0 +1,17 @@
+{
+  "name": "dataworker",
+  "homepage": "http://git.io/dw",
+  "author": "Rentrak Corporation and other contributors",
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/dataworker/dataworker/blob/master/LICENSE"
+  },
+  "version": "3.0.0",
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-contrib-nodeunit": "~0.4.1",
+    "grunt-contrib-uglify": "~0.5.0",
+    "grunt-contrib-concat": "~0.5.1",
+    "grunt-contrib-watch": "~0.6.1"
+  }
+}

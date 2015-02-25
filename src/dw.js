@@ -1,6 +1,10 @@
 (function() {
     "use strict";
 
+    if (typeof window === "undefined") {
+        return;
+    }
+
     var srcPath = (function () {
         var scripts = document.getElementsByTagName("script"),
             srcFile = scripts[scripts.length - 1].src;
