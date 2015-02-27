@@ -3,7 +3,7 @@
 
     importScripts(
         "mock_websocket.js", // Overrides WebSocket w/ a mock object
-        "../../src/dw-helper.js"
+        "../../dist/dataworker-helper.min.js"
     );
 
     WebSocket.unexpected = function (msg) {
