@@ -20,7 +20,7 @@ QUnit.test("queue action (not in action)", function (assert) {
 QUnit.test("queue action (in action)", function (assert) {
     var q = new ActionQueue();
 
-    function toQ() { q.finishAction(); };
+    function toQ() { q.finishAction(); }
 
     q._isInAction = true;
     q.queueNext(toQ);
@@ -41,7 +41,7 @@ QUnit.test("queue action (named function with args)", function (assert) {
     function toQ(arg) {
         toSet = arg;
         q.finishAction();
-    };
+    }
 
     q.queueNext(toQ, "Hello, world!");
 

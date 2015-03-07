@@ -1447,10 +1447,10 @@ QUnit.test("failed append (columns not the same)", function (assert) {
     var d = new DataWorker(dataset1).onError(function (error) {
         assert.equal(
             error,
-            "Cannot append dataset (columns do not match):\n\t"
-            + "column_a, column_b, column_c\n\t\t"
-            + "VS\n\t"
-            + "column_a, column_b, column_d"
+            "Cannot append dataset (columns do not match):\n\t" +
+            "column_a, column_b, column_c\n\t\t" +
+            "VS\n\t" +
+            "column_a, column_b, column_d"
         );
     });
 
@@ -1478,10 +1478,10 @@ QUnit.test("failed append (different number of columns)", function (assert) {
     var d = new DataWorker(dataset1).onError(function (error) {
         assert.equal(
             error,
-            "Cannot append dataset (columns do not match):\n\t"
-            + "column_a, column_b, column_c\n\t\t"
-            + "VS\n\t"
-            + "column_a, column_b"
+            "Cannot append dataset (columns do not match):\n\t" +
+            "column_a, column_b, column_c\n\t\t" +
+            "VS\n\t" +
+            "column_a, column_b"
         );
     });
 
@@ -1897,7 +1897,7 @@ QUnit.test("alter column sort type", function (assert) {
     var d = new DataWorker(dataset).alterColumnSortType("column_a", "random");
 
     d.getColumns(function (columns) {
-        assert.equal(columns["column_a"]["sortType"], "random");
+        assert.equal(columns.column_a.sortType, "random");
     }).finish(done);
 });
 
@@ -1918,7 +1918,7 @@ QUnit.test("alter column aggregate type", function (assert) {
     var d = new DataWorker(dataset).alterColumnAggregateType("column_a", "random");
 
     d.getColumns(function (columns) {
-        assert.equal(columns["column_a"]["aggType"], "random");
+        assert.equal(columns.column_a.aggType, "random");
     }).finish(done);
 });
 
@@ -1939,7 +1939,7 @@ QUnit.test("alter column title", function (assert) {
     var d = new DataWorker(dataset).alterColumnTitle("column_a", "random");
 
     d.getColumns(function (columns) {
-        assert.equal(columns["column_a"]["title"], "random");
+        assert.equal(columns.column_a.title, "random");
     }).finish(done);
 });
 
@@ -2129,10 +2129,10 @@ QUnit.test("apply filter operates on partitioned datasets as well", function (as
 
     (function wait() {
         if (
-            typeof(applePartition) === "object"
-            && typeof(bananaPartition) === "object"
-            && typeof(catPartition) === "object"
-            && typeof(gumPartition) === "object"
+            typeof(applePartition)  === "object" &&
+            typeof(bananaPartition) === "object" &&
+            typeof(catPartition)    === "object" &&
+            typeof(gumPartition)    === "object"
         ) {
             d.render().finish(done);
         } else {
@@ -2215,10 +2215,10 @@ QUnit.test("clear filter operates on partitioned datasets as well", function (as
 
     (function wait() {
         if (
-            typeof(applePartition) === "object"
-            && typeof(bananaPartition) === "object"
-            && typeof(catPartition) === "object"
-            && typeof(gumPartition) === "object"
+            typeof(applePartition)  === "object" &&
+            typeof(bananaPartition) === "object" &&
+            typeof(catPartition)    === "object" &&
+            typeof(gumPartition)    === "object"
         ) {
             d.render().finish(done);
         } else {
@@ -2301,10 +2301,10 @@ QUnit.test("partitioned datasets obeys hidden columns", function (assert) {
 
     (function wait() {
         if (
-            typeof(applePartition) === "object"
-            && typeof(bananaPartition) === "object"
-            && typeof(catPartition) === "object"
-            && typeof(gumPartition) === "object"
+            typeof(applePartition)  === "object" &&
+            typeof(bananaPartition) === "object" &&
+            typeof(catPartition)    === "object" &&
+            typeof(gumPartition)    === "object"
         ) {
             d.render().finish(done);
         } else {
@@ -2415,10 +2415,10 @@ QUnit.test("get partitioned (single field)", function (assert) {
 
     var wait = function () {
         if (
-            applePartition.length > 0
-            && bananaPartition.length > 0
-            && catPartition.length > 0
-            && gummyPartition.length > 0
+            applePartition.length  > 0 &&
+            bananaPartition.length > 0 &&
+            catPartition.length    > 0 &&
+            gummyPartition.length  > 0
         ) {
             d.render().finish(done);
         } else {
@@ -2542,12 +2542,12 @@ QUnit.test("get partitioned (multi-field)", function (assert) {
 
     var wait = function () {
         if (
-            appleTrancePartition.length > 0
-            && appleViolinPartition.length > 0
-            && bananaPianoPartition.length > 0
-            && catSoyPartition.length > 0
-            && catTissuePartition.length > 0
-            && gummyPowerPartition.length > 0
+            appleTrancePartition.length > 0 &&
+            appleViolinPartition.length > 0 &&
+            bananaPianoPartition.length > 0 &&
+            catSoyPartition.length      > 0 &&
+            catTissuePartition.length   > 0 &&
+            gummyPowerPartition.length  > 0
         ) {
             d.render().finish(done);
         } else {
@@ -2592,7 +2592,7 @@ QUnit.test('get partition (multi-field w/ nulls)', function (assert) {
             [ "cat",   "potato" ],
             [ "gummy", "power"  ]
         ]);
-    })
+    });
 
     d.getPartitioned(function (partition) {
         assert.deepEqual(partition, [
@@ -2605,7 +2605,7 @@ QUnit.test('get partition (multi-field w/ nulls)', function (assert) {
 });
 
 QUnit.test('get partition (empty partition)', function (assert) {
-    assert.expect(1);
+    assert.expect(2);
 
     var done = assert.async();
 
@@ -2622,7 +2622,8 @@ QUnit.test('get partition (empty partition)', function (assert) {
     var d = new DataWorker(dataset).partition("column_a", "column_b");
 
     d.getPartitionKeys(function (partitionKeys) {
-    })
+        assert.deepEqual(partitionKeys, [ [ "apple", "violin" ] ]);
+    });
 
     d.getPartitioned(function (partition) {
         assert.deepEqual(partition, []);
@@ -4740,8 +4741,8 @@ QUnit.test("allow for blank column titles", function (assert) {
     var dw = new DataWorker(dataset);
 
     dw.getColumns(function (columns) {
-        assert.equal(columns["abc"]["title"], "");
-        assert.equal(columns["123"]["title"], "123");
+        assert.equal(columns.abc.title, "");
+        assert.equal(columns["123"].title, "123");
     }).finish(done);
 });
 

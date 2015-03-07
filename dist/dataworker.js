@@ -30,7 +30,8 @@
             var workers = self._workers[src];
             if (workers === "ignore") return false;
 
-            if (worker = workers && workers.length && workers.pop()) return true;
+            worker = workers && workers.length && workers.pop();
+            if (worker) return true;
             if (onlyReclaimed) return false;
 
             try {
@@ -115,7 +116,7 @@
                     self._previousAction = action;
 
                     self._stackIndex++;
-                    self._callAction(function () { action.apply(self, args) });
+                    self._callAction(function () { action.apply(self, args); });
                 } else if (self._stackIndex > 0) {
                     self._stackIndex--;
                     doNextAction();
@@ -217,20 +218,20 @@ function DataWorkerHelperCreator(globalWorker) {
         self._partitionedBy   = [];
         self._partitionedRows = {};
 
-        self._expectedNumRows;
+        self._expectedNumRows   = undefined;
 
-        self._wsDatasource;
-        self._wsAuthenticate;
-        self._socket;
+        self._wsDatasource      = undefined;
+        self._wsAuthenticate    = undefined;
+        self._socket            = undefined;
 
-        self._cancelRequestsCmd;
-        self._cancelRequestsAck;
+        self._cancelRequestsCmd = undefined;
+        self._cancelRequestsAck = undefined;
+        self._onSocketClose     = undefined;
         self._waitForCancelRequestsAck = false;
-        self._onSocketClose;
         self._shouldAttemptReconnect = false;
 
-        self._ajaxDatasource;
-        self._ajaxAuthenticate;
+        self._ajaxDatasource   = undefined;
+        self._ajaxAuthenticate = undefined;
         self._ajaxRequests = [];
         self._ajaxRequestCounter = 0;
 
@@ -263,7 +264,7 @@ function DataWorkerHelperCreator(globalWorker) {
             if (data.cmd in self) {
                 reply = self[data.cmd](data);
             } else {
-                reply["error"] = "Unrecognized DataWorker command: " + data.cmd;
+                reply.error = "Unrecognized DataWorker command: " + data.cmd;
             }
         }
 
@@ -351,9 +352,8 @@ function DataWorkerHelperCreator(globalWorker) {
 
     DWH.prototype.initialize = function (data) {
         var self       = this,
-            datasource = typeof(data.datasource) === "string"
-                ? { source: data.datasource }
-                : data.datasource
+            datasource = typeof(data.datasource) === "string" ?
+                { source: data.datasource } : data.datasource;
 
         self._wsDatasource = self._socket = self._ajaxDatasource = undefined;
 
@@ -486,8 +486,8 @@ function DataWorkerHelperCreator(globalWorker) {
         }
 
         if (
-            self._columns !== undefined
-            && (msg.expectedNumRows !== undefined || (msg.rows && msg.columns))
+            self._columns !== undefined &&
+            (msg.expectedNumRows !== undefined || (msg.rows && msg.columns))
         ) {
             self._postMessage({ columnsReceived: true });
         }
@@ -497,8 +497,8 @@ function DataWorkerHelperCreator(globalWorker) {
         }
 
         if (
-            parseInt(msg.expectedNumRows) === 0
-            || (self._expectedNumRows === undefined && allDataReceived)
+            parseInt(msg.expectedNumRows) === 0 ||
+            (self._expectedNumRows === undefined && allDataReceived)
         ) {
             self._postMessage({ allRowsReceived : true });
         }
@@ -518,9 +518,9 @@ function DataWorkerHelperCreator(globalWorker) {
 
         xmlHttp.onreadystatechange = function () {
             if (
-                requestCount === self._ajaxRequestCounter
-                && xmlHttp.readyState > 2
-                && (self._isLocalAjax ? xmlHttp.response : xmlHttp.status === 200)
+                requestCount === self._ajaxRequestCounter &&
+                xmlHttp.readyState > 2                    &&
+                (self._isLocalAjax ? xmlHttp.response : xmlHttp.status === 200)
             ) {
                 var lines = xmlHttp.responseText.substr(streamIdx).split(/([\r\n]+)/);
 
@@ -558,8 +558,8 @@ function DataWorkerHelperCreator(globalWorker) {
         };
         self._socket.onclose = function (e) {
             if (
-                self._shouldAttemptReconnect
-                && e.code !== 1000 && e.code !== 1001
+                self._shouldAttemptReconnect &&
+                e.code !== 1000 && e.code !== 1001
             ) {
                 self._initializeWebsocketConnection(data);
             }
@@ -668,13 +668,13 @@ function DataWorkerHelperCreator(globalWorker) {
         (requestedColumns || Object.keys(self._columns)).forEach(function (columnName) {
             var column = self._columns[columnName];
 
-            if (column && (requestedColumns || column["isVisible"])) {
+            if (column && (requestedColumns || column.isVisible)) {
                 visibleColumnIdxs.push(column.index);
             }
         });
 
         requestedRows.forEach(function (row) {
-            if (row["isVisible"] || allRows) {
+            if (row.isVisible || allRows) {
                 var newRow = visibleColumnIdxs.map(function (idx) {
                     return self._getCellDisplayValueByIndex(row, idx);
                 });
@@ -758,13 +758,13 @@ function DataWorkerHelperCreator(globalWorker) {
 
         Object.keys(self._columns).forEach(function (name) {
             allIndices.push(self._columns[name].index);
-            numberCols[self._columns[name].index] = self._columns[name]["sortType"] === "num";
+            numberCols[self._columns[name].index] = self._columns[name].sortType === "num";
         });
 
         if (typeof filters[0] === "string" || filters[0] instanceof RegExp) {
             filters = [ {
                 columns: filters[1] instanceof Array ? filters[1] : filters.slice(1),
-                regex: RegExp(filters[0])
+                regex: new RegExp(filters[0])
             } ];
         }
 
@@ -774,7 +774,7 @@ function DataWorkerHelperCreator(globalWorker) {
             if (filter.columns && filter.columns.length) {
                 filter.indices = filter.columns.reduce(function (indices, columnName) {
                     var column = self._columns[columnName];
-                    if (column) indices.push(column["index"]);
+                    if (column) indices.push(column.index);
 
                     return indices;
                 }, []);
@@ -783,17 +783,17 @@ function DataWorkerHelperCreator(globalWorker) {
             }
 
             filter.tests = [ "eq", "ne", "gte", "gt", "lte", "lt", "regex", "!regex" ]
-                .filter(function (name) { return name in filter });
+                .filter(function (name) { return name in filter; });
 
             [ "regex", "!regex" ].forEach(function (type) {
-                if (filter[type]) filter[type] = RegExp(filter[type]);
+                if (filter[type]) filter[type] = new RegExp(filter[type]);
             });
 
             return filter;
         }).filter(function (filter) { return filter.indices.length; });
 
         return self._rows.reduce(function (results, row) {
-            if (!row["isVisible"] && !data.allRows) return results;
+            if (!row.isVisible && !data.allRows) return results;
 
             var validRow = filters.every(function (filter) {
                 return filter.indices[filter.matchAll ? "every" : "some"](function (index) {
@@ -810,12 +810,12 @@ function DataWorkerHelperCreator(globalWorker) {
 
             if (validRow) {
                 if (data.setVisibility) {
-                    row["isVisible"] = true;
+                    row.isVisible = true;
                 } else {
                     results.push(row);
                 }
             } else if (data.setVisibility) {
-                row["isVisible"] = false;
+                row.isVisible = false;
             }
 
             return results;
@@ -841,10 +841,7 @@ function DataWorkerHelperCreator(globalWorker) {
         var self = this;
 
         return Object.keys(columns).sort(function (a, b) {
-            return self._numSort(
-                columns[a]["index"],
-                columns[b]["index"]
-            );
+            return self._numSort(columns[a].index, columns[b].index);
         });
     };
 
@@ -864,8 +861,8 @@ function DataWorkerHelperCreator(globalWorker) {
             var originalColumns = self._extractColumnNamesInOrder(self._columns) .join(", ");
             var appendColumns   = self._extractColumnNamesInOrder(newColumns) .join(", ");
 
-            return "Cannot append dataset (columns do not match):\n\t"
-                   + originalColumns + "\n\t\tVS\n\t" + appendColumns;
+            return "Cannot append dataset (columns do not match):\n\t" +
+                originalColumns + "\n\t\tVS\n\t" + appendColumns;
         };
 
         if (Object.keys(newColumns).length === Object.keys(self._columns).length) {
@@ -876,7 +873,7 @@ function DataWorkerHelperCreator(globalWorker) {
 
                 if (typeof(self._columns[name]) === "undefined") {
                     return errorMsg();
-                } else if (newColumns[name]["index"] !== self._columns[name]["index"]) {
+                } else if (newColumns[name].index !== self._columns[name].index) {
                     return errorMsg();
                 }
             }
@@ -888,16 +885,16 @@ function DataWorkerHelperCreator(globalWorker) {
     DWH.prototype._hashRowsByKeyColumns = function (keyColumns, myRows, hash, preparedRows) {
         var self = this,
             keyIndexes = keyColumns.map(function (columnName) {
-                return self._columns[columnName]["index"];
+                return self._columns[columnName].index;
             });
 
-        myRows.forEach(function (row) {
-            var key = keyIndexes.map(function (i) { return self._getCellRawValueByIndex(row, i); }).join("|");
+        myRows.forEach(function (record) {
+            var key = keyIndexes.map(function (i) { return self._getCellRawValueByIndex(record, i); }).join("|");
 
             if (key in hash) {
-                hash[key].push(preparedRows ? row : row.row);
+                hash[key].push(preparedRows ? record : record.row);
             } else {
-                hash[key] = [ preparedRows ? row : row.row ];
+                hash[key] = [ preparedRows ? record : record.row ];
             }
         });
 
@@ -911,15 +908,15 @@ function DataWorkerHelperCreator(globalWorker) {
 
         keyColumns = keyColumns instanceof Array ? keyColumns : [ keyColumns ];
         keyColumns.forEach(function (column) {
-            if (!column in self._columns) {
+            if (!(column in self._columns)) {
                 errors.push("Column \"" + column + "\" not in dataset.");
             }
         });
 
         self._hashRowsByKeyColumns(keyColumns, self._rows, hash, preparedRows);
 
-        reply["hash"] = hash;
-        if (errors.length) reply["error"] = errors.join("\n");
+        reply.hash = hash;
+        if (errors.length) reply.error = errors.join("\n");
 
         return reply;
     };
@@ -935,18 +932,19 @@ function DataWorkerHelperCreator(globalWorker) {
     };
 
     DWH.prototype._hideShowColumns = function (data, isVisible) {
-        var self = this;
+        var self = this, regex;
 
         if ("columnNames" in data) {
             data.columnNames.forEach(function (column) {
                 if (column in self._columns) {
-                    self._columns[column]["isVisible"] = isVisible;
+                    self._columns[column].isVisible = isVisible;
                 }
             });
         } else if ("columnNameRegex" in data) {
+            regex = new RegExp(data.columnNameRegex);
             Object.keys(self._columns).forEach(function (column) {
-                if (RegExp(data.columnNameRegex).test(column)) {
-                    self._columns[column]["isVisible"] = isVisible;
+                if (regex.test(column)) {
+                    self._columns[column].isVisible = isVisible;
                 }
             });
         } else if ("property" in data) {
@@ -960,8 +958,8 @@ function DataWorkerHelperCreator(globalWorker) {
         }
     };
 
-    DWH.prototype._getCellValue = function (row, index, type) {
-        var self = this, value = row.row[index];
+    DWH.prototype._getCellValue = function (record, index, type) {
+        var self = this, value = record.row[index];
 
         if (typeof(value) === "object" && value !== null) {
             if (value[type] !== undefined) {
@@ -1006,7 +1004,7 @@ function DataWorkerHelperCreator(globalWorker) {
                 sortColumn = sortOn[i].match(/(-?)(\w+)/);
                 columnName = sortColumn[2];
                 reverse     = !!sortColumn[1];
-                sortType   = self._columns[columnName]["sortType"];
+                sortType   = self._columns[columnName].sortType;
 
                 if (reverse) {
                     valB = self._getCellRawValueByColumn(a, columnName);
@@ -1096,7 +1094,7 @@ function DataWorkerHelperCreator(globalWorker) {
         var self = this;
 
         self._rows.forEach(function (row) {
-            row["isVisible"] = true;
+            row.isVisible = true;
         });
 
         return {};
@@ -1116,9 +1114,9 @@ function DataWorkerHelperCreator(globalWorker) {
 
         self._rows.forEach(function (row) {
             if (i++ < numRows) {
-                row["isVisible"] = true;
+                row.isVisible = true;
             } else {
-                row["isVisible"] = false;
+                row.isVisible = false;
             }
         });
 
@@ -1141,21 +1139,21 @@ function DataWorkerHelperCreator(globalWorker) {
         Object.keys(self._columns).forEach(function (columnName, i) {
             if (columnsToRemove.indexOf(columnName) === -1) {
                 var column = self._columns[columnName];
-                column["index"] = i;
+                column.index = i;
 
                 columnsToKeep[columnName] = column;
             }
         });
 
-        self._rows.forEach(function (row) {
+        self._rows.forEach(function (record) {
             var filteredRow = [];
 
             Object.keys(columnsToKeep).forEach(function (columnName) {
-                filteredRow[columnsToKeep[columnName]["index"]]
-                    = row["row"][self._columns[columnName]["index"]];
+                filteredRow[columnsToKeep[columnName].index] =
+                    record.row[self._columns[columnName].index];
             });
 
-            row["row"] = filteredRow;;
+            record.row = filteredRow;
         });
 
         self._columns = columnsToKeep;
@@ -1198,7 +1196,7 @@ function DataWorkerHelperCreator(globalWorker) {
         var self = this,
             column = data.column, sortType = data.sortType;
 
-        self._columns[column]["sortType"] = sortType;
+        self._columns[column].sortType = sortType;
 
         return {};
     };
@@ -1207,7 +1205,7 @@ function DataWorkerHelperCreator(globalWorker) {
         var self = this,
             column = data.column, aggType = data.aggType;
 
-        self._columns[column]["aggType"] = aggType;
+        self._columns[column].aggType = aggType;
 
         return {};
     };
@@ -1216,7 +1214,7 @@ function DataWorkerHelperCreator(globalWorker) {
         var self = this,
             column = data.column, title = data.title;
 
-        self._columns[column]["title"] = title;
+        self._columns[column].title = title;
 
         return {};
     };
@@ -1286,7 +1284,7 @@ function DataWorkerHelperCreator(globalWorker) {
 
         Object.keys(fColumns).forEach(function (columnName) {
             var column = fColumns[columnName];
-            column["index"] += originalNumColumns;
+            column.index += originalNumColumns;
 
             self._columns[columnName] = column;
         });
@@ -1312,21 +1310,19 @@ function DataWorkerHelperCreator(globalWorker) {
 
             hashedDataset[key].forEach(function (row) {
                 Object.keys(self._columns).forEach(function (columnName) {
-                    var aggType = self._columns[columnName]["aggType"],
-                        index = self._columns[columnName]["index"],
+                    var aggType = self._columns[columnName].aggType,
+                        index = self._columns[columnName].index,
                         isKeyColumn = groupBy.indexOf(columnName) !== -1;
 
                     if (index in groupedRow && !isKeyColumn) {
                         if (aggType === "sum") {
                             groupedRow[index] += row[index];
                         } else if (aggType === "max") {
-                            groupedRow[index] = ( groupedRow[index] < row[index] )
-                                               ? row[index]
-                                               : groupedRow[index];
+                            groupedRow[index] = ( groupedRow[index] < row[index] ) ?
+                                row[index] : groupedRow[index];
                         } else if (aggType === "min") {
-                            groupedRow[index] = ( groupedRow[index] > row[index] )
-                                               ? row[index]
-                                               : groupedRow[index];
+                            groupedRow[index] = ( groupedRow[index] > row[index] ) ?
+                                row[index] : groupedRow[index];
                         } else {
                             errors.push(
                                 "Unrecognized aggType for columm \"" + columnName + "\"."
@@ -1361,7 +1357,7 @@ function DataWorkerHelperCreator(globalWorker) {
         var columnsRow = Object.keys(self._columns).map(function (columnName) {
             return self._columns[columnName];
         }).sort(function (a, b) {
-            return self._numSort(a["index"], b["index"]);
+            return self._numSort(a.index, b.index);
         });
 
         Object.keys(hashedDataset).forEach(function (key) {
@@ -1384,9 +1380,7 @@ function DataWorkerHelperCreator(globalWorker) {
     DWH.prototype.getPartitioned = function (data) {
         var self = this, rows = self._partitionedRows[data.key];
         return {
-            rows: rows
-                ? self._getVisibleRows(undefined, self._partitionedRows[data.key])
-                : []
+            rows: rows ? self._getVisibleRows(undefined, self._partitionedRows[data.key]) : []
         };
     };
 
@@ -1508,7 +1502,7 @@ function DataWorkerHelperCreator(globalWorker) {
         var self = this;
 
         Object.keys(self._columns).forEach(function (column) {
-            self._columns[column]["isVisible"] = false;
+            self._columns[column].isVisible = false;
         });
 
         return {};
@@ -1518,7 +1512,7 @@ function DataWorkerHelperCreator(globalWorker) {
         var self = this;
 
         Object.keys(self._columns).forEach(function (column) {
-            self._columns[column]["isVisible"] = true;
+            self._columns[column].isVisible = true;
         });
 
         return {};
@@ -1615,9 +1609,7 @@ function DataWorkerHelperCreator(globalWorker) {
             requestMade = true;
         }
 
-        return requestMade
-            ? {}
-            : { error: "Could not request dataset; no datasource defined." };
+        return requestMade ? {} : { error: "Could not request dataset; no datasource defined." };
     };
 
     DWH.prototype.addChildRows = function (data) {
@@ -1649,13 +1641,17 @@ function DataWorkerHelperCreator(globalWorker) {
     };
 
     DWH.prototype.refreshAll = function (data) {
-        var self = this, rows = data.complexValues
-            ? self._rows.map(function (row) { return row.row; })
-            : self._rows.map(function (row) {
-                return row.row.map(function (cell, i) {
-                    return self._getCellDisplayValueByIndex(row, i);
+        var self = this, rows;
+
+        if (data.complexValues) {
+            rows = self._rows.map(function (record) { return record.row; });
+        } else {
+            rows = self._rows.map(function (record) {
+                return record.row.map(function (cell, i) {
+                    return self._getCellDisplayValueByIndex(record, i);
                 });
             });
+        }
 
         return { columns: self._columns, rows: rows };
     };
@@ -1664,13 +1660,13 @@ function DataWorkerHelperCreator(globalWorker) {
         var self = this;
 
         if (self._ajaxDatasource) {
-            self._ajaxRequests.forEach(function (xhr) { xhr.abort() });
+            self._ajaxRequests.forEach(function (xhr) { xhr.abort(); });
             self._ajaxRequests = [];
             self._ajaxRequestCounter++;
         } else if (self._wsDatasource) {
             if (
-                self._socket !== undefined
-                && self._cancelRequestsCmd !== undefined
+                self._socket            !== undefined &&
+                self._cancelRequestsCmd !== undefined
             ) {
                 self._waitForCancelRequestsAck = !!self._cancelRequestsAck;
                 self._socket.send(self._cancelRequestsCmd);
@@ -1688,9 +1684,9 @@ function DataWorkerHelperCreator(globalWorker) {
         var self = this;
 
         if (
-            typeof(self._socket) !== "undefined"
-            && self._socket.readyState !== 0
-            && self._socket.readyState !== 3
+            typeof(self._socket) !== "undefined" &&
+            self._socket.readyState !== 0        &&
+            self._socket.readyState !== 3
         ) {
             self._socket.send(data.message);
         }
@@ -1708,204 +1704,6 @@ function DataWorkerHelperCreator(globalWorker) {
 }
 
 DataWorkerHelperCreator(this);
-
-/*!
- * document.currentScript
- * Polyfill for `document.currentScript`.
- * Copyright (c) 2015 James M. Greene
- * Licensed MIT
- * http://jsfiddle.net/JamesMGreene/9DFc9/
- * v0.1.7
- */
-(function() {
-"use strict";
-
-if (typeof window === "undefined") { return; }
-
-
-var hasStackBeforeThrowing = false,
-    hasStackAfterThrowing = false;
-(function() {
-  try {
-    var err = new Error();
-    hasStackBeforeThrowing = typeof err.stack === "string" && !!err.stack;
-    throw err;
-  }
-  catch (thrownErr) {
-    hasStackAfterThrowing = typeof thrownErr.stack === "string" && !!thrownErr.stack;
-  }
-})();
-
-
-// This page's URL
-var pageUrl = window.location.href;
-
-// Live NodeList collection
-var scripts = document.getElementsByTagName("script");
-
-// Get script object based on the `src` URL
-function getScriptFromUrl(url) {
-  if (typeof url === "string" && url) {
-    for (var i = 0, len = scripts.length; i < len; i++) {
-      if (scripts[i].src === url) {
-        return scripts[i];
-      }
-    }
-  }
-  return null;
-}
-
-// If there is only a single inline script on the page, return it; otherwise `null`
-function getSoleInlineScript() {
-  var script = null;
-  for (var i = 0, len = scripts.length; i < len; i++) {
-    if (!scripts[i].src) {
-      if (script) {
-        return null;
-      }
-      script = scripts[i];
-    }
-  }
-  return script;
-}
-
-// Get the configured default value for how many layers of stack depth to ignore
-function getStackDepthToSkip() {
-  var depth = 0;
-  if (
-    typeof _currentScript !== "undefined" &&
-    _currentScript &&
-    typeof _currentScript.skipStackDepth === "number"
-  ) {
-    depth = _currentScript.skipStackDepth;
-  }
-  return depth;
-}
-
-// Get the currently executing script URL from an Error stack trace
-function getScriptUrlFromStack(stack, skipStackDepth) {
-  var url, matches, remainingStack,
-      ignoreMessage = typeof skipStackDepth === "number";
-  skipStackDepth = ignoreMessage ? skipStackDepth : getStackDepthToSkip();
-  if (typeof stack === "string" && stack) {
-    if (ignoreMessage) {
-      matches = stack.match(/(data:text\/javascript(?:;[^,]+)?,.+?|(?:|blob:)(?:http[s]?|file):\/\/[\/]?.+?\/[^:\)]*?)(?::\d+)(?::\d+)?/);
-    }
-    else {
-      matches = stack.match(/^(?:|[^:@]*@|.+\)@(?=data:text\/javascript|blob|http[s]?|file)|.+?\s+(?: at |@)(?:[^:\(]+ )*[\(]?)(data:text\/javascript(?:;[^,]+)?,.+?|(?:|blob:)(?:http[s]?|file):\/\/[\/]?.+?\/[^:\)]*?)(?::\d+)(?::\d+)?/);
-
-      if (!(matches && matches[1])) {
-        matches = stack.match(/\)@(data:text\/javascript(?:;[^,]+)?,.+?|(?:|blob:)(?:http[s]?|file):\/\/[\/]?.+?\/[^:\)]*?)(?::\d+)(?::\d+)?/);
-      }
-    }
-
-    if (matches && matches[1]) {
-      if (skipStackDepth > 0) {
-        remainingStack = stack.slice(stack.indexOf(matches[0]) + matches[0].length);
-        url = getScriptUrlFromStack(remainingStack, (skipStackDepth - 1));
-      }
-      else {
-        url = matches[1];
-      }
-    }
-  }
-  return url;
-}
-
-// Get the currently executing `script` DOM element
-function _currentScript() {
-  // Yes, this IS actually possible
-  if (scripts.length === 0) {
-    return null;
-  }
-
-  if (scripts.length === 1) {
-    return scripts[0];
-  }
-
-  if ("readyState" in scripts[0]) {
-    for (var i = scripts.length; i--; ) {
-      if (scripts[i].readyState === "interactive") {
-        return scripts[i];
-      }
-    }
-  }
-
-  if (document.readyState === "loading") {
-    return scripts[scripts.length - 1];
-  }
-
-  var stack,
-      e = new Error();
-  if (hasStackBeforeThrowing) {
-    stack = e.stack;
-  }
-  if (!stack && hasStackAfterThrowing) {
-    try {
-      throw e;
-    }
-    catch (err) {
-      // NOTE: Cannot use `err.sourceURL` or `err.fileName` as they will always be THIS script
-      stack = err.stack;
-    }
-  }
-  if (stack) {
-    var url = getScriptUrlFromStack(stack);
-    var script = getScriptFromUrl(url);
-    if (!script && url === pageUrl) {
-      script = getSoleInlineScript();
-    }
-    return script;
-  }
-
-  return null;
-}
-
-
-// Configuration
-_currentScript.skipStackDepth = 1;
-
-
-
-// Inspect the polyfill-ability of this browser
-var needsPolyfill = !("currentScript" in document);
-var canDefineGetter = document.__defineGetter__;
-var canDefineProp = typeof Object.defineProperty === "function" &&
-  (function() {
-    var result;
-    try {
-      Object.defineProperty(document, "_xyz", {
-        get: function() {
-          return "blah";
-        },
-        configurable: true
-      });
-      result = document._xyz === "blah";
-      delete document._xyz;
-    }
-    catch (e) {
-      result = false;
-    }
-    return result;
-  })();
-
-
-// Add the "private" property for testing, even if the real property can be polyfilled
-document._currentScript = _currentScript;
-
-// Polyfill it!
-if (needsPolyfill) {
-  if (canDefineProp) {
-    Object.defineProperty(document, "currentScript", {
-      get: _currentScript
-    });
-  }
-  else if (canDefineGetter) {
-    document.__defineGetter__("currentScript", _currentScript);
-  }
-}
-
-})();
 
 (function() {
     "use strict";
@@ -1987,7 +1785,7 @@ if (needsPolyfill) {
         if ("onReceiveColumns" in dataset) {
             self._onReceiveColumns = function () {
                 self._onReceiveColumnsTracker = false;
-                dataset["onReceiveColumns"].apply(this, arguments);
+                dataset.onReceiveColumns.apply(this, arguments);
             };
         } else {
             self._onReceiveColumns = function () {};
@@ -1997,21 +1795,16 @@ if (needsPolyfill) {
         if ("onAllRowsReceived" in dataset) {
             self._onAllRowsReceived = function () {
                 self._onAllRowsReceivedTracker = false;
-                dataset["onAllRowsReceived"].apply(this, arguments);
+                dataset.onAllRowsReceived.apply(this, arguments);
             };
         } else {
             self._onAllRowsReceived = function () {};
         }
 
-        self._onReceiveRows = "onReceiveRows" in dataset
-                              ? dataset["onReceiveRows"]
-                              : function () {};
+        self._onReceiveRows = "onReceiveRows" in dataset ? dataset.onReceiveRows : function () {};
+        self._onTrigger     = "onTrigger"     in dataset ? dataset.onTrigger     : function () {};
 
-        self._onTrigger = "onTrigger" in dataset
-                         ? dataset["onTrigger"]
-                         : function () {};
-
-        self._onError = "onError" in dataset ? dataset["onError"] : function (error) {
+        self._onError = "onError" in dataset ? dataset.onError : function (error) {
             if (typeof console !== "undefined" && console.error) console.error(error);
         };
 
@@ -2028,7 +1821,7 @@ if (needsPolyfill) {
         }
 
         if ("workerSource" in dataset) {
-            sources.push(dataset["workerSource"]);
+            sources.push(dataset.workerSource);
         }
 
         if (!DataWorker.helperBlob) {
@@ -2043,11 +1836,11 @@ if (needsPolyfill) {
         }
 
         if (DataWorker.helperBlobUrl) {
-            sources.push(DataWorker.helperBlobUrl)
+            sources.push(DataWorker.helperBlobUrl);
         }
 
         if ("backupWorkerSource" in dataset) {
-            sources.push(dataset["backupWorkerSource"]);
+            sources.push(dataset.backupWorkerSource);
         }
 
         if (DataWorker.currentScript) {
@@ -2082,13 +1875,11 @@ if (needsPolyfill) {
             columns = settings.columns;
             rows    = settings.rows;
         } else {
-            datasources = (settings.datasource instanceof Array)
-                ?   settings.datasource.slice(0)
-                : [ settings.datasource ];
+            datasources = (settings.datasource instanceof Array) ?
+                settings.datasource.slice(0) : [ settings.datasource ];
 
-            request = (typeof settings.request === "string")
-                ? settings.request
-                : JSON.stringify(settings.request);
+            request = (typeof settings.request === "string") ?
+                settings.request : JSON.stringify(settings.request);
         }
 
         self._connectionSettings = {
@@ -2193,7 +1984,7 @@ if (needsPolyfill) {
             var datasource = settings.datasources[settings.index - 1],
                 protocol   = (/^(wss?|https?|file):/.exec(datasource) || [])[1];
 
-            DataWorker.ignoreProtocols[self._worker.source][protocol];
+            DataWorker.ignoreProtocols[self._worker.source][protocol] = true;
         } else if (error) {
             self._onError(error);
         }
@@ -2584,8 +2375,8 @@ if (needsPolyfill) {
                 self._onError("Odd number of join keys.");
             }
             if (
-                typeof(joinType) !== "undefined"
-                && !(joinType === "left" || joinType === "right" || joinType === "inner")
+                typeof(joinType) !== "undefined" &&
+                !(joinType === "left" || joinType === "right" || joinType === "inner")
             ) {
                 self._onError("Unknown join type.");
             }
@@ -2932,7 +2723,7 @@ if (needsPolyfill) {
             var columnsRow = Object.keys(columns).map(function (columnName) {
                 return columns[columnName];
             }).sort(function (a, b) {
-                return a["index"] - b["index"];
+                return a.index - b.index;
             });
 
             var dataset = [ columnsRow ].concat(records);
@@ -2981,11 +2772,11 @@ if (needsPolyfill) {
         var self = this, msg = { cmd: cmd };
 
         if (typeof(columnNames[0]) === "string") {
-            msg["columnNames"] = columnNames;
+            msg.columnNames = columnNames;
         } else if (columnNames[0] instanceof RegExp) {
-            msg["columnNameRegex"] = columnNames[0];
+            msg.columnNameRegex = columnNames[0];
         } else if ("property" in columnNames[0] && "value" in columnNames[0]) {
-            msg["property"] = columnNames[0];
+            msg.property = columnNames[0];
         }
 
         self._queueNext(function () {
@@ -3100,9 +2891,8 @@ if (needsPolyfill) {
 
     DataWorker.prototype.setSummaryRows = function () {
         var self = this,
-            rows = arguments.length === 1
-                 ? arguments[0]
-                 : Array.prototype.slice.call(arguments);
+            rows = arguments.length === 1 ?
+                arguments[0] : Array.prototype.slice.call(arguments);
 
         self._queueNext(function () {
             self._postMessage({
@@ -3141,7 +2931,7 @@ if (needsPolyfill) {
 
         if (typeof filters === "string" || filters instanceof RegExp) {
             filters = [ filters, options.searchOn || options.columns ]
-                .filter(function (term) { return !!term })
+                .filter(function (term) { return !!term; });
         }
 
 
@@ -3167,11 +2957,8 @@ if (needsPolyfill) {
     };
 
     function _getArray(args, offset) {
-        var idx  = offset || 0,
-            arr  = args[idx] instanceof Array
-                 ? args[idx]
-                 : Array.prototype.slice.call(args, idx);
+        var idx = offset || 0;
 
-        return arr;
+        return args[idx] instanceof Array ? args[idx] : Array.prototype.slice.call(args, idx);
     }
 })();

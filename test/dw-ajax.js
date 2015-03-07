@@ -31,9 +31,9 @@ QUnit.test("construct (webworker)", function (assert) {
     d.onAllRowsReceived(function () {
         d.getColumns(function (columns) {
             assert.equal(Object.keys(columns).length, 3);
-            assert.equal(columns["column_a"].index, 0);
-            assert.equal(columns["column_b"].index, 1);
-            assert.equal(columns["column_c"].index, 2);
+            assert.equal(columns.column_a.index, 0);
+            assert.equal(columns.column_b.index, 1);
+            assert.equal(columns.column_c.index, 2);
         }).getRows(function (rows) {
             assert.deepEqual(rows, [
                 [ "apple",      "violin",    "music" ],
@@ -64,9 +64,9 @@ QUnit.test("construct (single-thread)", function (assert) {
     d.onAllRowsReceived(function () {
         d.getColumns(function (columns) {
             assert.equal(Object.keys(columns).length, 3);
-            assert.equal(columns["column_a"].index, 0);
-            assert.equal(columns["column_b"].index, 1);
-            assert.equal(columns["column_c"].index, 2);
+            assert.equal(columns.column_a.index, 0);
+            assert.equal(columns.column_b.index, 1);
+            assert.equal(columns.column_c.index, 2);
         }).getRows(function (rows) {
             assert.deepEqual(rows, [
                 [ "apple",      "violin",    "music" ],
@@ -99,16 +99,16 @@ QUnit.test("AJAX as a fallback for when websocket fails", function (assert) {
     d.onAllRowsReceived(function () {
         d.getColumns(function (columns) {
             assert.equal(Object.keys(columns).length, 3);
-            assert.equal(columns["column_a"].index, 0);
-            assert.equal(columns["column_b"].index, 1);
-            assert.equal(columns["column_c"].index, 2);
+            assert.equal(columns.column_a.index, 0);
+            assert.equal(columns.column_b.index, 1);
+            assert.equal(columns.column_c.index, 2);
         }).getRows(function (rows) {
             assert.deepEqual(rows, [
                 [ "apple",      "violin",    "music" ],
                 [ "cat",        "tissue",      "dog" ],
                 [ "banana",      "piano",      "gum" ],
                 [ "gummy",       "power",     "star" ]
-            ])
+            ]);
         }).getSummaryRows(function (rows) {
             assert.deepEqual(rows, [
                 [ "acbg", "vtpp", "mdgs" ]
@@ -131,9 +131,9 @@ QUnit.test("Can use onReceiveColumns with AJAX", function (assert) {
     d.onReceiveColumns(function () {
         d.getColumns(function (columns) {
             assert.equal(Object.keys(columns).length, 3);
-            assert.equal(columns["column_a"].index, 0);
-            assert.equal(columns["column_b"].index, 1);
-            assert.equal(columns["column_c"].index, 2);
+            assert.equal(columns.column_a.index, 0);
+            assert.equal(columns.column_b.index, 1);
+            assert.equal(columns.column_c.index, 2);
         });
     }).onAllRowsReceived(function () {
         d.getRows(function (rows) {
@@ -142,7 +142,7 @@ QUnit.test("Can use onReceiveColumns with AJAX", function (assert) {
                 [ "cat",        "tissue",      "dog" ],
                 [ "banana",      "piano",      "gum" ],
                 [ "gummy",       "power",     "star" ]
-            ])
+            ]);
         }).getSummaryRows(function (rows) {
             assert.deepEqual(rows, [
                 [ "acbg", "vtpp", "mdgs" ]

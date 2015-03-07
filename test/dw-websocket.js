@@ -1,8 +1,12 @@
 QUnit.module("DataWorker (Streaming via Websockets)");
 QUnit.moduleDone(function (details) {
+    function nextWorker() {
+        return DataWorker.workerPool.getWorker("resources/dw-helper.test.js", true);
+    }
+
     if (details.name === "DataWorker (Streaming via Websockets)") {
         var worker;
-        while (worker = DataWorker.workerPool.getWorker("resources/dw-helper.test.js", true)) {
+        while (!!(worker = nextWorker())) {
             worker.terminate();
         }
     }
@@ -53,7 +57,7 @@ QUnit.test("construct (single-threaded w/ authenticate)", function (assert) {
 
     assert.ok(d instanceof DataWorker);
 
-    d.getColumns(function (columns) { assert.ok(true) }).finish(done);
+    d.getColumns(function (columns) { assert.ok(true); }).finish(done);
 });
 
 QUnit.test("construct (webworker w/ request)", function (assert) {
@@ -836,7 +840,7 @@ QUnit.test("onSocketClose", function (assert) {
 
     assert.ok(d instanceof DataWorker);
 
-    d.getColumns(function (columns) { assert.ok(true) }).finish(done);
+    d.getColumns(function (columns) { assert.ok(true); }).finish(done);
 });
 
 QUnit.test("attempt reconnect after disconnect", function (assert) {

@@ -37,6 +37,11 @@ module.exports = function(grunt) {
                 dest: "dist/<%= pkg.name %>-helper.js"
             }
         },
+        jshint: {
+            beforeconcat: [ "src/*.js" ],
+            afterconcat: [ "dist/dataworker.js", "dist/dataworker-helper.js" ],
+            test: [ "test/**/*.js" ]
+        },
         uglify: {
             options: {
                 preserveComments: "some",
@@ -58,6 +63,13 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks("grunt-contrib-concat");
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-watch");
+    grunt.loadNpmTasks("grunt-contrib-jshint");
 
     grunt.registerTask("dist", [ "concat", "uglify" ]);
+    grunt.registerTask("test", [
+        "jshint:test",
+        "jshint:beforeconcat",
+        "dist",
+        "jshint:afterconcat"
+    ]);
 };

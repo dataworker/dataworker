@@ -60,7 +60,7 @@
                     self._previousAction = action;
 
                     self._stackIndex++;
-                    self._callAction(function () { action.apply(self, args) });
+                    self._callAction(function () { action.apply(self, args); });
                 } else if (self._stackIndex > 0) {
                     self._stackIndex--;
                     doNextAction();

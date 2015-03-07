@@ -9,7 +9,8 @@
     }, _this;
 
     var MockWebSocket = global.WebSocket = function (source) {
-        var self = _this = this;
+        var self = this;
+        _this = this;
 
         self.readyState = READY_STATE.CONNECTING;
 
@@ -22,9 +23,9 @@
 
         if (source !== MockWebSocket.expectedSource) {
             MockWebSocket.unexpected(
-                "Unexpected:"
-                + "\n\tExpected: " + MockWebSocket.expectedSource
-                + "\n\tGot: " + source
+                "Unexpected:" +
+                "\n\tExpected: " + MockWebSocket.expectedSource +
+                "\n\tGot: " + source
             );
 
             return self;

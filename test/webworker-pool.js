@@ -4,7 +4,7 @@ QUnit.module("WebWorkerPool");
 QUnit.moduleDone(function (details) {
     if (details.name === "WebWorkerPool") {
         var worker;
-        while (worker = wwp.getWorker("resources/counting-webworker.js", true)) {
+        while (!!(worker = wwp.getWorker("resources/counting-webworker.js", true))) {
             worker.terminate();
         }
     }
@@ -26,7 +26,7 @@ QUnit.test("creates webworker out of simple source file", function (assert) {
             worker.postMessage("reset");
             wwp.reclaim(worker);
             done();
-        }
+        };
         worker.postMessage({});
     };
 
@@ -58,7 +58,7 @@ QUnit.test("creates webworker from Blob, if browser supports Blobs", function (a
                 worker.terminate();
                 URL.revokeObjectURL(url);
                 done();
-            }
+            };
             worker.postMessage(1);
         };
 
@@ -74,9 +74,10 @@ QUnit.test("new webworker is created unless one has been reclaimed", function (a
 
     var url = "resources/counting-webworker.js",
         done = assert.async(),
-        worker1, worker2, worker3;
+        worker1, worker2, worker3,
+        step1, step2, finishAll;
 
-    function step1() {
+    step1 = function () {
         var count = 0;
 
         worker1 = wwp.getWorker(url);
@@ -91,13 +92,13 @@ QUnit.test("new webworker is created unless one has been reclaimed", function (a
 
                 step2();
             }
-        }
+        };
 
         worker1.postMessage({});
         worker2.postMessage({});
-    }
+    };
 
-    function step2() {
+    step2 = function () {
         var count = 0;
 
         worker2 = wwp.getWorker(url);
@@ -107,20 +108,20 @@ QUnit.test("new webworker is created unless one has been reclaimed", function (a
             assert.equal(e.data.numMessages, 2);
 
             if (++count === 3) finishAll();
-        }
+        };
 
         worker3.onmessage = function (e) {
             assert.equal(e.data.numMessages, 1);
 
             if (++count === 3) finishAll();
-        }
+        };
 
         worker1.postMessage({});
         worker2.postMessage({});
         worker3.postMessage({});
-    }
+    };
 
-    function finishAll() {
+    finishAll = function () {
         worker1.postMessage("reset");
         worker2.postMessage("reset");
         worker3.postMessage("reset");
@@ -130,7 +131,7 @@ QUnit.test("new webworker is created unless one has been reclaimed", function (a
         wwp.reclaim(worker3);
 
         done();
-    }
+    };
 
     step1();
 });
@@ -151,16 +152,16 @@ QUnit.test("reuses webworker from Blob, if browser supports Blobs", function (as
         assert.expect(4);
 
         var worker1 = wwp.getWorker(url),
-            worker2;
+            worker2, finishAll;
 
-        function finishAll() {
+        finishAll = function () {
             worker1.terminate();
             worker2.terminate();
 
             URL.revokeObjectURL(url);
 
             done();
-        }
+        };
 
         worker1.onmessage = function (a) {
             assert.equal(a.data, 1);

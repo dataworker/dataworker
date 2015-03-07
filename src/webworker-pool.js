@@ -25,7 +25,8 @@
             var workers = self._workers[src];
             if (workers === "ignore") return false;
 
-            if (worker = workers && workers.length && workers.pop()) return true;
+            worker = workers && workers.length && workers.pop();
+            if (worker) return true;
             if (onlyReclaimed) return false;
 
             try {

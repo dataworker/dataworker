@@ -18,11 +18,13 @@ function getRandomWord() {
 function generateRandomDataset(columnTypes, numRows) {
     var rows = [], i;
 
+    function rowReduction(row, type) {
+        row.push(type === "num" ? Math.random() * 1000 : getRandomWord());
+        return row;
+    }
+
     for (i = 0; i < numRows; i++) {
-        rows.push(columnTypes.reduce(function (row, type) {
-            row.push(type === "num" ? Math.random() * 1000 : getRandomWord());
-            return row;
-        }, []));
+        rows.push(columnTypes.reduce(rowReduction, []));
     }
 
     return rows;
