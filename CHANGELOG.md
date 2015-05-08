@@ -1,3 +1,7 @@
+## v3.0.1
+
+* When a complex datasources (e.g. `{ source: "ws://example.com" }`) fails for a protocol, that protocol was not getting ignored for the webworker source
+
 ## v3.0.0
 
 * Various documentation fixes
@@ -19,9 +23,12 @@
 
 Rather than including four separate source files, you can now include a single file. There are two flavors. For the minified version, use `dist/dataworker.min.js`. Sourcemaps are also provided for debugging convenience. However, for better debugging, you can use the unminified version at `dist/dataworker.js`. It's still possible to include the source files directly, but a new file has been added.
 
-The `dist` folder also contains two flavors of the webworker code. By default, the webworker will try to use a Blob, and fallback to the main file. However, if you include `dataworker.js` as part of a large distribution file, this may not work very well (or at all). You may also run into issues with tools like `require.js`. For these cases, you can now provide the worker source when instantiation DataWorker. This is also handy to cut down on network traffic, as the helper file is smaller than the main distribution file.
+The `dist` folder also contains two flavors of the webworker code. By default, the webworker will try to use a Blob, and fall back to the main file. However, if you include `dataworker.js` as part of a large distribution file, this may not work very well (or at all). You may also run into issues with tools like `require.js`. For these cases, you can now provide the worker source when instantiation DataWorker. This is also handy to cut down on network traffic, as the helper file is smaller than the main distribution file.
+
+*Note:* DataWorker will still fall back to the script that includes DataWorker before trying to run in a single thread. This should be fine (and means you don't need to provide a worker source even if Blobs aren't supported) in most cases, but if you're using DataWorker inside a concatenated or minified file you may run into issues. In that case, you may need to force it to ignore that fallback before instantiating DataWorker. You can do this by removing `Dataworker.currentScript` (e.g. `delete DataWorker.currentScript`, `DataWorker.currentScript = null`, etc).
 
 ```
+    delete DataWorker.currentScript; // this will prevent DataWorker from trying to use the current script as a worker source
     var dw = new DataWorker({
         datasource: "http://example.com/mydata",
         workerSource: "/lib/js/dataworker-helper.js", // this will be tried before any other source

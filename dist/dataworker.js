@@ -1,5 +1,5 @@
 /*!
- * DataWorker v3.0.0 (http://git.io/dw)
+ * DataWorker v3.0.1 (http://git.io/dw)
  * Copyright 2014-2015 Rentrak Corporation and other contributors
  * Licensed under MIT (https://github.com/dataworker/dataworker/blob/master/LICENSE)
  */
@@ -1982,7 +1982,8 @@ DataWorkerHelperCreator(this);
 
         if (unsupported && self._worker.source) {
             var datasource = settings.datasources[settings.index - 1],
-                protocol   = (/^(wss?|https?|file):/.exec(datasource) || [])[1];
+                sourceStr  = (datasource && datasource.source) || datasource || "",
+                protocol   = (/^(wss?|https?|file):/.exec(sourceStr) || [])[1];
 
             DataWorker.ignoreProtocols[self._worker.source][protocol] = true;
         } else if (error) {

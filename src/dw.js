@@ -275,7 +275,8 @@
 
         if (unsupported && self._worker.source) {
             var datasource = settings.datasources[settings.index - 1],
-                protocol   = (/^(wss?|https?|file):/.exec(datasource) || [])[1];
+                sourceStr  = (datasource && datasource.source) || datasource || "",
+                protocol   = (/^(wss?|https?|file):/.exec(sourceStr) || [])[1];
 
             DataWorker.ignoreProtocols[self._worker.source][protocol] = true;
         } else if (error) {
