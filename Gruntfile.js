@@ -7,6 +7,13 @@ module.exports = function(grunt) {
                 " * Licensed under <%= pkg.license.type %> (<%= pkg.license.url %>)\n" +
                 " */\n",
 
+        bump: {
+            options: {
+                files: [ "package.json", "bower.json" ],
+                commitFiles: [ "package.json", "bower.json", "dist/*.js", "dist/*.map" ],
+                pushTo: "origin"
+            }
+        },
         concat: {
             options: {
                 banner: "<%= banner %>",
@@ -37,10 +44,13 @@ module.exports = function(grunt) {
                 dest: "dist/<%= pkg.name %>-helper.js"
             }
         },
+        fileExists: {
+            scripts: [ "lib/document.currentScript/dist/document.currentScript.js" ]
+        },
         jshint: {
-            beforeconcat: [ "src/*.js" ],
+            beforeconcat: [ "src/*.js", "lib/document.currentScript/dist/document.currentScript.js" ],
             afterconcat: [ "dist/dataworker.js", "dist/dataworker-helper.js" ],
-            test: [ "test/**/*.js" ]
+            test: [ "test/**/*.js" ],
         },
         uglify: {
             options: {
@@ -64,9 +74,12 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-watch");
     grunt.loadNpmTasks("grunt-contrib-jshint");
+    grunt.loadNpmTasks("grunt-file-exists");
+    grunt.loadNpmTasks("grunt-bump");
 
     grunt.registerTask("dist", [ "concat", "uglify" ]);
     grunt.registerTask("test", [
+        "fileExists",
         "jshint:test",
         "jshint:beforeconcat",
         "dist",

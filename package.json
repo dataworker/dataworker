@@ -6,6 +6,10 @@
     "type": "MIT",
     "url": "https://github.com/dataworker/dataworker/blob/master/LICENSE"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dataworker/dataworker.git"
+  },
   "version": "3.0.1",
   "devDependencies": {
     "grunt": "~0.4.5",
@@ -13,6 +17,7 @@
     "grunt-contrib-uglify": "~0.5.0",
     "grunt-contrib-concat": "~0.5.1",
     "grunt-contrib-watch": "~0.6.1",
-    "grunt-contrib-jshint": "~0.11.0"
+    "grunt-contrib-jshint": "~0.11.0",
+    "grunt-file-exists": "~0.1.2"
   }
 }
