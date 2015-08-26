@@ -583,6 +583,21 @@ function DataWorkerHelperCreator(globalWorker) {
             [ "regex", "!regex" ].forEach(function (type) {
                 if (filter[type]) filter[type] = new RegExp(filter[type]);
             });
+            
+            if (filter.accentInsensitive) {
+                filter.tests.forEach(function (testName) {
+                    var testCase = filter[testName],
+                        isRegex  = !!testName.match(/regex/i);
+                    if (typeof testCase === "string" || isRegex) { 
+                        filter[testName] = self._stripAccentMarks(testCase.toString());
+
+                        if (isRegex) {
+                            var match = filter[testName].match(new RegExp('^/(.*?)/([gimy]*)$'));
+                            filter[testName] = new RegExp(match[1], match[2]);
+                        }
+                    }
+                }); 
+            }
 
             return filter;
         }).filter(function (filter) { return filter.indices.length; });
@@ -618,7 +633,13 @@ function DataWorkerHelperCreator(globalWorker) {
     };
 
     DWH.prototype._testCell = function (cell, filter, isNum, testName) {
-        if (isNum) cell = parseFloat(cell);
+        var self = this;
+
+        if (isNum) { 
+            cell = parseFloat(cell);
+        } else if (filter.accentInsensitive && typeof cell === "string") {
+            cell = self._stripAccentMarks(cell);
+        }
 
         switch (testName) {
             case "regex":  return filter.regex.test(cell);
@@ -630,6 +651,27 @@ function DataWorkerHelperCreator(globalWorker) {
             case "lte":    return cell <= filter.lte;
             case "lt":     return cell <  filter.lt;
         }
+    };
+
+    DWH.prototype._stripAccentMarks = function (str) {
+       var accentMarks = [
+            /[\xC0-\xC5]/g, /[\xE0-\xE5]/g,  // A, a
+            /[\xC8-\xCB]/g, /[\xE8-\xEB]/g,  // E, e
+            /[\xCC-\xCF]/g, /[\xEC-\xEF]/g,  // I, i
+            /[\xD2-\xD8]/g, /[\xF2-\xF8]/g,  // O, o
+            /[\xD9-\xDC]/g, /[\xF9-\xFC]/g,  // U, u
+            /[\xDD\u0178]/g, /[\xFD\xFF]/g,  // Y, y
+            /[\xD1]/g, /[\xF1]/g,            // N, n
+            /[\xC7]/g, /[\xE7]/g,            // C, c
+            /[\u0160]/g, /[\u0161]/g         // S, s
+       ];
+       var regChars = ['A','a','E','e','I','i','O','o','U','u','Y','y','N','n','C','c','S','s'];
+
+       accentMarks.forEach(function (accentMark, index) {
+           str = str.replace(accentMark, regChars[index]);
+       });
+
+       return str;
     };
 
     DWH.prototype._extractColumnNamesInOrder = function (columns) {
