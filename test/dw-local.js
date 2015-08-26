@@ -541,6 +541,88 @@ QUnit.test("apply filter (complex, single filter, multiple columns)", function (
     }).finish(done);
 });
 
+QUnit.test("apply filter (complex, single filter, multiple columns, accent insensitive)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "âpplé",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ "banana",      "piano",      "gum" ],
+        [ "gummy",       "power",    "apple" ]
+    ];
+
+    var d = new DataWorker(dataset);
+    d.applyFilter(
+        {
+            columns          : [ "column_a", "column_c" ],
+            regex            : "^apple$",
+            accentInsensitive: true 
+        }
+    ).getRows(function (result) {
+        assert.deepEqual(result, [
+            [ "âpplé", "violin", "music" ],
+            [ "gummy", "power",  "apple" ]
+        ]);
+    }).finish(done);
+
+    d.applyFilter(
+        {
+            columns          : [ "column_a", "column_c" ],
+            regex            : "^applé$",
+            accentInsensitive: true 
+        }
+    ).getRows(function (result) {
+        assert.deepEqual(result, [
+            [ "âpplé", "violin", "music" ],
+            [ "gummy", "power",  "apple" ]
+        ]);
+    }).finish(done);
+});
+
+QUnit.test("apply filter (complex, single filter, multiple columns, accent sensitive)", function (assert) {
+    assert.expect(1);
+
+    var done = assert.async();
+
+    var dataset = [
+        [ "column_a", "column_b", "column_c" ],
+
+        [ "applé",      "violin",    "music" ],
+        [ "cat",        "tissue",      "dog" ],
+        [ undefined,        null,      "gum" ],
+        [ "gummy",       "power",    "apple" ]
+    ];
+
+    var d = new DataWorker(dataset);
+    d.applyFilter(
+        {
+            columns          : [ "column_a", "column_c" ],
+            regex            : "^apple$",
+            accentInsensitive: false 
+        }
+    ).getRows(function (result) {
+        assert.deepEqual(result, [
+            [ "gummy", "power",  "apple" ]
+        ]);
+    }).finish(done);
+
+    d.applyFilter(
+        {
+            columns          : [ "column_a", "column_c" ],
+            regex            : "^applé$",
+            accentInsensitive: false 
+        }
+    ).getRows(function (result) {
+        assert.deepEqual(result, [
+            [ "applé", "violin", "music" ],
+        ]);
+    }).finish(done);
+});
+
 QUnit.test("clear filter", function (assert) {
     assert.expect(1);
 
