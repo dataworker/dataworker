@@ -542,7 +542,7 @@ QUnit.test("apply filter (complex, single filter, multiple columns)", function (
 });
 
 QUnit.test("apply filter (complex, single filter, multiple columns, accent insensitive)", function (assert) {
-    assert.expect(1);
+    assert.expect(2);
 
     var done = assert.async();
 
@@ -567,7 +567,7 @@ QUnit.test("apply filter (complex, single filter, multiple columns, accent insen
             [ "âpplé", "violin", "music" ],
             [ "gummy", "power",  "apple" ]
         ]);
-    }).finish(done);
+    }).clearFilters();
 
     d.applyFilter(
         {
@@ -584,7 +584,7 @@ QUnit.test("apply filter (complex, single filter, multiple columns, accent insen
 });
 
 QUnit.test("apply filter (complex, single filter, multiple columns, accent sensitive)", function (assert) {
-    assert.expect(1);
+    assert.expect(2);
 
     var done = assert.async();
 
@@ -608,7 +608,7 @@ QUnit.test("apply filter (complex, single filter, multiple columns, accent sensi
         assert.deepEqual(result, [
             [ "gummy", "power",  "apple" ]
         ]);
-    }).finish(done);
+    }).clearFilters();
 
     d.applyFilter(
         {
