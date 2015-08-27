@@ -11,7 +11,7 @@ module.exports = function(grunt) {
             options: {
                 files: [ "package.json", "bower.json" ],
                 commitFiles: [ "package.json", "bower.json", "dist/*.js", "dist/*.map" ],
-                pushTo: "origin"
+                push: false
             }
         },
         concat: {
