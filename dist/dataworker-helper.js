@@ -1,6 +1,6 @@
 /*!
- * DataWorker v3.1.0 (http://git.io/dw)
- * Copyright 2014-2015 Rentrak Corporation and other contributors
+ * DataWorker v3.1.1 (http://git.io/dw)
+ * Copyright 2014-2016 Rentrak Corporation and other contributors
  * Licensed under MIT (https://github.com/dataworker/dataworker/blob/master/LICENSE)
  */
 function DataWorkerHelperCreator(globalWorker) {
