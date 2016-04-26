@@ -1,5 +1,5 @@
 /*!
- * DataWorker v3.1.1 (http://git.io/dw)
+ * DataWorker v3.1.2 (http://git.io/dw)
  * Copyright 2014-2016 Rentrak Corporation and other contributors
  * Licensed under MIT (https://github.com/dataworker/dataworker/blob/master/LICENSE)
  */
