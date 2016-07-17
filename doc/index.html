@@ -1,72 +1,114 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <link href="../lib/bootstrap/css/bootstrap.css" rel="stylesheet" media="screen">
-        <link href="dw.css" rel="stylesheet">
-
-        <script src="http://code.jquery.com/jquery.js"></script>
-        <script src="../lib/bootstrap/js/bootstrap.js"></script>
-
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" ccontent="ie-edge">
         <title>DataWorker</title>
+        <meta name="description" content="DataWorker documentation">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" href="https://cdn.rawgit.com/Daemonite/material/master/css/base.min.css">
+        <link rel="stylesheet" href="dw.css">
     </head>
-    <body data-spy="scroll" data-target="#side-nav">
-        <div class="container" id="top">
-            <div class="header-row row">
-                <div class="span12">
-                    <h1>DataWorker</h1>
-                </div>
+    <body class="page-brand" data-spy="scroll" data-target="#side-nav">
+        <header class="header header-standard header-brand">
+          <ul class="nav nav-list pull-left hidden-md hidden-lg">
+            <li>
+              <a data-toggle="menu" href="#side-nav">
+                <i class="icon icon-lg">menu</i>
+              </a>
+            </li>
+          </ul>
+          <span class="header-logo margin-left-no">DataWorker</span>
+          <ul class="nav nav-list pull-right">
+            <li>
+              <a class="waves-attach"
+                 href="https://github.com/dataworker/dataworker"
+                 title="View code on GitHub">
+                <i class="icon icon-lg">code</i>
+              </a>
+            </li>
+          </ul>
+        </header>
+        <nav class="menu menu-left nav-drawer nav-drawer-md" id="side-nav">
+          <div class="menu-scroll">
+            <div class="menu-content">
+              <a class="menu-logo" href="#top">DataWorker</a>
+              <ul class="nav">
+                <li>
+                  <a class="waves-attach" data-toggle="collapse" href="#get-started">Get started!</a>
+                  <ul class="menu-collapse collapse in" id="get-started">
+                    <li><a class="waves-attach" href="#local-data">Local Data</a></li>
+                    <li><a class="waves-attach" href="#stream">Streaming Data</a></li>
+                    <li><a class="waves-attach" href="#webworkers">Web Workers</a></li>
+                    <li><a class="waves-attach" href="#clone">Clone</a></li>
+                    <li><a class="waves-attach" href="#child-rows">Child Rows</a></li>
+                    <li><a class="waves-attach" href="#display-values">Display Values</a></li>
+                  </ul>
+                </li>
+                <li>
+                  <a class="waves-attach" data-toggle="collapse" href="#manipulate-dataset">Manipulate the dataset!</a>
+                  <ul class="menu-collapse collapse in" id="manipulate-dataset">
+                    <li><a class="waves-attach" href="#alter-columns">Alter columns</a></li>
+                    <li><a class="waves-attach" href="#append">Append</a></li>
+                    <li><a class="waves-attach" href="#filter">Filter</a></li>
+                    <li><a class="waves-attach" href="#search">Search</a></li>
+                    <li><a class="waves-attach" href="#group">Group</a></li>
+                    <li><a class="waves-attach" href="#join">Join</a></li>
+                    <li><a class="waves-attach" href="#limit">Limit</a></li>
+                    <li><a class="waves-attach" href="#remove-columns">Remove columns</a></li>
+                    <li><a class="waves-attach" href="#hide-columns">Hide columns</a></li>
+                    <li><a class="waves-attach" href="#clear-dataset">Clear Dataset</a></li>
+                    <li><a class="waves-attach" href="#sort">Sort</a></li>
+                    <li><a class="waves-attach" href="#add-child-rows">Add Child Rows</a></li>
+                  </ul>
+                </li>
+                <li>
+                  <a class="waves-attach" data-toggle="collapse" href="#access-dataset">Access the dataset!</a>
+                  <ul class="menu-collapse collapse in" id="access-dataset">
+                    <li><a class="waves-attach" href="#get-rows">Get rows</a></li>
+                    <li><a class="waves-attach" href="#get-hashed-rows">Get hashed rows</a></li>
+                    <li><a class="waves-attach" href="#get-columns">Get columns</a></li>
+                    <li><a class="waves-attach" href="#get-columns-and-records">Get columns and records</a></li>
+                    <li><a class="waves-attach" href="#get-number-of-records">Get number of records</a></li>
+                    <li><a class="waves-attach" href="#get-distinct">Get distinct</a></li>
+                    <li><a class="waves-attach" href="#pagination">Pagination</a></li>
+                    <li><a class="waves-attach" href="#partition">Partition</a></li>
+                    <li><a class="waves-attach" href="#render">Render</a></li>
+                  </ul>
+                </li>
+                <li>
+                  <a class="waves-attach" data-toggle="collapse" href="#contribute">Contribute!</a>
+                  <ul class="menu-collapse collapse in" id="contribute">
+                    <li><a class="waves-attach" href="#compile">Compile Code</a></li>
+                  </ul>
+                </li>
+              </ul>
             </div>
-            <div class="row">
-                <div id="side-nav" class="span3">
-                    <ul class="nav" data-spy="affix" data-offset-top="85">
-                        <li><a href="#top">DataWorker</a></li>
-                        <li class="nav-header">Get started!</li>
-                        <li><a href="#local-data">Local Data</a></li>
-                        <li><a href="#stream">Streaming Data</a></li>
-                        <li><a href="#webworkers">Web Workers</a></li>
-                        <li><a href="#clone">Clone</a></li>
-                        <li><a href="#child-rows">Child Rows</a></li>
-                        <li><a href="#display-values">Display Values</a></li>
-                        <li class="nav-header">Manipulate the dataset!</li>
-                        <li><a href="#alter-columns">Alter columns</a></li>
-                        <li><a href="#append">Append</a></li>
-                        <li><a href="#filter">Filter</a></li>
-                        <li><a href="#search">Search</a></li>
-                        <li><a href="#group">Group</a></li>
-                        <li><a href="#join">Join</a></li>
-                        <li><a href="#limit">Limit</a></li>
-                        <li><a href="#remove-columns">Remove columns</a></li>
-                        <li><a href="#hide-columns">Hide columns</a></li>
-                        <li><a href="#clear-dataset">Clear Dataset</a></li>
-                        <li><a href="#sort">Sort</a></li>
-                        <li><a href="#add-child-rows">Add Child Rows</a></li>
-                        <li class="nav-header">Access the dataset!</li>
-                        <li><a href="#get-rows">Get rows</a></li>
-                        <li><a href="#get-hashed-rows">Get hashed rows</a></li>
-                        <li><a href="#get-columns">Get columns</a></li>
-                        <li><a href="#get-columns-and-records">Get columns and records</a></li>
-                        <li><a href="#get-number-of-records">Get number of records</a></li>
-                        <li><a href="#get-distinct">Get distinct</a></li>
-                        <li><a href="#pagination">Pagination</a></li>
-                        <li><a href="#partition">Partition</a></li>
-                        <li><a href="#render">Render</a></li>
-                        <li class="nav-header">Contribute!</li>
-                        <li><a href="#compile">Compile Code</a></li>
-                        <li class="nav-header"></li>
-                        <li><small><a href="#top">Back to top</a></small></li>
-                    </ul>
-                </div>
-                <div class="span9">
-                    <section>
+          </div>
+        </nav>
+        <main class="content">
+          <div class="container">
+            <div class="col-lg-8 col-lg-offset-2 col-sm-10 col-sm-offset-1">
+              <section id="top">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
                         <p>DataWorker is designed to manage large datasets client-side, using modern web technologies such as Web Workers and WebSockets. DataWorker allows users to perform expensive operations (such as sorting, joining, searching, filtering, grouping, and much more) in a multi-threaded environment to maintain responsiveness. Data can be provided locally as an array, or remotely via AJAX or WebSockets. DataWorker has no dependencies on external libraries, but works well with others.</p>
                         <p>Not all browsers fully support all of the provided features (such as using a WebSocket from within a Web Worker) because some of the technology is quite new, so fallbacks are in place to make sure data can still be accessed across the most amount of devices possible.</p>
                         <p>To get started, you will need to include one of the distribution files in the <code>dist/</code> folder: <code>dataworker.js</code> for development/testing, and <code>dataworker.min.js</code> for production. For example: </p>
                         <pre>
     &lt;script src="dist/dataworker.min.js"&gt;&lt;/script&gt;</pre>
-                    </section>
-                    <section id="local-data">
-                        <h3>Local Data</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="local-data">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Local Data</h3>
                         <p>DataWorker takes an array of records to construct the initial dataset. The first record defines column properties.</p>
                         <pre>
     var dataset = [
@@ -125,17 +167,23 @@
     var dw = new DataWorker(dataset).onError(function (errorMsg) {
         alert(errorMsg);
     });</pre>
-                    <h5>Error handling</h5>
-                    <p>DataWorker can be provided with an error handler:</p>
-                    <pre>
-    dw.onError(function (msg) {
-        alert(msg);
-    });</pre>
-                    <p>By default, errors are printed to the console.</p>
-                    </section>
-                    <section id="stream">
-                        <h3>Streaming Data</h3>
-                        <h5>Via Websockets</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Error handling</h5>
+                        <p>DataWorker can be provided with an error handler:</p>
+                        <pre>
+        dw.onError(function (msg) {
+            alert(msg);
+        });</pre>
+                        <p>By default, errors are printed to the console.</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="stream">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Streaming Data</h3>
+                        <h5 class="content-sub-heading card-sub-heading">Via Websockets</h5>
                         <p>Alternatively, DataWorker can stream data from a WebSocket server:</p>
                         <pre>
     var dw = new DataWorker({
@@ -219,7 +267,7 @@
         }
     });</pre>
                         <p>If not set, this callback does nothing.</p>
-                        <h5>Via AJAX</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Via AJAX</h5>
                         <p>If WebSockets are not available, data can be received via AJAX as well:</p>
                         <pre>
     var dw = new DataWorker({
@@ -231,7 +279,7 @@
     });</pre>
                         <p><code>datasource</code> should be the base url to send GET requests to.</p>
                         <p><code>request</code> should be the query string to append to the base url. The prepended question mark is optional; if it is missing, one will automatically be inserted. Optionally, <code>request</code> could be a javascript object or a JSON string; DataWorker will convert this into a query string.</p>
-                        <h5>Using fallbacks</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Using fallbacks</h5>
                         <p>If multiple data sources exist, it is possible to provide fallbacks when instantiating DataWorker. This can be useful if you have a server down for maintenance or your WebSocket service is not running. Simply provide the possible sources as an array to <code>datasource</code> in priority order:</p>
                         <pre>
     var dw = new DataWorker({
@@ -258,7 +306,7 @@
             }
         ]
     });</pre>
-                        <h5>Requesting further data</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Requesting further data</h5>
                         <p>A new dataset can be requested using the <code>requestDataset</code> method:</p>
                         <pre>
     // For WebSockets or AJAX:
@@ -275,7 +323,7 @@
     // For AJAX only:
     dw.requestDatasetForAppend("query=string");</pre>
                         <p>Note that the newly-requested dataset should have the same columns as the previously-requested dataset.</p>
-                        <h5>Cancelling ongoing requests</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Cancelling ongoing requests</h5>
                         <p>Ongoing requests can be cancelled with the <code>cancelOnoingRequests</code> method:</p>
                         <pre>
     dw.cancelOngoingRequests();</pre>
@@ -290,7 +338,7 @@
         }
     });</pre>
                         <p>If <code>cancelRequestsAck</code> has been provided, DataWorker will wait for the server to acknowledge with a reply that matches <code>cancelRequestsAck</code> exactly before proceeding.
-                        <h5>Triggers</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Triggers</h5>
                         <p>DataWorker can pass messages to and from the remote server via the <code>postMessage</code> method and triggers:</p>
                         <pre>
     dw.onTrigger(function (reply) {
@@ -309,9 +357,15 @@
         authenticate     : "{}",
         onTrigger: function (reply) { alert(reply) }
     });</pre>
-                    </section>
-                    <section id="webworkers">
-                        <h3>Web Workers</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="webworkers">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Web Workers</h3>
                         <p>Web Workers are enabled by default, to get the most performance out of DataWorker. Without any extra configuration, a Blob will be used to create the Web Worker. However, some browsers do not support remote data from within a Web Worker created in that fashion, though they work fine when created using a standard URL. DataWorker will detect these errors and look for a file named <code>dw-helper.js</code> in the same folder as <code>dw.js</code>. THe method used to determine the source path does not work well in some circumstances, for example when a module loader like RequireJS. To provide alternative sources, extra options can be provided when instantiating DataWorker.</p>
                         <p>If <code>workerSource</code> is provided, it will be used first. If that source fails to create a Web Worker, or an error occurs on connection to the datasource, a Blob will be created next to try again. If the Blob fails, then <code>backupWorkerSource</code> will be used next. If that fails, or wasn't provided, DataWorker will make it's best guess as to the location of <code>dw-helper.js</code>. When all else fails, DataWorker will revert to a single-threaded environment. Finally, an error will be thrown if a connection still cannot be made and no local dataset is provided.</p>
                         <pre>
@@ -327,26 +381,44 @@
         datasource: "http://example.com/dataset.json",
         forceSingleThread: true
     });</pre>
-                    </section>
-                    <section id="clone">
-                        <h3>Clone</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="clone">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Clone</h3>
                         <p>A DataWorker dataset can be deep-copied by calling <code>clone</code>:</p>
                         <pre>
     dw.clone(function (newD) {
         newDataset = newD;
     });</pre>
                         <p>Note that any streaming datasources are not copied as part of the cloning process.</p>
-                    </section>
-                    <section id="child-rows">
-                        <h3>Child Rows</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="child-rows">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Child Rows</h3>
                         <p>DataWorker has a concept of child rows. Child rows are rows that are a subset of another row, and may be used, for example, to provide more detail. The functionality is currently limited to a small subset of functions. Where use of child rows is not explicitly defined, they are treated as if they are distinct rows that have been added to the dataset. These are the currently supported functions:</p>
                         <ul>
                             <li><a href="#sort">Sort</a></li>
                             <li><a href="#add-child-rows">Add Child Rows</a></li>
                         </ul>
-                    </section>
-                    <section id="display-values">
-                        <h3>Display Values</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="display-values">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Display Values</h3>
                         <p>DataWorker can use differing values for display and dataset operations. This enables you to include HTML formatting for cell values but not have to consider them when actually working with the dataset. To take advantage of this feature, simply pass the cell value an object with the <code>display</code> and <code>raw</code> properties defined:</p>
                         <pre>
     var dataset = [
@@ -366,7 +438,7 @@
         //      [ "banana",      "piano",     "gum"     ]
         // ]
     });
-    
+
     d.applyFilter(/^apple^/, "column_a"); // Operates on the raw value
 
     d.getRows(function (rows) {
@@ -376,19 +448,25 @@
     });
 </pre>
                         <p>The <code>display</code> value will be returned by the methods that allow access to the dataset, while the methods that manipulate the dataset will operate on the <code>raw</code> value. Also note that the two methods of specifying cell values can be mixed.</p>
-                    </section>
-                    <section id="alter-columns">
-                        <h3>Alter columns</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="alter-columns">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Alter columns</h3>
                         <p>Column properties can be altered after DataWorker is instantiated.</p>
-                        <h5>Alter column name</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Alter column name</h5>
                         <p>To change the name of <code>column_a</code> to <code>column_a1</code>:</p>
                         <pre>
     dw.alterColumnName("column_a", "column_a1");</pre>
-                        <h5>Alter column title</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Alter column title</h5>
                         <p>To change the title of <code>column_a</code> to <code>Things I Love</code>:</p>
                         <pre>
     dw.alterColumnTitle("column_a", "Things I Love");</pre>
-                        <h5>Alter column aggregate type</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Alter column aggregate type</h5>
                         <p>To change the aggregate type of <code>column_a</code> to <code>min</code>:</p>
                         <pre>
     dw.alterColumnAggregateType("column_a", "min");</pre>
@@ -398,7 +476,7 @@
                             <li><code>min</code></li>
                             <li><code>sum</code></li>
                         </ul>
-                        <h5>Alter column sort type</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Alter column sort type</h5>
                         <p>To change the sort type of <code>column_a</code> to <code>num</code>:</p>
                         <pre>
     dw.alterColumnSortType("column_a", "num");</pre>
@@ -408,13 +486,19 @@
                             <li><code>num</code></li>
                         </ul>
                         <p>Alternatively, you may pass in a sort function that takes two arguments <code>(a, b)</code> and returns <code>-1</code> for <code>a &lt b</code>, <code>1</code> for <code> a &gt b</code> or <code>0</code> for <code>a == b</code>.</p>
-                        <h5>Prepend column names</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Prepend column names</h5>
                         <p>To prepend <code>a_</code> to all column names:</p>
                         <pre>
     dw.prependColumnNames("a_");</pre>
-                    </section>
-                    <section id="append">
-                        <h3>Append</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="append">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Append</h3>
                         <p>The <code>append</code> method is used to concatenate two datasets together. The following appends <code>dataset2</code> to <code>dataset1</code>:</p>
                         <pre>
     var dataset1 = [
@@ -455,9 +539,15 @@
     var d2 = new DataWorker(dataset2);
     d1.append(d2);</pre>
                         <p>Note that column names must match up; an error will be thrown otherwise.</p>
-                    </section>
-                    <section id="filter">
-                        <h3>Filter</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="filter">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Filter</h3>
                         <p>The <code>applyFilter</code> method is used to filter out rows that do not contain the specified regex. The following filters out any row that does not contain the word "apple":</p>
                         <pre>
     var dataset = [
@@ -486,7 +576,7 @@
                         <p>Note that the following also works (and results in the exact same dataset):</p>
                         <pre>
     dw.applyFilter(/\bapple\b/, [ "column_a", "column_b" ]);</pre>
-                        <h5 id="complex-filters">Complex Filters</h5>
+                        <h5 class="content-sub-heading card-sub-heading" id="complex-filters">Complex Filters</h5>
                         <p>You may also use the complex syntax, in which all filters provided must find a match for the row to be visible. The complex filters can take any of the following arguments:</p>
                         <ul>
                             <li><code>columns</code> <i>(array of strings or single string)</i>: Columns on which to filter (defaults to all columns)</li>
@@ -550,9 +640,15 @@
                         <p>To permanently remove rows from a dataset with a filter, use the <code>filter</code> method:</p>
                         <pre>
     dw.filter(/\bapple\b/)</pre>
-                    </section>
-                    <section id="search">
-                        <h3>Search</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="search">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Search</h3>
                         <p>Similar to filters, the <code>search</code> method filters the currently visible dataset. The difference is that this will not modify the dataset. The simple form takes a callback and a search term, which can be either a regular expression, a string, or an array of <a href="#complex-filters">complex filters</a>.</p>
                         <pre>
     dw.search(function (results) { console.log(results); }, /apple/);</pre>
@@ -575,9 +671,15 @@
         fromRow: 6,
         limit: 3
     });</pre>
-                    </section>
-                    <section id="group">
-                        <h3>Group</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="group">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Group</h3>
                         <p>Similar to grouping in SQL, the <code>group</code> method allows you to group rows together.</p>
                         <pre>
     dw.group("column_a");</pre>
@@ -588,9 +690,15 @@
                         <pre>
     dw.group([ "column_a", "column_b" ]);</pre>
                         <p>Rows with the same value for the specified column(s) will be combined; the column property <code>aggType</code> determines how values for non-specified columns are combined.</p>
-                    </section>
-                    <section id="join">
-                        <h3>Join</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="join">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Join</h3>
                         <p>DataWorker also supports joining via the <code>join</code> method. It can inner join, left outer join, or right outer join.</p>
                         <p>The following inner joins <code>d1</code> with <code>d2</code> on <code>column_a</code> from <code>d1</code> and <code>column_d</code> from <code>d2</code>:</p>
                         <pre>
@@ -604,25 +712,43 @@
                         <p>Joins can also be performed on multiple columns:</p>
                         <pre>
     d1.join(d2, [ "column_a", "column_b" ], [ "column_d", "column_e" ]);</pre>
-                    </section>
-                    <section id="limit">
-                        <h3>Limit</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="limit">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Limit</h3>
                         <p>The <code>applyLimit</code> method limits the amount of visible rows in the dataset. The following allows only the first 10 rows in the dataset to be visible:</p>
                         <pre>   dw.applyLimit(10);</pre>
                         <p>The limit can be cleared by calling the <code>clearFilters</code> method:</p>
                         <pre>   dw.clearFilters();</pre>
                         <p>To permanently remove rows from a dataset with a limit, use the <code>limit</code> method:</p>
                         <pre>   dw.limit(10)</pre>
-                    </section>
-                    <section id="remove-columns">
-                        <h3>Remove columns</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="remove-columns">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Remove columns</h3>
                         <p>You may completely delete columns from a dataset with the <code>removeColumns</code> method.</p>
                         <pre>   dw.removeColumns("column_a", "column_b");</pre>
                         <p>Note that the following is also valid:</p>
                         <pre>   dw.removeColumns([ "column_a", "column_b" ]);</pre>
-                    </section>
-                    <section id="hide-columns">
-                        <h3>Hide columns</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="hide-columns">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Hide columns</h3>
                         <p>Instead of permanently deleting the columns, you may also temporarily hide them from view using the <code>hideColumns</code> method:</p>
                         <pre>   dw.hideColumns("column_a", "column_b");</pre>
                         <p>Note that the following is also valid:</p>
@@ -642,15 +768,27 @@
     dw.getAllColumns(function (columns) {
         allColumns = columns;
     });</pre>
-                    </section>
-                    <section id="clear-dataset">
-                        <h3>Clear Dataset</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="clear-dataset">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Clear Dataset</h3>
                         <p>If you want to completely clear the dataset so that you can add new data while leaving any custom handlers intact, you may call <code>clearDataset</code>.</p>
                         <pre>   dw.clearDataset();</pre>
                         <p>This will remove references to all columns and rows. The function takes no parameters.</p>
-                    </section>
-                    <section id="sort">
-                        <h3>Sort</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="sort">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Sort</h3>
                         <p>The following sorts the dataset on <code>column_a</code>:</p>
                         <pre>
     dw.sort("column_a")</pre>
@@ -674,9 +812,15 @@
             [ "abc", 456 ],
         [ "def", 0   ]
     ]</pre>
-                    </section>
-                    <section id="add-child-rows">
-                        <h3>Add Child Rows</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="add-child-rows">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Add Child Rows</h3>
                         Child rows can be added to the dataset by calling <code>addChildRows</code>. The columns must be the same as the original dataset as in the following example:</p>
                         <pre>
     var dataset = [
@@ -711,9 +855,15 @@
     ]</pre>
                         <p>The default visibility for a child row depends on its parent. If the parent row was set to hidden then the child row will still be added to the parent, but will be hidden as well.</p>
                         <p>If a parent row cannot be found for the children, those child rows will be ignored. If multiple parent rows exist for a given child row, the result is undefined.</p>
-                    </section>
-                    <section id="get-rows">
-                        <h3>Get rows</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="get-rows">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Get rows</h3>
                         <p>Visible dataset rows can be retrieved for use via the <code>getRows</code> method.</p>
                         <p>If called with just the callback function, <code>getRows</code> will get all rows. The next two arguments are the start and end of the range. If unspecified, they are the start and end of the dataset. These arguments are 0-based, so a dataset with 15 rows will have rows 0 - 14. If a number larger than the last row is used DataWorker will simply return anything in the range <i>up to</i> (and including) the last row.</p>
                         <pre>
@@ -749,9 +899,15 @@
     dw.getRows(callback, 5, 10, "column_a", "column_b");
     dw.getRows(callback, 5, 10, [ "column_a", "column_b" ]);
     dw.getRows(callback, undefined, undefined, [ "column_a", "column_b" ]);</pre>
-                    </section>
-                    <section id="get-hashed-rows">
-                        <h3>Get hashed rows</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="get-hashed-rows">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Get hashed rows</h3>
                         <p>The <code>getHashedRows</code> function makes it possible to get records as a hash with the column names instead of as a simple array. It works exactly the same as <code>getRows</code> but returns the data in a different format. In the following example</p>
                         <pre>
     var dataset = [
@@ -791,18 +947,30 @@
             "column_c": "star"
         }
     ]</pre>
-                    </section>
-                    <section id="get-columns">
-                        <h3>Get columns</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="get-columns">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Get columns</h3>
                         <p>The <code>getColumns</code> method is used to get the visible columns of the dataset:</p>
                         <pre>
     dw.getColumns(function (columns) {
         visibleColumns = columns;
     });</pre>
                         <p>Use <code>getAllColumns</code> to retrieve both visible and non-visible columns.</p>
-                    </section>
-                    <section id="get-columns-and-records">
-                        <h3>Get columns and records</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="get-columns-and-records">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Get columns and records</h3>
                         <p>Visible columns may be retrieved simultaneously with visible records with <code>getColumnsAndRecords</code>.</p>
                         <pre>
     dw.getColumnsAndRecords(function (columns, records) {
@@ -810,26 +978,38 @@
     });</pre>
                         <p>Columns will be given as a dictionary with the <code>columnName</code> as the key and its properties (also in a dictionary) as the value.</p>
                         <p>Records will be returned the same as in <code>getRows</code>.</p>
-                    </section>
-                    <section id="get-number-of-records">
-                        <h3>Get number of records</h3>
-                        <h5>Get number of records</h5>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="get-number-of-records">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Get number of records</h3>
+                        <h5 class="content-sub-heading card-sub-heading">Get number of records</h5>
                         <p>The <code>getNumberOfRecords</code> returns the number of visible rows currently in the dataset:</p>
                         <pre>
     dw.getNumberOfRecords(function (num) {
         numberOfRows = num;
     });</pre>
                         <p>Note that for streaming datasets, this value will be the current number of rows it has (and not the total number of rows expected). Use <code>getExpectedNumberOfRecords</code> to determine the total number of rows in a streaming dataset.</p>
-                        <h5>Get expected number of records</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Get expected number of records</h5>
                         <p>The <code>getExpectedNumberOfRecords</code> method returns the expected number of records in a streaming dataset.</p>
                         <pre>
     dw.getExpectedNumberOfRecords(function (num) {
         expectedNumberOfRows = num;
     });</pre>
-                    </section>
-                    <section id="get-distinct">
-                        <h3>Get distinct</h3>
-                        <h5>Get distinct consecutive rows</h5>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="get-distinct">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Get distinct</h3>
+                        <h5 class="content-sub-heading card-sub-heading">Get distinct consecutive rows</h5>
                         <p>Distinct rows can be retrieved using <code>getDistinctConsecutiveRows</code>. The function takes a <code>callback</code> and <code>columnName</code> as its parameters:</p>
                         <pre>
     function doSomethingInteresting(records) { }
@@ -868,13 +1048,19 @@
         [ "789", 7, 7 ]
     ]</pre>
                         <p>The number of records returned will always be equal to or less than the number of records in the original dataset.</p>
-                    </section>
-                    <section id="pagination">
-                        <h3>Pagination</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="pagination">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Pagination</h3>
                         <p>Pagination eases incremental access of the records. The following sets DataWorker to display 10 rows per page</p>
                         <pre>
     dw.paginate(10);</pre>
-                        <h5>Get next page</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Get next page</h5>
                         <p>Now you may grab the next 10 rows using the <code>getNextPage</code> method:</p>
                         <pre>
     var next10Rows, currentPage;
@@ -885,7 +1071,7 @@
     });</pre>
                         <p>The callback will provide the requested rows as well as the current page number.</p>
                         <p>The pagination system will not let you change to a page outside of the dataset. Grabbing the next page when you're on the last page will still return the last page.</p>
-                        <h5>Get previous page</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Get previous page</h5>
                         <p>The previous 10 rows can be grabbed using the <code>getPreviousPage</code> method:</p>
                         <pre>
     var previous10Rows, currentPage;
@@ -895,7 +1081,7 @@
         currentPage = pageNumber;
     });</pre>
                         <p>Grabbing a previous page from the 1st page will simply return the 1st page again.</p>
-                        <h5>Get page</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Get page</h5>
                         <p>You may jump to a specific page using the <code>getPage</code> method. The following grabs page 4:</p>
                         <pre>
     var page, currentPage;
@@ -905,18 +1091,18 @@
         currentPage = pageNumber; // pageNumber == 4
     }, 4);</pre>
                         <p>Note that this also sets your current page to the page you grab.</p>
-                        <h5>Ask for specific columns</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Ask for specific columns</h5>
                         <p>The previous three functions (<code>getNextPage</code>, <code>getPreviousPage</code>, and <code>getPage</code>) can all take extra arguments defining which columns to return. This will allow you to get a reduced dataset or specify columns that would normally be hidden. The columns can be defined as additional names, or as an array of names. The following are both valid:</p>
                         <pre>
     var callback = function (result, pageNumber) { /* Do something */ };
 
     dw.getNextPage(callback, "column_a", "column_b");
     dw.getNextPage(callback, [ "column_b", "column_c" ]);</pre>
-                        <h5>Set page</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Set page</h5>
                         <p>Use the <code>setPage</code> method to set a new current page. Attempting to set the page to 0 or a negative number will set the page to page 1. Setting to a page past the max number of current pages will set the page to the last page. The following sets your current page to page 4:</p>
                         <pre>
     dw.setPage(4);</pre>
-                        <h5>Get number of pages</h5>
+                        <h5 class="content-sub-heading card-sub-heading">Get number of pages</h5>
                         <p>Use the <code>getNumberOfPages</code> method to get the total number of pages in the dataset with the current pagination. Note that this is also the same as the last page in the dataset.</p>
                         <pre>
     var lastPage;
@@ -924,9 +1110,15 @@
     dw.getNumberOfPages(function (totalNumberOfPages) {
         lastPage = totalNumberOfPages;
     });</pre>
-                    </section>
-                    <section id="partition">
-                        <h3>Partition</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="partition">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Partition</h3>
                         <p>DataWorker can partition its dataset into multiple smaller datasets. The partitioned datasets can be retrieved afterwards using their partition key(s). The following partitions the dataset by the contents of <code>column_a</code> and uses the <code>getPartitioned</code> method to push each partition onto the <code>partitioned</code> array:</p>
                         <pre>
     var partitioned = [];
@@ -948,9 +1140,15 @@
                         <p>You may also sort partitions with the <code>sortPartition</code> method:</p>
                         <pre>
     dw.sortPartition(partitionKey, columnsToSortOn);</pre>
-                    </section>
-                    <section id="render">
-                        <h3>Render</h3>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section id="render">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Render</h3>
                         <p>The <code>render</code> method allows you to pass DataWorker a function to render the dataset. When <code>render</code> is called without arguments, DataWorker will call the rendering function that the user passed in, or do nothing if the user has not set a rendering function.</p>
                         <pre>
     dw.render(function () { /* code for rendering the dataset */ });
@@ -958,15 +1156,33 @@
     /* Make some changes to the dataset. */
 
     dw.render(); // Renders the new dataset according to the user-defined function.</pre>
-                    </section>
-                    <section id="compile">
-                        <h3>Compile</h3>
-                        <p>To generate the distribution files, we use the node module <code>grunt</code>. If you would like to play around with the source and create your own distribution files, you must first have <a href="http://nodejs.org">node.js</a> and <a href="http://npmjs.com">NPM</a> installed on your machine. From the DataWorker's root directory, run the command <code>npm install</code> in order to get the latest dev dependencies for the package. Then type <code>grunt dist</code> to generate the distribution files. You may also type <code>grunt watch</code> instead, which will automatically generate new distribution files whenever you change one of the source files.</p>
-                    </section>
+                    </div>
+                  </div>
                 </div>
+              </section>
+              <section id="compile">
+                <div class="card">
+                  <div class="card-main">
+                    <div class="card-inner">
+                        <h3 class="content-sub-heading card-heading">Compile</h3>
+                        <p>To generate the distribution files, we use the node module <code>grunt</code>. If you would like to play around with the source and create your own distribution files, you must first have <a href="http://nodejs.org">node.js</a> and <a href="http://npmjs.com">NPM</a> installed on your machine. From the DataWorker's root directory, run the command <code>npm install</code> in order to get the latest dev dependencies for the package. Then type <code>grunt dist</code> to generate the distribution files. You may also type <code>grunt watch</code> instead, which will automatically generate new distribution files whenever you change one of the source files.</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
+          </div>
+        </main>
+
+        <div class="fbtn-container">
+          <a class="fbtn fbtn-lg fbtn-brand-accent waves-attach waves-circle" href="#top">
+
+          </a>
         </div>
 
-        <a href="https://github.com/dataworker/dataworker"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+        <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+        <script src="https://cdn.rawgit.com/Daemonite/material/master/js/base.min.js"></script>
+        <script src="dw.js"></script>
     </body>
+
 </html>

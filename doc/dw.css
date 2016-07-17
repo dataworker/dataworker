@@ -1,22 +1,41 @@
-h1 {
-    text-align: center;
+@import 'https://fonts.googleapis.com/css?family=Roboto+Mono';
+
+code, kbd, pre, samp {
+  font-family: 'Roboto Mono', monospace;
 }
 
-#side-nav > ul {
-    width: 200px;
-    height: 95%;
-    overflow-y: auto;
+main {
+  margin-top: 68px;
 }
 
-#side-nav > ul > li.active {
-    background: #d9edf7;
+section[id]::before {
+  content: " ";
+  display: block;
+  height: 68px; /* 56 + 12 = 68 */
+  margin-top: -68px; /* 56 + 24 = 80 */
+  visibility: none;
 }
 
-#side-nav > .affix { top: 7px; }
+section[id] > .card {
+  margin-top: 0;
+}
 
-.header-row {
-    border-style: solid;
-    border-width: 1px;
-    margin-top: 15px;
-    margin-bottom: 15px;
+.card-sub-heading {
+  display: block;
+  font-size: 18px;
+  line-height: 28px;
+  margin-top: 22px;
+  margin-bottom: 22px;
+  box-shadow: 0 1px 0 rgba(0,0,0,.12);
+}
+
+.page-brand .content-sub-heading.card-sub-heading {
+  color: rgba(63,81,181,.8);
+  box-shadow: 0 1px 0 rgba(63,81,181,.24);
+}
+
+@media only screen and (min-width: 992px) {
+  header.header {
+    padding-left: 256px;
+  }
 }
