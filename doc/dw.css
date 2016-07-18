@@ -39,3 +39,42 @@ section[id] > .card {
     padding-left: 256px;
   }
 }
+
+[tooltip] {
+  position: relative;
+}
+
+[tooltip]::before {
+  content: attr(alt);
+  display: inline;
+  position: absolute;
+  font-size: 12px;
+  color: white;
+  background-color: black;
+  background-color: rgba(0,0,0,.8);
+  border-radius: .5em;
+  padding: .5em;
+  white-space: nowrap;
+  top: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transition-duration: .2s;
+  transition-delay: 0;
+  pointer-events: none;
+}
+
+[tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+  z-index: 9999;
+  
+  transition-delay: .3s;
+}
+
+[tooltip][top]::before { top: 0; bottom: 45px; }
+[tooltip][right]::before { left: 10px; }
+[tooltip][far-right]::before { left: 65px; }
+[tooltip][bottom]::before { top: 45px; }
+[tooltip][left]::before { right: 10px; }
+[tooltip][far-left]::before { right: 65px; }
+
