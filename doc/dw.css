@@ -4,6 +4,10 @@ code, kbd, pre, samp {
   font-family: 'Roboto Mono', monospace;
 }
 
+pre code {
+  border: none;
+}
+
 main {
   margin-top: 68px;
 }

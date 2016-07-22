@@ -8,4 +8,8 @@
   $(document).on("shown.bs.menu", function() {
     $("body").scrollspy("refresh");
   });
+
+  $(document).on("show.bs.collapse", "#side-nav .collapse", function() {
+    $("#side-nav .collapse.in").collapse("hide");
+  });
 })(jQuery);
