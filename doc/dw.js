@@ -18,6 +18,30 @@
     }
   }
 
+  function scrollToTarget(e, hash) {
+    var isPopState = e.type === "popstate";
+
+    if (isPopState) {
+      hash = window.location.hash;
+    }
+
+    var $target = $("section" + hash);
+    if ($target.length) {
+      autoScrolling = true;
+      $("html, body").animate({ scrollTop: $target.offset().top }, 500, function () {
+        autoScrolling = false;
+      });
+
+      // Prevent browser from scrolling to target and back before animating
+      if (!isPopState && window.history && window.history.pushState) {
+        window.history.pushState(null, "", hash);
+        e.preventDefault();
+      }
+    }
+  }
+
+  window.onpopstate = scrollToTarget;
+
   $(document)
     // Close mobile side-nav on navigation
     .on("click", "#side-nav a:not([data-toggle])", function() {
@@ -35,13 +59,8 @@
     .on("click", 'a[href^="#"]', function (e) {
       // Prevent auto-expanding on scroll when user manually toggled a section
       manualSideNavControl = $(this).data("toggle") === "collapse";
-      var $target = $("section" + $(this).attr("href"));
-      if ($target.length) {
-        autoScrolling = true;
-        $("html, body").animate({ scrollTop: $target.offset().top }, 500, function () {
-          autoScrolling = false;
-        });
-      }
+
+      scrollToTarget(e, $(this).attr("href"));
     })
     // Handle scrollspy events
     .on("activate.bs.scrollspy", "#side-nav li", function() {
