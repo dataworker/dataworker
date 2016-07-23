@@ -32,8 +32,8 @@
         <nav class="menu menu-left nav-drawer nav-drawer-md" id="side-nav">
           <div class="menu-scroll">
             <div class="menu-content">
-              <a class="menu-logo" href="#top">DataWorker</a>
               <ul class="nav">
+                <li><a class="waves-attach menu-logo" href="#top">DataWorker</a></li>
                 <li>
                   <a class="waves-attach" data-toggle="collapse" href="#get-started">Get started!</a>
                   <ul class="menu-collapse collapse" id="get-started" aria-expanded="false">
@@ -283,7 +283,7 @@
     <code>var dw = new DataWorker({
         request    : { cmd: "requestDataset" },
         datasource : [
-            "http://example.com",
+            "https://example.com",
             "ws://127.0.0.1:8888",
             "http://127.0.0.1:9999"
         ]
@@ -368,7 +368,7 @@
                         <p>If <code>workerSource</code> is provided, it will be used first. If that source fails to create a Web Worker, or an error occurs on connection to the datasource, a Blob will be created next to try again. If the Blob fails, then <code>backupWorkerSource</code> will be used next. If that fails, or wasn't provided, DataWorker will make it's best guess as to the location of <code>dw-helper.js</code>. When all else fails, DataWorker will revert to a single-threaded environment. Finally, an error will be thrown if a connection still cannot be made and no local dataset is provided.</p>
                         <pre>
     <code>new DataWorker({
-        datasource: "http://example.com/dataset.json",
+        datasource: "https://example.com/dataset.json",
         workerSource: "/path/to/dw-helper.js",
         backupWorkerSource: "/other/path/to/dw-helper.js"
     });</code></pre>
@@ -376,7 +376,7 @@
                         <p>Web Workers are still an experimental technology, and may have some issues. If you prefer to avoid using Web Workers at all, you may pass in a flag to force it to be single-threaded.</p>
                         <pre>
     <code>new DataWorker({
-        datasource: "http://example.com/dataset.json",
+        datasource: "https://example.com/dataset.json",
         forceSingleThread: true
     });</code></pre>
                     </div>
@@ -1163,7 +1163,7 @@
                   <div class="card-main">
                     <div class="card-inner">
                         <h3 class="content-sub-heading card-heading">Compile</h3>
-                        <p>To generate the distribution files, we use the node module <code>grunt</code>. If you would like to play around with the source and create your own distribution files, you must first have <a href="http://nodejs.org">node.js</a> and <a href="http://npmjs.com">NPM</a> installed on your machine. From the DataWorker's root directory, run the command <code>npm install</code> in order to get the latest dev dependencies for the package. Then type <code>grunt dist</code> to generate the distribution files. You may also type <code>grunt watch</code> instead, which will automatically generate new distribution files whenever you change one of the source files.</p>
+                        <p>To generate the distribution files, we use the node module <code>grunt</code>. If you would like to play around with the source and create your own distribution files, you must first have <a href="https://nodejs.org">node.js</a> and <a href="https://npmjs.com">NPM</a> installed on your machine. From the DataWorker's root directory, run the command <code>npm install</code> in order to get the latest dev dependencies for the package. Then type <code>grunt dist</code> to generate the distribution files. You may also type <code>grunt watch</code> instead, which will automatically generate new distribution files whenever you change one of the source files.</p>
                     </div>
                   </div>
                 </div>
@@ -1172,10 +1172,10 @@
           </div>
         </main>
 
-        <div class="fbtn-container">
-          <a class="fbtn fbtn-lg fbtn-brand-accent waves-attach waves-circle" href="#top"
+        <div class="fbtn-container not-visible" aria-hidden="true">
+          <a class="fbtn fbtn-lg fbtn-brand-accent waves-attach waves-circle waves-light" href="#top"
              tooltip far-left alt="Back to top">
-            <i class="icon icon-lg">arrow_upward</i>
+            <i class="fbtn-ori icon icon-lg">arrow_upward</i>
           </a>
         </div>
 

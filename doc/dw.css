@@ -12,6 +12,26 @@ main {
   margin-top: 68px;
 }
 
+.menu-content {
+  padding-top: 0;
+}
+
+.menu-content .nav a.menu-logo {
+  font-weight: 300;
+  min-height: 56px;
+}
+
+.fbtn-container.not-visible .fbtn {
+  -webkit-transform: scale(0,0);
+          transform: scale(0,0);
+}
+
+.fbtn-container.not-visible .fbtn .icon {
+  opacity: 0;
+  -webkit-transform: rotate(220deg);
+          transform: rotate(220deg);
+}
+
 section[id]::before {
   content: " ";
   display: block;
@@ -81,4 +101,3 @@ section[id] > .card {
 [tooltip][bottom]::before { top: 45px; }
 [tooltip][left]::before { right: 10px; }
 [tooltip][far-left]::before { right: 65px; }
-
