@@ -4,12 +4,18 @@ code, kbd, pre, samp {
   font-family: 'Roboto Mono', monospace;
 }
 
+code {
+  white-space: nowrap;
+}
+
 pre code {
   border: none;
+  white-space: pre;
 }
 
 main {
   margin-top: 68px;
+  margin-bottom: 68px;
 }
 
 .menu-content {
